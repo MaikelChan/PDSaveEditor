@@ -1,14 +1,14 @@
 #include "SaveData.h"
 #include <fstream>
-#include <exception>
+//#include <exception>
 #include <cassert>
 #include "Utils.h"
 
 SaveData::SaveData()
 {
-	assert(sizeof(SaveSlot) == SAVE_SLOT_SIZE);
+	/*assert(sizeof(SaveSlot) == SAVE_SLOT_SIZE);
 	assert(sizeof(GlobalData) == GLOBAL_DATA_SIZE);
-	assert(sizeof(SaveFile) == SAVE_FILE_SIZE);
+	assert(sizeof(SaveFile) == SAVE_FILE_SIZE);*/
 
 	saveFile = nullptr;
 
@@ -36,24 +36,54 @@ void SaveData::Load(const std::string filePath)
 	if (size != SAVE_FILE_SIZE)
 	{
 		stream.close();
-		throw std::runtime_error("The selected file is not a valid Banjo-Kazooie save file.");
+		throw std::runtime_error("The selected file is not a valid Perfect Dark save file.");
 		return;
 	}
 
-	SaveFile* saveFile = new SaveFile();
+	uint8_t bufferBytes[SAVE_BUFFER_SIZE] = {};
 
-	stream.seekg(0, std::ios_base::beg);
-	stream.read((char*)saveFile, sizeof(SaveFile));
+	// TODO: go straight to "boss file" for now
+	stream.seekg(16, std::ios_base::beg);
+	stream.read((char*)bufferBytes, SAVE_BUFFER_SIZE);
 	stream.close();
 
-	SaveData::Types type = CalculateType(saveFile);
+	SaveBuffer buffer(bufferBytes, SAVE_BUFFER_SIZE);
+
+	// Read "boss file"
+
+	BossFile bossFile;
+
+	buffer.ReadGuid(&bossFile.guid);
+
+	bossFile.unk1 = buffer.ReadBits(1);
+	bossFile.language = buffer.ReadBits(4);
+
+	for (int32_t t = 0; t < TEAM_NAMES_COUNT; t++)
+	{
+		buffer.ReadString(bossFile.teamNames[t], true);
+	}
+
+	bossFile.tracknum = buffer.ReadBits(8);
+
+	for (int32_t i = 0; i < MULTIPLE_TRACKS_COUNT; i++)
+	{
+		bossFile.multipletracknums[i] = buffer.ReadBits(8);
+	}
+
+	bossFile.usingmultipletunes = buffer.ReadBits(1);
+	bossFile.altTitleUnlocked = buffer.ReadBits(1);
+	bossFile.altTitleEnabled = buffer.ReadBits(1);
+
+	//SaveFile* saveFile = new SaveFile();
+
+	/*SaveData::Types type = CalculateType(saveFile);
 
 	if (type == SaveData::Types::NotValid)
 	{
 		delete saveFile;
-		throw std::runtime_error("The selected file is not a valid Banjo-Kazooie save file.");
+		throw std::runtime_error("The selected file is not a valid Perfect Dark save file.");
 		return;
-	}
+	}*/
 
 	ClearSaveFile();
 
@@ -90,7 +120,7 @@ SaveData::Types SaveData::CalculateType(SaveFile* saveFile)
 {
 	if (!saveFile) return SaveData::Types::NotValid;
 
-	for (uint8_t s = 0; s < TOTAL_NUM_SAVE_SLOTS; s++)
+	/*for (uint8_t s = 0; s < TOTAL_NUM_SAVE_SLOTS; s++)
 	{
 		uint32_t checksum = saveFile->GetRawSaveSlot(s)->CalculateChecksum();
 		if (checksum == saveFile->GetRawSaveSlot(s)->GetChecksum(false)) return SaveData::Types::PC;
@@ -99,7 +129,7 @@ SaveData::Types SaveData::CalculateType(SaveFile* saveFile)
 
 	uint32_t checksum = saveFile->GetGlobalData()->CalculateChecksum();
 	if (checksum == saveFile->GetGlobalData()->GetChecksum(false)) return SaveData::Types::PC;
-	if (checksum == saveFile->GetGlobalData()->GetChecksum(true)) return SaveData::Types::Nintendo64;
+	if (checksum == saveFile->GetGlobalData()->GetChecksum(true)) return SaveData::Types::Nintendo64;*/
 
-	return SaveData::Types::NotValid;
+	return SaveData::Types::PC;
 }

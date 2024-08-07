@@ -2,13 +2,16 @@
 
 #include <cstdint>
 
-#define SAVE_FILE_SIZE 0x200
+#define SAVE_FILE_SIZE 0x800
 
 #define TOTAL_NUM_SAVE_SLOTS 4
 #define ACTUAL_NUM_SAVE_SLOTS 3
 #define SAVE_SLOT_MAGIC 0x11
 #define SAVE_SLOT_SIZE 0x78
 #define GLOBAL_DATA_SIZE 0x20
+
+#define TEAM_NAMES_COUNT 8
+#define MULTIPLE_TRACKS_COUNT 6
 
 struct Range
 {
@@ -756,6 +759,44 @@ public:
 	void SetSnsItem(const SnS snsItem, const bool value);
 
 	uint32_t GetChecksum(const bool endianSwap) const;
+};
+
+struct FileGuid
+{
+	int32_t fileid;
+	uint16_t deviceserial;
+};
+
+struct SaveBuffer
+{
+#define SAVE_BUFFER_SIZE 220
+
+private:
+	uint32_t bitpos;
+	uint8_t bytes[SAVE_BUFFER_SIZE];
+
+public:
+	SaveBuffer();
+	SaveBuffer(const uint8_t* bytes, const uint32_t size);
+
+	uint32_t ReadBits(const int32_t numbits);
+	void ReadGuid(FileGuid* guid);
+	void ReadString(char* dst, const bool addlinebreak);
+	void Clear();
+};
+
+struct BossFile
+{
+public:
+	FileGuid guid = {};
+	uint8_t unk1 = 0;
+	uint8_t language = 0;
+	char teamNames[8][12] = {};
+	uint8_t tracknum = 255;
+	uint8_t multipletracknums[MULTIPLE_TRACKS_COUNT] = {};
+	bool usingmultipletunes = false;
+	bool altTitleUnlocked = false;
+	bool altTitleEnabled = false;
 };
 
 struct SaveFile

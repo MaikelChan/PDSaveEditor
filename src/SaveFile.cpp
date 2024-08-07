@@ -1,4 +1,5 @@
 #include "SaveFile.h"
+#include <stdexcept>
 #include "Utils.h"
 
 #pragma region SaveSlot
@@ -232,6 +233,81 @@ void GlobalData::SetSnsItem(const SnS snsItem, const bool value)
 uint32_t GlobalData::GetChecksum(const bool endianSwap) const
 {
 	return endianSwap ? Utils::Swap32(Checksum) : Checksum;
+}
+
+#pragma endregion
+
+#pragma region SaveBuffer
+
+SaveBuffer::SaveBuffer()
+{
+	Clear();
+}
+
+SaveBuffer::SaveBuffer(const uint8_t* bytes, const uint32_t size)
+{
+	if (size > SAVE_BUFFER_SIZE) throw std::runtime_error("There was an error trying to open open the file.");
+
+	Clear();
+	memcpy(SaveBuffer::bytes, bytes, size);
+}
+
+uint32_t SaveBuffer::ReadBits(const int32_t numbits)
+{
+	uint32_t bit = 1 << (numbits - 1);
+	uint32_t value = 0;
+
+	for (; bit; bit >>= 1) {
+		int32_t bitindex = bitpos % 8;
+		uint8_t mask = 1 << (7 - bitindex);
+		int32_t byteindex = bitpos / 8;
+
+		if (bytes[byteindex] & mask) {
+			value |= bit;
+		}
+
+		bitpos++;
+	}
+
+	return value;
+}
+
+void SaveBuffer::ReadGuid(FileGuid* guid)
+{
+	guid->fileid = ReadBits(7);
+	guid->deviceserial = ReadBits(13);
+}
+
+void SaveBuffer::ReadString(char* dst, const bool addlinebreak)
+{
+	bool foundnull = false;
+	int32_t index = 0;
+
+	for (int32_t i = 0; i < 10; i++)
+	{
+		uint32_t byte = ReadBits(8);
+
+		if (foundnull) continue;
+
+		if (byte == '\0')
+		{
+			foundnull = true;
+		}
+		else
+		{
+			dst[i] = byte;
+			index = i;
+		}
+	}
+
+	if (addlinebreak) dst[++index] = '\n';
+	dst[++index] = '\0';
+}
+
+void SaveBuffer::Clear()
+{
+	bitpos = 0;
+	memset(bytes, 0, SAVE_BUFFER_SIZE);
 }
 
 #pragma endregion
