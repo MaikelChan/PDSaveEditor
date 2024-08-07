@@ -1,0 +1,29 @@
+
+//GLFW_ICON ICON "../bk.ico"
+
+1 VERSIONINFO
+FILEVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+PRODUCTVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+FILETYPE 1 // VFT_APP
+
+{
+    BLOCK "StringFileInfo"
+    {
+	    BLOCK "040904E4"
+	    {
+		    VALUE "CompanyName", "PacoChan"
+		    VALUE "FileDescription", "This is a save editor for Perfect Dark."
+		    VALUE "FileVersion", "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@.0"
+		    VALUE "InternalName", "@PROJECT_NAME@.exe"
+		    VALUE "LegalCopyright", "PacoChan"
+		    VALUE "OriginalFilename", "@PROJECT_NAME@.exe"
+		    VALUE "ProductName", "Perfect Dark - Save Editor"
+		    VALUE "ProductVersion", "@PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@.0"
+	    }
+    }
+    
+    BLOCK "VarFileInfo"
+    {
+	    VALUE "Translation", 0x0409, 1252
+    }
+}
