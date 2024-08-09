@@ -2,7 +2,9 @@
 
 #include <cstdint>
 
-#define SAVE_FILE_SIZE 0x800
+#define SAVE_FILE_SIZE 2048
+#define MAX_FILE_SIZE 256
+#define MAX_NAME_LENGTH 10
 
 #define TEAM_NAMES_COUNT 8
 #define MULTIPLE_TRACKS_COUNT 6
@@ -829,7 +831,7 @@ public:
 	FileGuid guid = {};
 	uint8_t unk1 = 0;
 	uint8_t language = 0;
-	char teamNames[8][12] = {};
+	char teamNames[TEAM_NAMES_COUNT][MAX_NAME_LENGTH + 2] = {};
 	uint8_t tracknum = 255;
 	uint8_t multipletracknums[MULTIPLE_TRACKS_COUNT] = {};
 	bool usingmultipletunes = false;

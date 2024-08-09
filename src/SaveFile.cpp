@@ -284,7 +284,7 @@ void SaveBuffer::ReadString(char* dst, const bool addlinebreak)
 	bool foundnull = false;
 	int32_t index = 0;
 
-	for (int32_t i = 0; i < 10; i++)
+	for (int32_t i = 0; i < MAX_NAME_LENGTH; i++)
 	{
 		uint32_t byte = ReadBits(8);
 
@@ -340,8 +340,8 @@ void SaveFile::Load(uint8_t* fileBuffer)
 {
 	// Read headers
 
-	printf("Position  Header CRC       Body CRC         Type               Body Size  ID  Used  Device  Generation  Written  Version\n");
-	printf("------------------------------------------------------------------------------------------------------------------------\n");
+	printf("Position  Header CRC       Body CRC         Type (Name)            Size  ID  Used  Device  Generation  Written  Version\n");
+	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 
 	int32_t p = 0;
 
@@ -362,40 +362,56 @@ void SaveFile::Load(uint8_t* fileBuffer)
 		switch ((PakFileTypes)pakFileHeader.filetype)
 		{
 		case PakFileTypes::UNUSED_001:
-			type = "UNUSED_001       ";
+			type = "UNUSED_001           ";
 			break;
 		case PakFileTypes::BLANK:
-			type = "BLANK            ";
+			type = "BLANK                ";
 			break;
 		case PakFileTypes::TERMINATOR:
-			type = "TERMINATOR       ";
+			type = "TERMINATOR           ";
 			break;
 		case PakFileTypes::CAMERA:
-			type = "CAMERA           ";
+			type = "CAMERA               ";
 			break;
 		case PakFileTypes::BOSS:
-			type = "BOSS             ";
+			type = "BOSS                 ";
 			break;
 		case PakFileTypes::MPPLAYER:
-			type = "MPPLAYER         ";
-			break;
-		case PakFileTypes::MPSETUP:
-			type = "MPSETUP          ";
-			break;
-		case PakFileTypes::GAME:
-			char name[11];
+		{
+			char name[MAX_NAME_LENGTH + 1];
 			memcpy(name, &fileBuffer[p + 16], 10);
 			name[10] = '\0';
-			char gameName[18];
-			snprintf(gameName, 18, "GAME (%-10s)", name);
+			char gameName[32];
+			snprintf(gameName, 32, "MPPLAYER (%-10s)", name);
 			type = gameName;
 			break;
+		}
+		case PakFileTypes::MPSETUP:
+		{
+			char name[MAX_NAME_LENGTH + 1];
+			memcpy(name, &fileBuffer[p + 16], 10);
+			name[10] = '\0';
+			char gameName[32];
+			snprintf(gameName, 32, "MPSETUP  (%-10s)", name);
+			type = gameName;
+			break;
+		}
+		case PakFileTypes::GAME:
+		{
+			char name[MAX_NAME_LENGTH + 1];
+			memcpy(name, &fileBuffer[p + 16], 10);
+			name[10] = '\0';
+			char gameName[32];
+			snprintf(gameName, 32, "GAME     (%-10s)", name);
+			type = gameName;
+			break;
+		}
 		default:
-			type = "UNKNOWN          ";
+			type = "UNKNOWN              ";
 			break;
 		}
 
-		printf("0x%04X    %04X-%04X (%s)  %04X-%04X (%s)  %s  %3u        %2u  %u     %4u    %3u         %u        %u\n", p, pakFileHeader.headersum[0], pakFileHeader.headersum[1], headerSumResult, pakFileHeader.bodysum[0], pakFileHeader.bodysum[1], bodySumResult, type, pakFileHeader.bodylen, pakFileHeader.fileid, pakFileHeader.occupied, pakFileHeader.deviceserial, pakFileHeader.generation, pakFileHeader.writecompleted, pakFileHeader.version);
+		printf("0x%04X    %04X-%04X (%s)  %04X-%04X (%s)  %s  %3u   %2u  %u     %4u    %3u         %u        %u\n", p, pakFileHeader.headersum[0], pakFileHeader.headersum[1], headerSumResult, pakFileHeader.bodysum[0], pakFileHeader.bodysum[1], bodySumResult, type, pakFileHeader.bodylen, pakFileHeader.fileid, pakFileHeader.occupied, pakFileHeader.deviceserial, pakFileHeader.generation, pakFileHeader.writecompleted, pakFileHeader.version);
 
 		p += pakFileHeader.filelen;
 	}
