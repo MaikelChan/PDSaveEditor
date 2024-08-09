@@ -53,7 +53,7 @@ void SaveData::Load(const std::string filePath)
 	SaveFile* saveFile = new SaveFile();
 	saveFile->Load(fileBuffer);
 
-	SaveData::Types type = CalculateType(saveFile);
+	SaveData::Types type = CalculateType(fileBuffer);
 
 	if (type == SaveData::Types::NotValid)
 	{
@@ -93,20 +93,23 @@ void SaveData::ClearSaveFile()
 	type = SaveData::Types::NotValid;
 }
 
-SaveData::Types SaveData::CalculateType(SaveFile* saveFile)
+SaveData::Types SaveData::CalculateType(uint8_t* fileBuffer)
 {
-	if (!saveFile) return SaveData::Types::NotValid;
+	int32_t p = 0;
 
-	/*for (uint8_t s = 0; s < TOTAL_NUM_SAVE_SLOTS; s++)
+	while (p < SAVE_FILE_SIZE)
 	{
-		uint32_t checksum = saveFile->GetRawSaveSlot(s)->CalculateChecksum();
-		if (checksum == saveFile->GetRawSaveSlot(s)->GetChecksum(false)) return SaveData::Types::PC;
-		if (checksum == saveFile->GetRawSaveSlot(s)->GetChecksum(true)) return SaveData::Types::Nintendo64;
+		PakFileHeader header = {};
+		memcpy(&header, &fileBuffer[p], PACK_HEADER_SIZE);
+
+		uint16_t checksum[2];
+		SaveFile::CalculateChecksum(&fileBuffer[p + 8], &fileBuffer[p + 16], checksum);
+
+		if (header.headersum[0] == checksum[0] && header.headersum[1] == checksum[1]) return SaveData::Types::PC;
+		if (Utils::Swap16(header.headersum[0]) == checksum[0] && Utils::Swap16(header.headersum[1]) == checksum[1]) return SaveData::Types::Nintendo64;
+
+		p += header.filelen;
 	}
 
-	uint32_t checksum = saveFile->GetGlobalData()->CalculateChecksum();
-	if (checksum == saveFile->GetGlobalData()->GetChecksum(false)) return SaveData::Types::PC;
-	if (checksum == saveFile->GetGlobalData()->GetChecksum(true)) return SaveData::Types::Nintendo64;*/
-
-	return SaveData::Types::PC;
+	return SaveData::Types::NotValid;
 }

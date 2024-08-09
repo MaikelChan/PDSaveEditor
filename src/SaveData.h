@@ -27,5 +27,5 @@ public:
 private:
 	void ClearSaveFile();
 
-	static Types CalculateType(SaveFile* saveFile);
+	static Types CalculateType(uint8_t* fileBuffer);
 };

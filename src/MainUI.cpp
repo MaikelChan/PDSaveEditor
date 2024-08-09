@@ -74,13 +74,13 @@ void MainUI::DoRender()
 
 		if (saveData.IsSaveFileLoaded() && ImGui::BeginMenu("Tools"))
 		{
-			for (uint8_t s = 0; s < ACTUAL_NUM_SAVE_SLOTS; s++)
+			for (uint8_t s = 0; s < ACTUAL_NUM_FILE_SLOTS; s++)
 			{
 				if (ImGui::BeginMenu(tabNames[s]))
 				{
 					if (ImGui::BeginMenu("Copy"))
 					{
-						for (uint8_t ds = 0; ds < ACTUAL_NUM_SAVE_SLOTS; ds++)
+						for (uint8_t ds = 0; ds < ACTUAL_NUM_FILE_SLOTS; ds++)
 						{
 							if (s == ds) continue;
 
@@ -223,29 +223,64 @@ void MainUI::LoadingProcess() const
 
 	std::string message;
 
-	/*for (int s = 0; s < ACTUAL_NUM_SAVE_SLOTS; s++)
+	for (uint8_t f = 0; f < ACTUAL_NUM_BOSS_FILE_SLOTS; f++)
 	{
-		SaveSlot* saveSlot = saveData.GetSaveFile()->GetSaveSlot(s);
-		if (!saveSlot) continue;
+		BossFile* bossFile = saveData.GetSaveFile()->GetBossFile(f);
+		if (!bossFile->IsUsed()) continue;
 
-		if (!saveSlot->IsValid(saveData.NeedsEndianSwap()))
+		if (!bossFile->IsValid())
 		{
-			saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());
-			message += std::string("Save ") + tabNames[s] + " is corrupted. Data might be completely wrong.\n\n";
+			message += "Global data is corrupted. Data might be completely wrong.\n";
 		}
 	}
 
-	if (!saveData.GetSaveFile()->GetGlobalData()->IsValid(saveData.NeedsEndianSwap()))
+	uint8_t slot = 0;
+	message += "\n";
+
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{
-		saveData.GetSaveFile()->GetGlobalData()->UpdateChecksum(saveData.NeedsEndianSwap());
-		message += "Global data is corrupted. Data might be completely wrong.\n\n";
+		GameFile* gameFile = saveData.GetSaveFile()->GetGameFile(f);
+		if (!gameFile->IsUsed()) continue;
+
+		if (!gameFile->IsValid())
+		{
+			message += std::string("Game file ") + std::to_string(slot++) + " is corrupted. Data might be completely wrong.\n";
+		}
+	}
+
+	slot = 0;
+	message += "\n";
+
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		MultiplayerProfile* mpProfile = saveData.GetSaveFile()->GetMultiplayerProfile(f);
+		if (!mpProfile->IsUsed()) continue;
+
+		if (!mpProfile->IsValid())
+		{
+			message += std::string("Multiplayer profile ") + std::to_string(slot++) + " is corrupted. Data might be completely wrong.\n";
+		}
+	}
+
+	slot = 0;
+	message += "\n";
+
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		MultiplayerSettings* mpSettings = saveData.GetSaveFile()->GetMultiplayerSettings(f);
+		if (!mpSettings->IsUsed()) continue;
+
+		if (!mpSettings->IsValid())
+		{
+			message += std::string("Multiplayer settings ") + std::to_string(slot++) + " is corrupted. Data might be completely wrong.\n";
+		}
 	}
 
 	if (!message.empty())
 	{
 		popupDialog->SetMessage(MessageTypes::Warning, "Load warnings", message);
 		popupDialog->SetIsVisible(true);
-	}*/
+	}
 }
 
 void MainUI::Save()

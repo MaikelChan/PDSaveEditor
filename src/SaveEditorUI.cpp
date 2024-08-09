@@ -34,7 +34,7 @@ void SaveEditorUI::DoRender()
 
 		if (saveFile && ImGui::BeginTabBar("Save Slots", tab_bar_flags))
 		{
-			for (int s = 0; s < ACTUAL_NUM_SAVE_SLOTS; s++)
+			for (int s = 0; s < ACTUAL_NUM_FILE_SLOTS; s++)
 			{
 				if (ImGui::BeginTabItem(tabNames[s]))
 				{

@@ -2,26 +2,36 @@
 
 #include <cstdint>
 
+// General
+
+#define SAVE_BUFFER_SIZE 220
 #define SAVE_FILE_SIZE 2048
 #define MAX_PACK_FILE_SIZE 256
 #define PACK_HEADER_SIZE 16
+#define TOTAL_NUM_BOSS_FILE_SLOTS 1
+#define ACTUAL_NUM_BOSS_FILE_SLOTS 2
+#define TOTAL_NUM_FILE_SLOTS 4
+#define ACTUAL_NUM_FILE_SLOTS 5
+
 #define MAX_NAME_LENGTH 10
 #define MAX_PLAYERS 4
+#define NUM_WEAPONS 35 // TODO Is this correct?
+#define MULTIPLE_TRACKS_COUNT 6
+
+// Solo game
+
+#define GAMEFILE_FLAGS_SIZE 10
+#define NUM_SOLOSTAGES 21
+#define NUM_DIFFICULTIES 3
+
+// Multiplayer
+
 #define NUM_MP_CHALLENGES 30
-#define NUM_WEAPONS 35 // TODO ?
 #define MAX_BOTS 8
 #define NUM_MPWEAPONSLOTS 6
 #define NUM_MP_STAGES 16
 #define NUM_MP_STAGES_AND_RANDOM (NUM_MP_STAGES + 1)
-
 #define TEAM_NAMES_COUNT 8
-#define MULTIPLE_TRACKS_COUNT 6
-
-#define TOTAL_NUM_BOSS_FILE_SLOTS 1
-#define ACTUAL_NUM_BOSS_FILE_SLOTS 2
-
-#define TOTAL_NUM_SAVE_SLOTS 4
-#define ACTUAL_NUM_SAVE_SLOTS 5
 
 
 
@@ -806,8 +816,6 @@ struct FileGuid
 
 struct SaveBuffer
 {
-#define SAVE_BUFFER_SIZE 220
-
 private:
 	uint32_t bitpos;
 	uint8_t bytes[SAVE_BUFFER_SIZE];
@@ -818,7 +826,7 @@ public:
 
 	uint32_t ReadBits(const int32_t numbits);
 	void ReadGuid(FileGuid* guid);
-	void ReadString(char* dst/*, const bool addlinebreak*/);
+	void ReadString(char* dst);
 	void Clear();
 };
 
@@ -847,11 +855,24 @@ struct PakFileHeader
 	uint32_t version : 1;        // 0, but can be set to 1 using -forceversion argument
 };
 
-struct BossFile
+struct PakFile
 {
 public:
 	PakFileHeader pakFileHeader = {};
 
+private:
+	bool isValid = false;
+
+public:
+	virtual void Load(uint8_t* fileBuffer);
+
+	bool IsUsed() const { return pakFileHeader.occupied; }
+	bool IsValid() const { return isValid; }
+};
+
+struct BossFile : public PakFile
+{
+public:
 	FileGuid guid = {};
 	uint8_t unk1 = 0;
 	uint8_t language = 0;
@@ -863,20 +884,12 @@ public:
 	bool altTitleEnabled = false;
 
 public:
-	void Load(uint8_t* fileBuffer);
-
-	bool IsUsed() const { return pakFileHeader.occupied; }
+	void Load(uint8_t* fileBuffer) override;
 };
 
-struct GameFile
+struct GameFile : public PakFile
 {
-#define GAMEFILE_FLAGS_SIZE 10
-#define NUM_SOLOSTAGES 21
-#define NUM_DIFFICULTIES 3
-
 public:
-	PakFileHeader pakFileHeader = {};
-
 	char name[MAX_NAME_LENGTH + 1] = {};
 	uint8_t thumbnail = 0;
 	uint32_t totaltime = 0;
@@ -896,16 +909,12 @@ public:
 	uint8_t weaponsfound[6] = {};
 
 public:
-	void Load(uint8_t* fileBuffer);
-
-	bool IsUsed() const { return pakFileHeader.occupied; }
+	void Load(uint8_t* fileBuffer) override;
 };
 
-struct MultiplayerProfile
+struct MultiplayerProfile : public PakFile
 {
 public:
-	PakFileHeader pakFileHeader = {};
-
 	char name[MAX_NAME_LENGTH + 1] = {};
 	uint32_t time = 0;
 	uint8_t mpheadnum = 0;
@@ -933,16 +942,12 @@ public:
 	uint8_t gunfuncs[NUM_WEAPONS] = {};
 
 public:
-	void Load(uint8_t* fileBuffer);
-
-	bool IsUsed() const { return pakFileHeader.occupied; }
+	void Load(uint8_t* fileBuffer) override;
 };
 
-struct MultiplayerSettings
+struct MultiplayerSettings : public PakFile
 {
 public:
-	PakFileHeader pakFileHeader = {};
-
 	char name[MAX_NAME_LENGTH + 1] = {};
 	uint8_t stagenum = 0;
 	uint8_t scenario = 0;
@@ -956,28 +961,26 @@ public:
 	uint8_t teams[MAX_PLAYERS] = {};
 
 public:
-	void Load(uint8_t* fileBuffer);
-
-	bool IsUsed() const { return pakFileHeader.occupied; }
+	void Load(uint8_t* fileBuffer) override;
 };
-
 
 struct SaveFile
 {
 private:
 	BossFile bossFiles[ACTUAL_NUM_BOSS_FILE_SLOTS] = {};
-	GameFile gameFiles[ACTUAL_NUM_SAVE_SLOTS] = {};
-	MultiplayerProfile mpProfiles[ACTUAL_NUM_SAVE_SLOTS] = {};
-	MultiplayerSettings mpSettings[ACTUAL_NUM_SAVE_SLOTS] = {};
+	GameFile gameFiles[ACTUAL_NUM_FILE_SLOTS] = {};
+	MultiplayerProfile mpProfiles[ACTUAL_NUM_FILE_SLOTS] = {};
+	MultiplayerSettings mpSettings[ACTUAL_NUM_FILE_SLOTS] = {};
 
 public:
 	void Load(uint8_t* fileBuffer);
 
-	//SaveSlot* GetRawSaveSlot(const uint8_t slotIndex);
-	//SaveSlot* GetSaveSlot(const uint8_t slotIndex);
-	//GlobalData* GetGlobalData();
+	BossFile* GetBossFile(const uint8_t index) { return &bossFiles[index]; }
+	GameFile* GetGameFile(const uint8_t index) { return &gameFiles[index]; }
+	MultiplayerProfile* GetMultiplayerProfile(const uint8_t index) { return &mpProfiles[index]; }
+	MultiplayerSettings* GetMultiplayerSettings(const uint8_t index) { return &mpSettings[index]; }
 
-	static void CalculateChecksumU16Pair(uint8_t* start, uint8_t* end, uint16_t* checksum);
+	static void CalculateChecksum(uint8_t* start, uint8_t* end, uint16_t* checksum);
 
 private:
 	static uint32_t TransformSeed(uint64_t* seed);

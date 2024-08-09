@@ -315,9 +315,27 @@ void SaveBuffer::Clear()
 
 #pragma region BossFile
 
-void BossFile::Load(uint8_t* fileBuffer)
+void PakFile::Load(uint8_t* fileBuffer)
 {
 	memcpy(&pakFileHeader, &fileBuffer[0], PACK_HEADER_SIZE);
+
+	uint16_t headerChecksum[2];
+	SaveFile::CalculateChecksum(&fileBuffer[8], &fileBuffer[16], headerChecksum);
+
+	uint16_t bodyChecksum[2];
+	SaveFile::CalculateChecksum(&fileBuffer[16], &fileBuffer[16 + pakFileHeader.bodylen], bodyChecksum);
+
+	isValid = pakFileHeader.headersum[0] == headerChecksum[0] && pakFileHeader.headersum[1] == headerChecksum[1] &&
+		pakFileHeader.bodysum[0] == bodyChecksum[0] && pakFileHeader.bodysum[1] == bodyChecksum[1];
+}
+
+#pragma endregion
+
+#pragma region BossFile
+
+void BossFile::Load(uint8_t* fileBuffer)
+{
+	PakFile::Load(fileBuffer);
 
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
@@ -349,7 +367,7 @@ void BossFile::Load(uint8_t* fileBuffer)
 
 void GameFile::Load(uint8_t* fileBuffer)
 {
-	memcpy(&pakFileHeader, &fileBuffer[0], PACK_HEADER_SIZE);
+	PakFile::Load(fileBuffer);
 
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
@@ -413,7 +431,7 @@ void GameFile::Load(uint8_t* fileBuffer)
 
 void MultiplayerProfile::Load(uint8_t* fileBuffer)
 {
-	memcpy(&pakFileHeader, &fileBuffer[0], PACK_HEADER_SIZE);
+	PakFile::Load(fileBuffer);
 
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
@@ -465,7 +483,7 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer)
 
 void MultiplayerSettings::Load(uint8_t* fileBuffer)
 {
-	memcpy(&pakFileHeader, &fileBuffer[0], PACK_HEADER_SIZE);
+	PakFile::Load(fileBuffer);
 
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
@@ -547,8 +565,6 @@ void SaveFile::Load(uint8_t* fileBuffer)
 
 		// Read actual data
 
-		//if (!pakFileHeader.occupied) continue;
-
 		switch ((PakFileTypes)pakFileHeader.filetype)
 		{
 			case PakFileTypes::BOSS:
@@ -580,10 +596,10 @@ void SaveFile::Load(uint8_t* fileBuffer)
 		// Print debug data
 
 		uint16_t checksum[2];
-		CalculateChecksumU16Pair(&fileBuffer[p + 8], &fileBuffer[p + 16], checksum);
+		CalculateChecksum(&fileBuffer[p + 8], &fileBuffer[p + 16], checksum);
 		char* headerSumResult = (pakFileHeader.headersum[0] == checksum[0] && pakFileHeader.headersum[1] == checksum[1]) ? "OK " : "BAD";
 
-		CalculateChecksumU16Pair(&fileBuffer[p + 16], &fileBuffer[p + 16 + pakFileHeader.bodylen], checksum);
+		CalculateChecksum(&fileBuffer[p + 16], &fileBuffer[p + 16 + pakFileHeader.bodylen], checksum);
 		char* bodySumResult = (pakFileHeader.bodysum[0] == checksum[0] && pakFileHeader.bodysum[1] == checksum[1]) ? "OK " : "BAD";
 
 		char* type;
@@ -648,7 +664,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 	}
 }
 
-void SaveFile::CalculateChecksumU16Pair(uint8_t* start, uint8_t* end, uint16_t* checksum)
+void SaveFile::CalculateChecksum(uint8_t* start, uint8_t* end, uint16_t* checksum)
 {
 	uint8_t* ptr;
 	uint32_t salt = 0;
