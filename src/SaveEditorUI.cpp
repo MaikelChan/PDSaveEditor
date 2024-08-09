@@ -38,7 +38,7 @@ void SaveEditorUI::DoRender()
 			{
 				if (ImGui::BeginTabItem(tabNames[s]))
 				{
-					SaveSlot* saveSlot = saveFile->GetSaveSlot(s);
+					/*SaveSlot* saveSlot = saveFile->GetSaveSlot(s);
 
 					if (!saveSlot)
 					{
@@ -61,7 +61,7 @@ void SaveEditorUI::DoRender()
 
 							ImGui::EndTabBar();
 						}
-					}
+					}*/
 
 					ImGui::EndTabItem();
 				}
@@ -114,7 +114,7 @@ void SaveEditorUI::RenderLevelDataSection(const SaveData& saveData, SaveSlot* sa
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
 
-			for (int j = levelJiggiesIndexRanges[l].min; j <= levelJiggiesIndexRanges[l].max; j++)
+			/*for (int j = levelJiggiesIndexRanges[l].min; j <= levelJiggiesIndexRanges[l].max; j++)
 			{
 				if (levelJiggiesIndexRanges[l].Count() == 0) continue;
 
@@ -135,7 +135,7 @@ void SaveEditorUI::RenderLevelDataSection(const SaveData& saveData, SaveSlot* sa
 				ImGui::PopID();
 
 				if (j < levelJiggiesIndexRanges[l].max) ImGui::SameLine();
-			}
+			}*/
 
 			ImGui::PopStyleVar();
 
@@ -143,7 +143,7 @@ void SaveEditorUI::RenderLevelDataSection(const SaveData& saveData, SaveSlot* sa
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
 
-			for (int h = levelHoneycombsIndexRanges[l].min; h <= levelHoneycombsIndexRanges[l].max; h++)
+			/*for (int h = levelHoneycombsIndexRanges[l].min; h <= levelHoneycombsIndexRanges[l].max; h++)
 			{
 				if (levelHoneycombsIndexRanges[l].Count() == 0) continue;
 
@@ -164,13 +164,13 @@ void SaveEditorUI::RenderLevelDataSection(const SaveData& saveData, SaveSlot* sa
 				ImGui::PopID();
 
 				if (h < levelHoneycombsIndexRanges[l].max) ImGui::SameLine();
-			}
+			}*/
 
 			ImGui::PopStyleVar();
 
 			ImGui::TableSetColumnIndex(4);
 
-			if (levelHasNotes[l])
+			/*if (levelHasNotes[l])
 			{
 				uint8_t noteValue = saveSlot->GetNotes(l);
 				if (ImGui::InputScalar("##Notes Score", ImGuiDataType_U8, &noteValue, NULL, NULL, "%u"))
@@ -181,11 +181,11 @@ void SaveEditorUI::RenderLevelDataSection(const SaveData& saveData, SaveSlot* sa
 				}
 
 				totalNotes += noteValue;
-			}
+			}*/
 
 			ImGui::TableSetColumnIndex(5);
 
-			uint16_t time = saveSlot->GetPlayTime(l, saveData.NeedsEndianSwap());
+			/*uint16_t time = saveSlot->GetPlayTime(l, saveData.NeedsEndianSwap());
 			if (ImGui::InputScalar("##Play Time", ImGuiDataType_U16, &time, NULL, NULL, "%u"))
 			{
 				saveSlot->SetPlayTime(l, time, saveData.NeedsEndianSwap());
@@ -193,9 +193,9 @@ void SaveEditorUI::RenderLevelDataSection(const SaveData& saveData, SaveSlot* sa
 			}
 
 			if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-				ImGui::SetTooltip("%s", Utils::GetTimeString(time).c_str());
+				ImGui::SetTooltip("%s", Utils::GetTimeString(time).c_str());*/
 
-			totalPlayTime += time;
+			//totalPlayTime += time;
 
 			ImGui::PopID();
 		}
@@ -255,7 +255,7 @@ void SaveEditorUI::RenderLevelDataSection(const SaveData& saveData, SaveSlot* sa
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
 
-			for (int t = levelMumboTokensIndexRanges[l].min; t <= levelMumboTokensIndexRanges[l].max; t++)
+			/*for (int t = levelMumboTokensIndexRanges[l].min; t <= levelMumboTokensIndexRanges[l].max; t++)
 			{
 				ImGui::PushID(t);
 
@@ -274,7 +274,7 @@ void SaveEditorUI::RenderLevelDataSection(const SaveData& saveData, SaveSlot* sa
 				ImGui::PopID();
 
 				if (t < levelMumboTokensIndexRanges[l].max) ImGui::SameLine();
-			}
+			}*/
 
 			ImGui::PopStyleVar();
 
@@ -354,7 +354,7 @@ void SaveEditorUI::RenderAbilitiesItemsSection(const SaveData& saveData, SaveSlo
 
 	ImGui::PushItemWidth(40);
 
-	uint8_t mumboTokens = saveSlot->GetHeldItem(HeldItems::MumboTokens);
+	/*uint8_t mumboTokens = saveSlot->GetHeldItem(HeldItems::MumboTokens);
 	if (ImGui::InputScalar("Mumbo Tokens", ImGuiDataType_U8, &mumboTokens, NULL, NULL, "%u"))
 	{
 		if (mumboTokens > MAX_MUMBO_TOKENS) mumboTokens = MAX_MUMBO_TOKENS;
@@ -392,7 +392,7 @@ void SaveEditorUI::RenderAbilitiesItemsSection(const SaveData& saveData, SaveSlo
 		if (jiggies > JIGGIES_COUNT) jiggies = JIGGIES_COUNT;
 		saveSlot->SetHeldItem(HeldItems::Jiggies, jiggies);
 		saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());
-	}
+	}*/
 
 	ImGui::PopItemWidth();
 
@@ -688,7 +688,7 @@ void SaveEditorUI::RenderGlobalDataSection(const SaveData& saveData, SaveFile* s
 {
 	if (!ImGui::BeginTabItem("Global Data")) return;
 
-	PrintChecksum(saveFile->GetGlobalData()->GetChecksum(saveData.NeedsEndianSwap()));
+	//PrintChecksum(saveFile->GetGlobalData()->GetChecksum(saveData.NeedsEndianSwap()));
 
 	ImGui::SeparatorText("Unlocked / Collected Stop 'N' Swop Items");
 
@@ -707,11 +707,11 @@ bool SaveEditorUI::CheckboxProgressFlags(const SaveData& saveData, SaveSlot* sav
 {
 	bool value = saveSlot->GetProgressFlag(flag);
 
-	if (ImGui::Checkbox(label, &value))
+	/*if (ImGui::Checkbox(label, &value))
 	{
 		saveSlot->SetProgressFlag(flag, value);
 		saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());
-	}
+	}*/
 
 	return value;
 }
@@ -720,20 +720,20 @@ uint8_t SaveEditorUI::InputProgressFlags(const SaveData& saveData, SaveSlot* sav
 {
 	uint8_t value = saveSlot->GetProgressValue(flag, bitsCount);
 
-	ImGui::SetNextItemWidth(28);
+	/*ImGui::SetNextItemWidth(28);
 	if (ImGui::InputScalar(label, ImGuiDataType_U8, &value, NULL, NULL, "%u"))
 	{
 		if (value > maxValue) value = maxValue;
 		saveSlot->SetProgressValue(flag, bitsCount, value);
 		saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());
-	}
+	}*/
 
 	return value;
 }
 
 void SaveEditorUI::CheckboxAbility(const SaveData& saveData, SaveSlot* saveSlot, const char* label, const Abilities ability) const
 {
-	bool learned = saveSlot->GetLearnedAbility(ability);
+	/*bool learned = saveSlot->GetLearnedAbility(ability);
 	bool used = saveSlot->GetUsedAbility(ability);
 
 	char learnedId[64];
@@ -751,12 +751,12 @@ void SaveEditorUI::CheckboxAbility(const SaveData& saveData, SaveSlot* saveSlot,
 	{
 		saveSlot->SetUsedAbility(ability, used);
 		saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());
-	}
+	}*/
 }
 
 void SaveEditorUI::CheckboxSnS(const SaveData& saveData, const char* label, const SnS unlockedSnsItem, const SnS collectedSnsItem) const
 {
-	GlobalData* globalData = saveData.GetSaveFile()->GetGlobalData();
+	/*GlobalData* globalData = saveData.GetSaveFile()->GetGlobalData();
 
 	bool unlocked = globalData->GetSnsItem(unlockedSnsItem);
 	bool collected = globalData->GetSnsItem(collectedSnsItem);
@@ -776,7 +776,7 @@ void SaveEditorUI::CheckboxSnS(const SaveData& saveData, const char* label, cons
 	{
 		globalData->SetSnsItem(collectedSnsItem, collected);
 		globalData->UpdateChecksum(saveData.NeedsEndianSwap());
-	}
+	}*/
 }
 
 void SaveEditorUI::PrintChecksum(const uint32_t checksum) const

@@ -40,50 +40,27 @@ void SaveData::Load(const std::string filePath)
 		return;
 	}
 
-	uint8_t bufferBytes[SAVE_BUFFER_SIZE] = {};
+	// Read the whole file
 
-	// TODO: go straight to "boss file" for now
-	stream.seekg(16, std::ios_base::beg);
-	stream.read((char*)bufferBytes, SAVE_BUFFER_SIZE);
+	uint8_t fileBuffer[SAVE_BUFFER_SIZE];
+
+	stream.seekg(0, std::ios_base::beg);
+	stream.read((char*)&fileBuffer, SAVE_BUFFER_SIZE);
 	stream.close();
 
-	SaveBuffer buffer(bufferBytes, SAVE_BUFFER_SIZE);
+	// Create and load the SaveFile struct
 
-	// Read "boss file"
+	SaveFile* saveFile = new SaveFile();
+	saveFile->Load(fileBuffer);
 
-	BossFile bossFile;
-
-	buffer.ReadGuid(&bossFile.guid);
-
-	bossFile.unk1 = buffer.ReadBits(1);
-	bossFile.language = buffer.ReadBits(4);
-
-	for (int32_t t = 0; t < TEAM_NAMES_COUNT; t++)
-	{
-		buffer.ReadString(bossFile.teamNames[t], true);
-	}
-
-	bossFile.tracknum = buffer.ReadBits(8);
-
-	for (int32_t i = 0; i < MULTIPLE_TRACKS_COUNT; i++)
-	{
-		bossFile.multipletracknums[i] = buffer.ReadBits(8);
-	}
-
-	bossFile.usingmultipletunes = buffer.ReadBits(1);
-	bossFile.altTitleUnlocked = buffer.ReadBits(1);
-	bossFile.altTitleEnabled = buffer.ReadBits(1);
-
-	//SaveFile* saveFile = new SaveFile();
-
-	/*SaveData::Types type = CalculateType(saveFile);
+	SaveData::Types type = CalculateType(saveFile);
 
 	if (type == SaveData::Types::NotValid)
 	{
 		delete saveFile;
 		throw std::runtime_error("The selected file is not a valid Perfect Dark save file.");
 		return;
-	}*/
+	}
 
 	ClearSaveFile();
 

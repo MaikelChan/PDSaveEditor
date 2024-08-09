@@ -223,7 +223,7 @@ void MainUI::LoadingProcess() const
 
 	std::string message;
 
-	for (int s = 0; s < ACTUAL_NUM_SAVE_SLOTS; s++)
+	/*for (int s = 0; s < ACTUAL_NUM_SAVE_SLOTS; s++)
 	{
 		SaveSlot* saveSlot = saveData.GetSaveFile()->GetSaveSlot(s);
 		if (!saveSlot) continue;
@@ -245,7 +245,7 @@ void MainUI::LoadingProcess() const
 	{
 		popupDialog->SetMessage(MessageTypes::Warning, "Load warnings", message);
 		popupDialog->SetIsVisible(true);
-	}
+	}*/
 }
 
 void MainUI::Save()
@@ -265,7 +265,7 @@ void MainUI::Save()
 
 void MainUI::CopySlot(const uint8_t originSlotIndex, const uint8_t destinationSlotIndex) const
 {
-	if (!saveData.IsSaveFileLoaded()) return;
+	/*if (!saveData.IsSaveFileLoaded()) return;
 	if (originSlotIndex == destinationSlotIndex) return;
 
 	SaveSlot* origin = saveData.GetSaveFile()->GetSaveSlot(originSlotIndex);
@@ -297,16 +297,16 @@ void MainUI::CopySlot(const uint8_t originSlotIndex, const uint8_t destinationSl
 
 			break;
 		}
-	}
+	}*/
 }
 
 void MainUI::DeleteSlot(const uint8_t slotIndex) const
 {
-	if (!saveData.IsSaveFileLoaded()) return;
+	/*if (!saveData.IsSaveFileLoaded()) return;
 
 	SaveSlot* saveSlot = saveData.GetSaveFile()->GetSaveSlot(slotIndex);
 	if (saveSlot == nullptr) return;
 
 	memset(saveSlot, 0, SAVE_SLOT_SIZE);
-	saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());
+	saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());*/
 }

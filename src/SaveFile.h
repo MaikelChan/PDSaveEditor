@@ -4,14 +4,24 @@
 
 #define SAVE_FILE_SIZE 0x800
 
+#define TEAM_NAMES_COUNT 8
+#define MULTIPLE_TRACKS_COUNT 6
+
+
+
 #define TOTAL_NUM_SAVE_SLOTS 4
-#define ACTUAL_NUM_SAVE_SLOTS 3
+#define ACTUAL_NUM_SAVE_SLOTS 4
 #define SAVE_SLOT_MAGIC 0x11
 #define SAVE_SLOT_SIZE 0x78
 #define GLOBAL_DATA_SIZE 0x20
 
-#define TEAM_NAMES_COUNT 8
-#define MULTIPLE_TRACKS_COUNT 6
+enum class FileTypes
+{
+	GAME,
+	MPSETUP,
+	MPPLAYER,
+	CAMERA
+};
 
 struct Range
 {
@@ -702,9 +712,9 @@ private:
 	uint32_t Checksum;
 
 public:
-	uint32_t CalculateChecksum() const;
-	void UpdateChecksum(const bool endianSwap);
-	bool IsValid(const bool endianSwap) const;
+	//uint32_t CalculateChecksum() const;
+	//void UpdateChecksum(const bool endianSwap);
+	//bool IsValid(const bool endianSwap) const;
 
 	uint8_t GetMagic() const;
 	uint8_t GetSlotIndex() const;
@@ -751,9 +761,9 @@ private:
 	uint32_t Checksum;
 
 public:
-	uint32_t CalculateChecksum() const;
-	void UpdateChecksum(const bool endianSwap);
-	bool IsValid(const bool endianSwap) const;
+	//uint32_t CalculateChecksum() const;
+	//void UpdateChecksum(const bool endianSwap);
+	//bool IsValid(const bool endianSwap) const;
 
 	bool GetSnsItem(const SnS snsItem) const;
 	void SetSnsItem(const SnS snsItem, const bool value);
@@ -785,6 +795,21 @@ public:
 	void Clear();
 };
 
+struct PakFileHeader
+{
+	uint16_t headersum[2];       // checksum from filetype to end of header
+	uint16_t bodysum[2];
+	uint32_t filetype : 9;       // PAKFILETYPE constant
+	uint32_t bodylen : 11;       // not aligned
+	uint32_t filelen : 12;       // aligned to 0x10
+	uint32_t deviceserial : 13;
+	uint32_t fileid : 7;
+	uint32_t generation : 9;     // increments by 1 each time the same file is saved
+	uint32_t occupied : 1;
+	uint32_t writecompleted : 1; // 0 while writing data, then updated to 1 afterwards
+	uint32_t version : 1;        // 0, but can be set to 1 using -forceversion argument
+};
+
 struct BossFile
 {
 public:
@@ -802,14 +827,18 @@ public:
 struct SaveFile
 {
 private:
-	SaveSlot saveSlots[TOTAL_NUM_SAVE_SLOTS] = {};
-	GlobalData globalData = {};
+	PakFileHeader pakFileHeader = {};
+	BossFile bossFile = {};
 
 public:
-	SaveSlot* GetRawSaveSlot(const uint8_t slotIndex);
-	SaveSlot* GetSaveSlot(const uint8_t slotIndex);
-	GlobalData* GetGlobalData();
+	void Load(uint8_t* fileBuffer);
 
+	//SaveSlot* GetRawSaveSlot(const uint8_t slotIndex);
+	//SaveSlot* GetSaveSlot(const uint8_t slotIndex);
+	//GlobalData* GetGlobalData();
+
+	static void CalculateChecksumU16Pair(uint8_t* start, uint8_t* end, uint16_t* checksum);
+
+private:
 	static uint32_t TransformSeed(uint64_t* seed);
-	static uint32_t CalculateChecksum(uint8_t* start, uint8_t* end);
 };

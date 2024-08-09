@@ -4,22 +4,22 @@
 
 #pragma region SaveSlot
 
-uint32_t SaveSlot::CalculateChecksum() const
-{
-	return SaveFile::CalculateChecksum((uint8_t*)&Magic, (uint8_t*)&Checksum);
-}
+//uint32_t SaveSlot::CalculateChecksum() const
+//{
+//	return SaveFile::CalculateChecksum((uint8_t*)&Magic, (uint8_t*)&Checksum);
+//}
 
-void SaveSlot::UpdateChecksum(const bool endianSwap)
-{
-	const uint32_t checksum = CalculateChecksum();
-	Checksum = endianSwap ? Utils::Swap32(checksum) : checksum;
-}
-
-bool SaveSlot::IsValid(const bool endianSwap) const
-{
-	const uint32_t checksum = CalculateChecksum();
-	return Checksum == (endianSwap ? Utils::Swap32(checksum) : checksum);
-}
+//void SaveSlot::UpdateChecksum(const bool endianSwap)
+//{
+//	const uint32_t checksum = CalculateChecksum();
+//	Checksum = endianSwap ? Utils::Swap32(checksum) : checksum;
+//}
+//
+//bool SaveSlot::IsValid(const bool endianSwap) const
+//{
+//	const uint32_t checksum = CalculateChecksum();
+//	return Checksum == (endianSwap ? Utils::Swap32(checksum) : checksum);
+//}
 
 uint8_t SaveSlot::GetMagic() const
 {
@@ -199,22 +199,22 @@ uint32_t SaveSlot::GetChecksum(const bool endianSwap) const
 
 #pragma region GlobalData
 
-uint32_t GlobalData::CalculateChecksum() const
-{
-	return SaveFile::CalculateChecksum((uint8_t*)&SnsItems, (uint8_t*)&Checksum);
-}
+//uint32_t GlobalData::CalculateChecksum() const
+//{
+//	return SaveFile::CalculateChecksum((uint8_t*)&SnsItems, (uint8_t*)&Checksum);
+//}
 
-void GlobalData::UpdateChecksum(const bool endianSwap)
-{
-	const uint32_t checksum = CalculateChecksum();
-	Checksum = endianSwap ? Utils::Swap32(checksum) : checksum;
-}
-
-bool GlobalData::IsValid(const bool endianSwap) const
-{
-	const uint32_t checksum = CalculateChecksum();
-	return Checksum == (endianSwap ? Utils::Swap32(checksum) : checksum);
-}
+//void GlobalData::UpdateChecksum(const bool endianSwap)
+//{
+//	const uint32_t checksum = CalculateChecksum();
+//	Checksum = endianSwap ? Utils::Swap32(checksum) : checksum;
+//}
+//
+//bool GlobalData::IsValid(const bool endianSwap) const
+//{
+//	const uint32_t checksum = CalculateChecksum();
+//	return Checksum == (endianSwap ? Utils::Swap32(checksum) : checksum);
+//}
 
 bool GlobalData::GetSnsItem(const SnS snsItem) const
 {
@@ -246,7 +246,8 @@ SaveBuffer::SaveBuffer()
 
 SaveBuffer::SaveBuffer(const uint8_t* bytes, const uint32_t size)
 {
-	if (size > SAVE_BUFFER_SIZE) throw std::runtime_error("There was an error trying to open open the file.");
+	if (size > SAVE_BUFFER_SIZE)
+		throw std::runtime_error(std::string("Can't create a SaveBuffer bigger than ") + std::to_string(SAVE_BUFFER_SIZE) + " bytes.");
 
 	Clear();
 	memcpy(SaveBuffer::bytes, bytes, size);
@@ -314,96 +315,95 @@ void SaveBuffer::Clear()
 
 #pragma region SaveFile
 
-SaveSlot* SaveFile::GetRawSaveSlot(const uint8_t slotIndex)
-{
-	return &saveSlots[slotIndex];
-}
+//SaveSlot* SaveFile::GetRawSaveSlot(const uint8_t slotIndex)
+//{
+//	return &saveSlots[slotIndex];
+//}
+//
+//SaveSlot* SaveFile::GetSaveSlot(const uint8_t slotIndex)
+//{
+//	for (uint8_t s = 0; s < TOTAL_NUM_SAVE_SLOTS; s++)
+//	{
+//		if (saveSlots[s].GetMagic() != SAVE_SLOT_MAGIC) continue;
+//		if (saveSlots[s].GetSlotIndex() == slotIndex + 1) return &saveSlots[s];
+//	}
+//
+//	return nullptr;
+//}
+//
+//GlobalData* SaveFile::GetGlobalData()
+//{
+//	return &globalData;
+//}
 
-SaveSlot* SaveFile::GetSaveSlot(const uint8_t slotIndex)
+void SaveFile::Load(uint8_t* fileBuffer)
 {
-	for (uint8_t s = 0; s < TOTAL_NUM_SAVE_SLOTS; s++)
+	// Read header
+
+	memcpy(&pakFileHeader, &fileBuffer[0], sizeof(PakFileHeader));
+
+	uint16_t checksum[2];
+	CalculateChecksumU16Pair(&fileBuffer[8], &fileBuffer[16], checksum);
+
+	if (pakFileHeader.headersum[0] != checksum[0] || pakFileHeader.headersum[1] != checksum[1])
 	{
-		if (saveSlots[s].GetMagic() != SAVE_SLOT_MAGIC) continue;
-		if (saveSlots[s].GetSlotIndex() == slotIndex + 1) return &saveSlots[s];
+		// Bad checksum
 	}
 
-	return nullptr;
+	// Read "boss file"
+
+	SaveBuffer buffer(&fileBuffer[16], SAVE_BUFFER_SIZE);
+
+	buffer.ReadGuid(&bossFile.guid);
+
+	bossFile.unk1 = buffer.ReadBits(1);
+	bossFile.language = buffer.ReadBits(4);
+
+	for (int32_t t = 0; t < TEAM_NAMES_COUNT; t++)
+	{
+		buffer.ReadString(bossFile.teamNames[t], true);
+	}
+
+	bossFile.tracknum = buffer.ReadBits(8);
+
+	for (int32_t i = 0; i < MULTIPLE_TRACKS_COUNT; i++)
+	{
+		bossFile.multipletracknums[i] = buffer.ReadBits(8);
+	}
+
+	bossFile.usingmultipletunes = buffer.ReadBits(1);
+	bossFile.altTitleUnlocked = buffer.ReadBits(1);
+	bossFile.altTitleEnabled = buffer.ReadBits(1);
 }
 
-GlobalData* SaveFile::GetGlobalData()
+void SaveFile::CalculateChecksumU16Pair(uint8_t* start, uint8_t* end, uint16_t* checksum)
 {
-	return &globalData;
+	uint8_t* ptr;
+	uint32_t salt = 0;
+	uint64_t seed = 0x8f809f473108b3c1;
+	uint32_t sum1 = 0;
+	uint32_t sum2 = 0;
+
+	for (ptr = start; ptr < end; ptr++, salt += 7) {
+		seed += (uint64_t)(*ptr) << (salt & 0x0f);
+		sum1 ^= TransformSeed(&seed);
+	}
+
+	for (ptr = end - 1; ptr >= start; ptr--, salt += 3) {
+		seed += (uint64_t)(*ptr) << (salt & 0x0f);
+		sum2 ^= TransformSeed(&seed);
+	}
+
+	checksum[0] = sum1 & 0xffff;
+	checksum[1] = sum2 & 0xffff;
 }
 
 uint32_t SaveFile::TransformSeed(uint64_t* seed)
 {
-	// ld         $a3, 0x0($a0)
-	// dsll32     $a2, $a3, 31
-	// dsll       $a1, $a3, 31
-	// dsrl       $a2, $a2, 31
-	// dsrl32     $a1, $a1, 0
-	// dsll32     $a3, $a3, 12
-	// or         $a2, $a2, $a1
-	// dsrl32     $a3, $a3, 0
-	// xor        $a2, $a2, $a3
-	// dsrl       $a3, $a2, 20
-	// andi       $a3, $a3, 0xFFF
-	// xor        $a3, $a3, $a2
-	// dsll32     $v0, $a3, 0
-	// sd         $a3, 0x0($a0)
-	// jr         $ra
-	// dsra32     $v0, $v0, 0
+	*seed = ((*seed << 63) >> 31 | (*seed << 31) >> 32) ^ (*seed << 44) >> 32;
+	*seed = ((*seed >> 20) & 0xfff) ^ *seed;
 
-	uint64_t a1 = 0;
-	uint64_t a2 = 0;
-	uint64_t a3 = 0;
-	uint64_t v0 = 0;
-
-	a3 = *seed;
-	a2 = a3 << (31 + 32);
-	a1 = a3 << 31;
-	a2 = a2 >> 31;
-	a1 = a1 >> (0 + 32);
-	a3 = a3 << (12 + 32);
-	a2 = a2 | a1;
-	a3 = a3 >> (0 + 32);
-	a2 = a2 ^ a3;
-	a3 = a2 >> 20;
-	a3 = a3 & 0xfff;
-	a3 = a3 ^ a2;
-	v0 = a3 << (0 + 32);
-	*seed = a3;
-	v0 = v0 >> (0 + 32);
-
-	return (uint32_t)v0;
-}
-
-uint32_t SaveFile::CalculateChecksum(uint8_t* start, uint8_t* end)
-{
-	uint8_t* p;
-	uint32_t shift = 0;
-	uint64_t seed = 0x8F809F473108B3C1;
-	uint32_t crc1 = 0;
-	uint32_t crc2 = 0;
-	uint32_t tmp;
-
-	for (p = start; p < end; p++)
-	{
-		seed += (uint64_t)(*p) << (shift & 15);
-		tmp = TransformSeed(&seed);
-		shift += 7;
-		crc1 ^= tmp;
-	}
-
-	for (p = end - 1; p >= start; p--)
-	{
-		seed += (uint64_t)(*p) << (shift & 15);
-		tmp = TransformSeed(&seed);
-		shift += 3;
-		crc2 ^= tmp;
-	}
-
-	return crc1 ^ crc2;
+	return *seed;
 }
 
 #pragma endregion
