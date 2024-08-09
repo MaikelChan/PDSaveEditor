@@ -313,6 +313,102 @@ void SaveBuffer::Clear()
 
 #pragma endregion
 
+#pragma region BossFile
+
+void BossFile::Load(uint8_t* fileBuffer)
+{
+	memcpy(&pakFileHeader, &fileBuffer[0], PACK_HEADER_SIZE);
+
+	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
+
+	buffer.ReadGuid(&guid);
+
+	unk1 = buffer.ReadBits(1);
+	language = buffer.ReadBits(4);
+
+	for (int32_t t = 0; t < TEAM_NAMES_COUNT; t++)
+	{
+		buffer.ReadString(teamNames[t], true);
+	}
+
+	tracknum = buffer.ReadBits(8);
+
+	for (int32_t i = 0; i < MULTIPLE_TRACKS_COUNT; i++)
+	{
+		multipletracknums[i] = buffer.ReadBits(8);
+	}
+
+	usingmultipletunes = buffer.ReadBits(1);
+	altTitleUnlocked = buffer.ReadBits(1);
+	altTitleEnabled = buffer.ReadBits(1);
+}
+
+#pragma endregion
+
+#pragma region GameFile
+
+void GameFile::Load(uint8_t* fileBuffer)
+{
+	memcpy(&pakFileHeader, &fileBuffer[0], PACK_HEADER_SIZE);
+
+	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
+
+	buffer.ReadString(name, false);
+	thumbnail = buffer.ReadBits(5);
+	totaltime = buffer.ReadBits(32);
+	autodifficulty = buffer.ReadBits(2);
+	autostageindex = buffer.ReadBits(5);
+	sfxVolume = buffer.ReadBits(6);
+	musicVolume = buffer.ReadBits(6);
+	soundMode = buffer.ReadBits(2);
+	controlMode1 = buffer.ReadBits(3);
+	controlMode1 = buffer.ReadBits(3);
+
+	for (uint8_t i = 0; i < GAMEFILE_FLAGS_SIZE; i++)
+	{
+		flags[i] = buffer.ReadBits(8);
+	}
+
+	unknown1 = buffer.ReadBits(16);
+
+	for (uint8_t i = 0; i < NUM_SOLOSTAGES; i++)
+	{
+		for (uint8_t j = 0; j < NUM_DIFFICULTIES; j++)
+		{
+			besttimes[i][j] = buffer.ReadBits(12);
+		}
+	}
+
+	for (uint8_t i = 0; i < NUM_MP_CHALLENGES; i++)
+	{
+		mpChallenges[i] = 0;
+
+		for (uint8_t j = 0; j < MAX_PLAYERS; j++)
+		{
+			uint8_t completed = buffer.ReadBits(1);
+			mpChallenges[i] |= completed << j;
+		}
+	}
+
+	for (uint8_t i = 0; i < NUM_DIFFICULTIES; i++)
+	{
+		coopcompletions[i] = buffer.ReadBits(NUM_SOLOSTAGES);
+	}
+
+	for (uint8_t i = 0; i < 9; i++)
+	{
+		int32_t numbits = i == (9 - 1) ? 2 : 8;
+		firingrangescores[i] = buffer.ReadBits(numbits);
+	}
+
+	for (uint8_t i = 0; i < 4; i++)
+	{
+		weaponsfound[i] = buffer.ReadBits(8);
+	}
+}
+
+#pragma endregion
+
 #pragma region SaveFile
 
 //SaveSlot* SaveFile::GetRawSaveSlot(const uint8_t slotIndex)
@@ -343,12 +439,47 @@ void SaveFile::Load(uint8_t* fileBuffer)
 	printf("Position  Header CRC       Body CRC         Type (Name)            Size  ID  Used  Device  Generation  Written  Version\n");
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
 
+	uint8_t bossFilesCount = 0;
+	uint8_t gameFilesCount = 0;
+
 	int32_t p = 0;
 
 	while (p < SAVE_FILE_SIZE)
 	{
 		PakFileHeader pakFileHeader = {};
-		memcpy(&pakFileHeader, &fileBuffer[p], sizeof(PakFileHeader));
+		memcpy(&pakFileHeader, &fileBuffer[p], PACK_HEADER_SIZE);
+
+		// Read actual data
+
+		//if (!pakFileHeader.occupied) continue;
+
+		switch ((PakFileTypes)pakFileHeader.filetype)
+		{
+			case PakFileTypes::BOSS:
+			{
+				bossFiles[bossFilesCount++].Load(&fileBuffer[p]);
+				break;
+			}
+			case PakFileTypes::MPPLAYER:
+			{
+				break;
+			}
+			case PakFileTypes::MPSETUP:
+			{
+				break;
+			}
+			case PakFileTypes::GAME:
+			{
+				gameFiles[gameFilesCount++].Load(&fileBuffer[p]);
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+
+		// Print debug data
 
 		uint16_t checksum[2];
 		CalculateChecksumU16Pair(&fileBuffer[p + 8], &fileBuffer[p + 16], checksum);
@@ -361,97 +492,62 @@ void SaveFile::Load(uint8_t* fileBuffer)
 
 		switch ((PakFileTypes)pakFileHeader.filetype)
 		{
-		case PakFileTypes::UNUSED_001:
-			type = "UNUSED_001           ";
-			break;
-		case PakFileTypes::BLANK:
-			type = "BLANK                ";
-			break;
-		case PakFileTypes::TERMINATOR:
-			type = "TERMINATOR           ";
-			break;
-		case PakFileTypes::CAMERA:
-			type = "CAMERA               ";
-			break;
-		case PakFileTypes::BOSS:
-			type = "BOSS                 ";
-			break;
-		case PakFileTypes::MPPLAYER:
-		{
-			char name[MAX_NAME_LENGTH + 1];
-			memcpy(name, &fileBuffer[p + 16], 10);
-			name[10] = '\0';
-			char gameName[32];
-			snprintf(gameName, 32, "MPPLAYER (%-10s)", name);
-			type = gameName;
-			break;
-		}
-		case PakFileTypes::MPSETUP:
-		{
-			char name[MAX_NAME_LENGTH + 1];
-			memcpy(name, &fileBuffer[p + 16], 10);
-			name[10] = '\0';
-			char gameName[32];
-			snprintf(gameName, 32, "MPSETUP  (%-10s)", name);
-			type = gameName;
-			break;
-		}
-		case PakFileTypes::GAME:
-		{
-			char name[MAX_NAME_LENGTH + 1];
-			memcpy(name, &fileBuffer[p + 16], 10);
-			name[10] = '\0';
-			char gameName[32];
-			snprintf(gameName, 32, "GAME     (%-10s)", name);
-			type = gameName;
-			break;
-		}
-		default:
-			type = "UNKNOWN              ";
-			break;
+			case PakFileTypes::UNUSED_001:
+				type = "UNUSED_001           ";
+				break;
+			case PakFileTypes::BLANK:
+				type = "BLANK                ";
+				break;
+			case PakFileTypes::TERMINATOR:
+				type = "TERMINATOR           ";
+				break;
+			case PakFileTypes::CAMERA:
+				type = "CAMERA               ";
+				break;
+			case PakFileTypes::BOSS:
+				type = "BOSS                 ";
+				break;
+			case PakFileTypes::MPPLAYER:
+			{
+				char name[MAX_NAME_LENGTH + 1];
+				memcpy(name, &fileBuffer[p + 16], 10);
+				name[10] = '\0';
+				char gameName[32];
+				snprintf(gameName, 32, "MPPLAYER (%-10s)", name);
+				type = gameName;
+				break;
+			}
+			case PakFileTypes::MPSETUP:
+			{
+				char name[MAX_NAME_LENGTH + 1];
+				memcpy(name, &fileBuffer[p + 16], 10);
+				name[10] = '\0';
+				char gameName[32];
+				snprintf(gameName, 32, "MPSETUP  (%-10s)", name);
+				type = gameName;
+				break;
+			}
+			case PakFileTypes::GAME:
+			{
+				char name[MAX_NAME_LENGTH + 1];
+				memcpy(name, &fileBuffer[p + 16], 10);
+				name[10] = '\0';
+				char gameName[32];
+				snprintf(gameName, 32, "GAME     (%-10s)", name);
+				type = gameName;
+				break;
+			}
+			default:
+				type = "UNKNOWN              ";
+				break;
 		}
 
 		printf("0x%04X    %04X-%04X (%s)  %04X-%04X (%s)  %s  %3u   %2u  %u     %4u    %3u         %u        %u\n", p, pakFileHeader.headersum[0], pakFileHeader.headersum[1], headerSumResult, pakFileHeader.bodysum[0], pakFileHeader.bodysum[1], bodySumResult, type, pakFileHeader.bodylen, pakFileHeader.fileid, pakFileHeader.occupied, pakFileHeader.deviceserial, pakFileHeader.generation, pakFileHeader.writecompleted, pakFileHeader.version);
 
+		// Advance to next file
+
 		p += pakFileHeader.filelen;
 	}
-
-	// Read header
-
-	memcpy(&pakFileHeader, &fileBuffer[0], sizeof(PakFileHeader));
-
-	uint16_t checksum[2];
-	CalculateChecksumU16Pair(&fileBuffer[8], &fileBuffer[16], checksum);
-
-	if (pakFileHeader.headersum[0] != checksum[0] || pakFileHeader.headersum[1] != checksum[1])
-	{
-		// Bad checksum
-	}
-
-	// Read "boss file"
-
-	SaveBuffer buffer(&fileBuffer[16], SAVE_BUFFER_SIZE);
-
-	buffer.ReadGuid(&bossFile.guid);
-
-	bossFile.unk1 = buffer.ReadBits(1);
-	bossFile.language = buffer.ReadBits(4);
-
-	for (int32_t t = 0; t < TEAM_NAMES_COUNT; t++)
-	{
-		buffer.ReadString(bossFile.teamNames[t], true);
-	}
-
-	bossFile.tracknum = buffer.ReadBits(8);
-
-	for (int32_t i = 0; i < MULTIPLE_TRACKS_COUNT; i++)
-	{
-		bossFile.multipletracknums[i] = buffer.ReadBits(8);
-	}
-
-	bossFile.usingmultipletunes = buffer.ReadBits(1);
-	bossFile.altTitleUnlocked = buffer.ReadBits(1);
-	bossFile.altTitleEnabled = buffer.ReadBits(1);
 }
 
 void SaveFile::CalculateChecksumU16Pair(uint8_t* start, uint8_t* end, uint16_t* checksum)
@@ -481,7 +577,7 @@ uint32_t SaveFile::TransformSeed(uint64_t* seed)
 	*seed = ((*seed << 63) >> 31 | (*seed << 31) >> 32) ^ (*seed << 44) >> 32;
 	*seed = ((*seed >> 20) & 0xfff) ^ *seed;
 
-	return *seed;
+	return (uint32_t)*seed;
 }
 
 #pragma endregion

@@ -3,16 +3,23 @@
 #include <cstdint>
 
 #define SAVE_FILE_SIZE 2048
-#define MAX_FILE_SIZE 256
+#define MAX_PACK_FILE_SIZE 256
+#define PACK_HEADER_SIZE 16
 #define MAX_NAME_LENGTH 10
+#define MAX_PLAYERS 4
+#define NUM_MP_CHALLENGES 30
 
 #define TEAM_NAMES_COUNT 8
 #define MULTIPLE_TRACKS_COUNT 6
 
-
+#define TOTAL_NUM_BOSS_FILE_SLOTS 1
+#define ACTUAL_NUM_BOSS_FILE_SLOTS 2
 
 #define TOTAL_NUM_SAVE_SLOTS 4
-#define ACTUAL_NUM_SAVE_SLOTS 4
+#define ACTUAL_NUM_SAVE_SLOTS 5
+
+
+
 #define SAVE_SLOT_MAGIC 0x11
 #define SAVE_SLOT_SIZE 0x78
 #define GLOBAL_DATA_SIZE 0x20
@@ -828,6 +835,8 @@ struct PakFileHeader
 struct BossFile
 {
 public:
+	PakFileHeader pakFileHeader = {};
+
 	FileGuid guid = {};
 	uint8_t unk1 = 0;
 	uint8_t language = 0;
@@ -837,13 +846,48 @@ public:
 	bool usingmultipletunes = false;
 	bool altTitleUnlocked = false;
 	bool altTitleEnabled = false;
+
+public:
+	void Load(uint8_t* fileBuffer);
+};
+
+struct GameFile
+{
+#define GAMEFILE_FLAGS_SIZE 10
+#define NUM_SOLOSTAGES 21
+#define NUM_DIFFICULTIES 3
+
+public:
+	PakFileHeader pakFileHeader = {};
+
+	//FileGuid guid = {};
+	char name[MAX_NAME_LENGTH + 1];
+	uint8_t thumbnail = 0;
+	uint32_t totaltime = 0;
+	uint8_t autodifficulty = 0;
+	uint8_t autostageindex = 0;
+	uint8_t sfxVolume = 0;
+	uint8_t musicVolume = 0;
+	uint8_t soundMode = 0;
+	uint8_t controlMode1 = 0;
+	uint8_t controlMode2 = 0;
+	uint8_t flags[GAMEFILE_FLAGS_SIZE];
+	uint16_t unknown1 = 0;
+	uint16_t besttimes[NUM_SOLOSTAGES][NUM_DIFFICULTIES];
+	uint8_t mpChallenges[NUM_MP_CHALLENGES];
+	uint32_t coopcompletions[NUM_DIFFICULTIES];
+	uint8_t firingrangescores[9];
+	uint8_t weaponsfound[6];
+
+public:
+	void Load(uint8_t* fileBuffer);
 };
 
 struct SaveFile
 {
 private:
-	PakFileHeader pakFileHeader = {};
-	BossFile bossFile = {};
+	BossFile bossFiles[ACTUAL_NUM_BOSS_FILE_SLOTS] = {};
+	GameFile gameFiles[ACTUAL_NUM_SAVE_SLOTS] = {};
 
 public:
 	void Load(uint8_t* fileBuffer);

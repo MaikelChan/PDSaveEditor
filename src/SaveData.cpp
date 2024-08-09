@@ -6,8 +6,8 @@
 
 SaveData::SaveData()
 {
-	/*assert(sizeof(SaveSlot) == SAVE_SLOT_SIZE);
-	assert(sizeof(GlobalData) == GLOBAL_DATA_SIZE);
+	assert(sizeof(PakFileHeader) == PACK_HEADER_SIZE);
+	/*assert(sizeof(GlobalData) == GLOBAL_DATA_SIZE);
 	assert(sizeof(SaveFile) == SAVE_FILE_SIZE);*/
 
 	saveFile = nullptr;
