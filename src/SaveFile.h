@@ -9,6 +9,10 @@
 #define MAX_PLAYERS 4
 #define NUM_MP_CHALLENGES 30
 #define NUM_WEAPONS 35 // TODO ?
+#define MAX_BOTS 8
+#define NUM_MPWEAPONSLOTS 6
+#define NUM_MP_STAGES 16
+#define NUM_MP_STAGES_AND_RANDOM (NUM_MP_STAGES + 1)
 
 #define TEAM_NAMES_COUNT 8
 #define MULTIPLE_TRACKS_COUNT 6
@@ -818,6 +822,16 @@ public:
 	void Clear();
 };
 
+struct BotData
+{
+public:
+	uint8_t type = 0;
+	uint8_t difficulty = 0;
+	uint8_t mpheadnum = 0;
+	uint8_t mpbodynum = 0;
+	uint8_t team = 0;
+};
+
 struct PakFileHeader
 {
 	uint16_t headersum[2];       // checksum from filetype to end of header
@@ -850,6 +864,8 @@ public:
 
 public:
 	void Load(uint8_t* fileBuffer);
+
+	bool IsUsed() const { return pakFileHeader.occupied; }
 };
 
 struct GameFile
@@ -881,6 +897,8 @@ public:
 
 public:
 	void Load(uint8_t* fileBuffer);
+
+	bool IsUsed() const { return pakFileHeader.occupied; }
 };
 
 struct MultiplayerProfile
@@ -916,7 +934,33 @@ public:
 
 public:
 	void Load(uint8_t* fileBuffer);
+
+	bool IsUsed() const { return pakFileHeader.occupied; }
 };
+
+struct MultiplayerSettings
+{
+public:
+	PakFileHeader pakFileHeader = {};
+
+	char name[MAX_NAME_LENGTH + 1] = {};
+	uint8_t stagenum = 0;
+	uint8_t scenario = 0;
+	uint8_t scenarioParams = 0; // Changes depending on scenario (KoH: Hill time)
+	uint32_t options = 0;
+	BotData botsData[MAX_BOTS] = {};
+	uint8_t weaponSlots[NUM_MPWEAPONSLOTS] = {};
+	uint8_t timelimit = 0;
+	uint8_t scorelimit = 0;
+	uint16_t teamscorelimit = 0;
+	uint8_t teams[MAX_PLAYERS] = {};
+
+public:
+	void Load(uint8_t* fileBuffer);
+
+	bool IsUsed() const { return pakFileHeader.occupied; }
+};
+
 
 struct SaveFile
 {
@@ -924,6 +968,7 @@ private:
 	BossFile bossFiles[ACTUAL_NUM_BOSS_FILE_SLOTS] = {};
 	GameFile gameFiles[ACTUAL_NUM_SAVE_SLOTS] = {};
 	MultiplayerProfile mpProfiles[ACTUAL_NUM_SAVE_SLOTS] = {};
+	MultiplayerSettings mpSettings[ACTUAL_NUM_SAVE_SLOTS] = {};
 
 public:
 	void Load(uint8_t* fileBuffer);

@@ -453,13 +453,51 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer)
 		}
 	}
 
-	/*challengeDetermineUnlockedFeatures();
-	mpCalculatePlayerTitle(&g_PlayerConfigsArray[playernum]);
-	mpplayerfileLoadGunFuncs(buffer, playernum);*/
-
 	for (uint8_t i = 0; i < NUM_WEAPONS; i++)
 	{
 		gunfuncs[i] = buffer.ReadBits(1);
+	}
+}
+
+#pragma endregion
+
+#pragma region MultiplayerSettings
+
+void MultiplayerSettings::Load(uint8_t* fileBuffer)
+{
+	memcpy(&pakFileHeader, &fileBuffer[0], PACK_HEADER_SIZE);
+
+	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
+
+	buffer.ReadString(name);
+	buffer.ReadBits(4);
+
+	stagenum = buffer.ReadBits(7);
+	scenario = buffer.ReadBits(3);
+	scenarioParams = buffer.ReadBits(8);
+	options = buffer.ReadBits(21);
+
+	for (uint8_t i = 0; i < MAX_BOTS; i++)
+	{
+		botsData[i].type = buffer.ReadBits(5);
+		botsData[i].difficulty = buffer.ReadBits(3);
+		botsData[i].mpheadnum = buffer.ReadBits(7);
+		botsData[i].mpbodynum = buffer.ReadBits(7);
+		botsData[i].team = buffer.ReadBits(3);
+	}
+
+	for (uint8_t i = 0; i < NUM_MPWEAPONSLOTS; i++)
+	{
+		weaponSlots[i] = buffer.ReadBits(7);
+	}
+
+	timelimit = buffer.ReadBits(6);
+	scorelimit = buffer.ReadBits(7);
+	teamscorelimit = buffer.ReadBits(9);
+
+	for (uint8_t i = 0; i < MAX_PLAYERS; i++)
+	{
+		teams[i] = buffer.ReadBits(3);
 	}
 }
 
@@ -498,6 +536,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 	uint8_t bossFilesCount = 0;
 	uint8_t gameFilesCount = 0;
 	uint8_t mpProfilesCount = 0;
+	uint8_t mpSettingsCount = 0;
 
 	int32_t p = 0;
 
@@ -524,6 +563,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 			}
 			case PakFileTypes::MPSETUP:
 			{
+				mpSettings[mpSettingsCount++].Load(&fileBuffer[p]);
 				break;
 			}
 			case PakFileTypes::GAME:
