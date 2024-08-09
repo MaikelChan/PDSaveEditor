@@ -279,7 +279,7 @@ void SaveBuffer::ReadGuid(FileGuid* guid)
 	guid->deviceserial = ReadBits(13);
 }
 
-void SaveBuffer::ReadString(char* dst, const bool addlinebreak)
+void SaveBuffer::ReadString(char* dst/*, const bool addlinebreak*/)
 {
 	bool foundnull = false;
 	int32_t index = 0;
@@ -301,7 +301,7 @@ void SaveBuffer::ReadString(char* dst, const bool addlinebreak)
 		}
 	}
 
-	if (addlinebreak) dst[++index] = '\n';
+	//if (addlinebreak) dst[++index] = '\n';
 	dst[++index] = '\0';
 }
 
@@ -328,7 +328,7 @@ void BossFile::Load(uint8_t* fileBuffer)
 
 	for (int32_t t = 0; t < TEAM_NAMES_COUNT; t++)
 	{
-		buffer.ReadString(teamNames[t], true);
+		buffer.ReadString(teamNames[t]);
 	}
 
 	tracknum = buffer.ReadBits(8);
@@ -353,7 +353,7 @@ void GameFile::Load(uint8_t* fileBuffer)
 
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
-	buffer.ReadString(name, false);
+	buffer.ReadString(name);
 	thumbnail = buffer.ReadBits(5);
 	totaltime = buffer.ReadBits(32);
 	autodifficulty = buffer.ReadBits(2);
@@ -409,6 +409,62 @@ void GameFile::Load(uint8_t* fileBuffer)
 
 #pragma endregion
 
+#pragma region MultiplayerProfile
+
+void MultiplayerProfile::Load(uint8_t* fileBuffer)
+{
+	memcpy(&pakFileHeader, &fileBuffer[0], PACK_HEADER_SIZE);
+
+	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
+
+	buffer.ReadString(name);
+	time = buffer.ReadBits(28);
+	mpheadnum = buffer.ReadBits(7);
+	mpbodynum = buffer.ReadBits(7);
+	buffer.ReadGuid(&guid);
+
+	displayoptions = buffer.ReadBits(8);
+	kills = buffer.ReadBits(20);
+	deaths = buffer.ReadBits(20);
+	gamesplayed = buffer.ReadBits(19);
+	gameswon = buffer.ReadBits(19);
+	gameslost = buffer.ReadBits(19);
+	distance = buffer.ReadBits(25);
+	accuracy = buffer.ReadBits(10);
+	damagedealt = buffer.ReadBits(26);
+	painreceived = buffer.ReadBits(26);
+	headshots = buffer.ReadBits(20);
+	ammoused = buffer.ReadBits(30);
+	accuracymedals = buffer.ReadBits(18);
+	headshotmedals = buffer.ReadBits(18);
+	killmastermedals = buffer.ReadBits(18);
+	survivormedals = buffer.ReadBits(16);
+	controlmode = buffer.ReadBits(2);
+	options = buffer.ReadBits(12);
+
+	for (uint8_t i = 0; i < NUM_MP_CHALLENGES; i++)
+	{
+		mpChallenges[i] = 0;
+
+		for (uint8_t j = 0; j < MAX_PLAYERS; j++)
+		{
+			uint8_t completed = buffer.ReadBits(1);
+			mpChallenges[i] |= completed << j;
+		}
+	}
+
+	/*challengeDetermineUnlockedFeatures();
+	mpCalculatePlayerTitle(&g_PlayerConfigsArray[playernum]);
+	mpplayerfileLoadGunFuncs(buffer, playernum);*/
+
+	for (uint8_t i = 0; i < NUM_WEAPONS; i++)
+	{
+		gunfuncs[i] = buffer.ReadBits(1);
+	}
+}
+
+#pragma endregion
+
 #pragma region SaveFile
 
 //SaveSlot* SaveFile::GetRawSaveSlot(const uint8_t slotIndex)
@@ -441,6 +497,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 
 	uint8_t bossFilesCount = 0;
 	uint8_t gameFilesCount = 0;
+	uint8_t mpProfilesCount = 0;
 
 	int32_t p = 0;
 
@@ -462,6 +519,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 			}
 			case PakFileTypes::MPPLAYER:
 			{
+				mpProfiles[mpProfilesCount++].Load(&fileBuffer[p]);
 				break;
 			}
 			case PakFileTypes::MPSETUP:

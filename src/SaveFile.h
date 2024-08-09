@@ -8,6 +8,7 @@
 #define MAX_NAME_LENGTH 10
 #define MAX_PLAYERS 4
 #define NUM_MP_CHALLENGES 30
+#define NUM_WEAPONS 35 // TODO ?
 
 #define TEAM_NAMES_COUNT 8
 #define MULTIPLE_TRACKS_COUNT 6
@@ -813,7 +814,7 @@ public:
 
 	uint32_t ReadBits(const int32_t numbits);
 	void ReadGuid(FileGuid* guid);
-	void ReadString(char* dst, const bool addlinebreak);
+	void ReadString(char* dst/*, const bool addlinebreak*/);
 	void Clear();
 };
 
@@ -840,7 +841,7 @@ public:
 	FileGuid guid = {};
 	uint8_t unk1 = 0;
 	uint8_t language = 0;
-	char teamNames[TEAM_NAMES_COUNT][MAX_NAME_LENGTH + 2] = {};
+	char teamNames[TEAM_NAMES_COUNT][MAX_NAME_LENGTH + 1] = {};
 	uint8_t tracknum = 255;
 	uint8_t multipletracknums[MULTIPLE_TRACKS_COUNT] = {};
 	bool usingmultipletunes = false;
@@ -860,8 +861,7 @@ struct GameFile
 public:
 	PakFileHeader pakFileHeader = {};
 
-	//FileGuid guid = {};
-	char name[MAX_NAME_LENGTH + 1];
+	char name[MAX_NAME_LENGTH + 1] = {};
 	uint8_t thumbnail = 0;
 	uint32_t totaltime = 0;
 	uint8_t autodifficulty = 0;
@@ -871,13 +871,48 @@ public:
 	uint8_t soundMode = 0;
 	uint8_t controlMode1 = 0;
 	uint8_t controlMode2 = 0;
-	uint8_t flags[GAMEFILE_FLAGS_SIZE];
+	uint8_t flags[GAMEFILE_FLAGS_SIZE] = {};
 	uint16_t unknown1 = 0;
-	uint16_t besttimes[NUM_SOLOSTAGES][NUM_DIFFICULTIES];
-	uint8_t mpChallenges[NUM_MP_CHALLENGES];
-	uint32_t coopcompletions[NUM_DIFFICULTIES];
-	uint8_t firingrangescores[9];
-	uint8_t weaponsfound[6];
+	uint16_t besttimes[NUM_SOLOSTAGES][NUM_DIFFICULTIES] = {};
+	uint8_t mpChallenges[NUM_MP_CHALLENGES] = {};
+	uint32_t coopcompletions[NUM_DIFFICULTIES] = {};
+	uint8_t firingrangescores[9] = {};
+	uint8_t weaponsfound[6] = {};
+
+public:
+	void Load(uint8_t* fileBuffer);
+};
+
+struct MultiplayerProfile
+{
+public:
+	PakFileHeader pakFileHeader = {};
+
+	char name[MAX_NAME_LENGTH + 1] = {};
+	uint32_t time = 0;
+	uint8_t mpheadnum = 0;
+	uint8_t mpbodynum = 0;
+	FileGuid guid = {};
+	uint8_t displayoptions = 0;
+	uint32_t kills = 0;
+	uint32_t deaths = 0;
+	uint32_t gamesplayed = 0;
+	uint32_t gameswon = 0;
+	uint32_t gameslost = 0;
+	uint32_t distance = 0;
+	uint16_t accuracy = 0;
+	uint32_t damagedealt = 0;
+	uint32_t painreceived = 0;
+	uint32_t headshots = 0;
+	uint32_t ammoused = 0;
+	uint32_t accuracymedals = 0;
+	uint32_t headshotmedals = 0;
+	uint32_t killmastermedals = 0;
+	uint16_t survivormedals = 0;
+	uint8_t controlmode = 0;
+	uint16_t options = 0;
+	uint8_t mpChallenges[NUM_MP_CHALLENGES] = {};
+	uint8_t gunfuncs[NUM_WEAPONS] = {};
 
 public:
 	void Load(uint8_t* fileBuffer);
@@ -888,6 +923,7 @@ struct SaveFile
 private:
 	BossFile bossFiles[ACTUAL_NUM_BOSS_FILE_SLOTS] = {};
 	GameFile gameFiles[ACTUAL_NUM_SAVE_SLOTS] = {};
+	MultiplayerProfile mpProfiles[ACTUAL_NUM_SAVE_SLOTS] = {};
 
 public:
 	void Load(uint8_t* fileBuffer);
