@@ -42,10 +42,10 @@ void SaveData::Load(const std::string filePath)
 
 	// Read the whole file
 
-	uint8_t fileBuffer[SAVE_BUFFER_SIZE];
+	uint8_t fileBuffer[SAVE_FILE_SIZE];
 
 	stream.seekg(0, std::ios_base::beg);
-	stream.read((char*)&fileBuffer, SAVE_BUFFER_SIZE);
+	stream.read((char*)&fileBuffer, SAVE_FILE_SIZE);
 	stream.close();
 
 	// Create and load the SaveFile struct

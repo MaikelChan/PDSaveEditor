@@ -23,6 +23,19 @@ enum class FileTypes
 	CAMERA
 };
 
+enum class PakFileTypes
+{
+	UNUSED_001 = 0x001, // Unused
+	BLANK = 0x002,      // Blank space (ie. deleted file)
+	TERMINATOR = 0x004, // Marks the end of the device's filesystem
+	CAMERA = 0x008,     // PerfectHead File
+	BOSS = 0x010,       // EEPROM only, one per cart (stores language, MP team names, selected MP soundtracks)
+	MPPLAYER = 0x020,   // Combat Simulator Player File
+	MPSETUP = 0x040,    // Combat Simulator Settings File
+	GAME = 0x080,       // Single Player Agent File
+	ALL = 0x100         // Not really a file type
+};
+
 struct Range
 {
 	uint8_t min;

@@ -338,6 +338,68 @@ void SaveBuffer::Clear()
 
 void SaveFile::Load(uint8_t* fileBuffer)
 {
+	// Read headers
+
+	printf("Position  Header CRC       Body CRC         Type               Body Size  ID  Used  Device  Generation  Written  Version\n");
+	printf("------------------------------------------------------------------------------------------------------------------------\n");
+
+	int32_t p = 0;
+
+	while (p < SAVE_FILE_SIZE)
+	{
+		PakFileHeader pakFileHeader = {};
+		memcpy(&pakFileHeader, &fileBuffer[p], sizeof(PakFileHeader));
+
+		uint16_t checksum[2];
+		CalculateChecksumU16Pair(&fileBuffer[p + 8], &fileBuffer[p + 16], checksum);
+		char* headerSumResult = (pakFileHeader.headersum[0] == checksum[0] && pakFileHeader.headersum[1] == checksum[1]) ? "OK " : "BAD";
+
+		CalculateChecksumU16Pair(&fileBuffer[p + 16], &fileBuffer[p + 16 + pakFileHeader.bodylen], checksum);
+		char* bodySumResult = (pakFileHeader.bodysum[0] == checksum[0] && pakFileHeader.bodysum[1] == checksum[1]) ? "OK " : "BAD";
+
+		char* type;
+
+		switch ((PakFileTypes)pakFileHeader.filetype)
+		{
+		case PakFileTypes::UNUSED_001:
+			type = "UNUSED_001       ";
+			break;
+		case PakFileTypes::BLANK:
+			type = "BLANK            ";
+			break;
+		case PakFileTypes::TERMINATOR:
+			type = "TERMINATOR       ";
+			break;
+		case PakFileTypes::CAMERA:
+			type = "CAMERA           ";
+			break;
+		case PakFileTypes::BOSS:
+			type = "BOSS             ";
+			break;
+		case PakFileTypes::MPPLAYER:
+			type = "MPPLAYER         ";
+			break;
+		case PakFileTypes::MPSETUP:
+			type = "MPSETUP          ";
+			break;
+		case PakFileTypes::GAME:
+			char name[11];
+			memcpy(name, &fileBuffer[p + 16], 10);
+			name[10] = '\0';
+			char gameName[18];
+			snprintf(gameName, 18, "GAME (%-10s)", name);
+			type = gameName;
+			break;
+		default:
+			type = "UNKNOWN          ";
+			break;
+		}
+
+		printf("0x%04X    %04X-%04X (%s)  %04X-%04X (%s)  %s  %3u        %2u  %u     %4u    %3u         %u        %u\n", p, pakFileHeader.headersum[0], pakFileHeader.headersum[1], headerSumResult, pakFileHeader.bodysum[0], pakFileHeader.bodysum[1], bodySumResult, type, pakFileHeader.bodylen, pakFileHeader.fileid, pakFileHeader.occupied, pakFileHeader.deviceserial, pakFileHeader.generation, pakFileHeader.writecompleted, pakFileHeader.version);
+
+		p += pakFileHeader.filelen;
+	}
+
 	// Read header
 
 	memcpy(&pakFileHeader, &fileBuffer[0], sizeof(PakFileHeader));
