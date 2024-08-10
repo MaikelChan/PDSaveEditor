@@ -98,8 +98,6 @@ void SaveEditorUI::RenderGlobalDataSection(const SaveData& saveData, SaveFile* s
 
 	if (bossFile == nullptr) return;
 
-	//if (!ImGui::BeginTabItem("Global Data")) return;
-
 	if (ImGui::BeginTable("GlobalSettingsTable", 2, 0))
 	{
 		ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
@@ -123,14 +121,41 @@ void SaveEditorUI::RenderGlobalDataSection(const SaveData& saveData, SaveFile* s
 
 		ImGui::SeparatorText("Team Names");
 
-		ImGui::InputText("Red", bossFile->teamNames[0], MAX_NAME_LENGTH + 1);
-		ImGui::InputText("Yellow", bossFile->teamNames[1], MAX_NAME_LENGTH + 1);
-		ImGui::InputText("Blue", bossFile->teamNames[2], MAX_NAME_LENGTH + 1);
-		ImGui::InputText("Magenta", bossFile->teamNames[3], MAX_NAME_LENGTH + 1);
-		ImGui::InputText("Cyan", bossFile->teamNames[4], MAX_NAME_LENGTH + 1);
-		ImGui::InputText("Orange", bossFile->teamNames[5], MAX_NAME_LENGTH + 1);
-		ImGui::InputText("Pink", bossFile->teamNames[6], MAX_NAME_LENGTH + 1);
-		ImGui::InputText("Brown", bossFile->teamNames[7], MAX_NAME_LENGTH + 1);
+		for (uint8_t t = 0; t < TEAM_NAMES_COUNT; t++)
+		{
+			char cleanedName[MAX_NAME_LENGTH + 1] = {};
+			char previousName[MAX_NAME_LENGTH + 1] = {};
+
+			// Workaround for Spanish brown, the only color with special characters
+			if (strcmp("Marrón", bossFile->teamNames[t]) == 0) snprintf(cleanedName, MAX_NAME_LENGTH + 1, "Marron");
+			else strcpy(cleanedName, bossFile->teamNames[t]);
+
+			strcpy(previousName, cleanedName);
+
+			if (ImGui::InputText(teamNames[t], cleanedName, MAX_NAME_LENGTH + 1))
+			{
+				bool valid = true;
+				for (uint8_t c = 0; c < MAX_NAME_LENGTH + 1; c++)
+				{
+					if (cleanedName[c] == '\0') break;
+
+					uint8_t val = (uint8_t)cleanedName[c];
+
+					//      Space            !              .                      0-9                     ?                       A-Z                             a-z
+					if (!(val == 0x20 || val == 0x21 || val == 0x2e || (val >= 0x30 && val <= 0x39) || val == 0x3f || (val >= 0x41 && val <= 0x5a) || (val >= 0x61 && val <= 0x7a)))
+					{
+						valid = false;
+						break;
+					}
+				}
+
+				if (valid)
+				{
+					memset(bossFile->teamNames[t], 0, MAX_NAME_LENGTH + 1);
+					strcpy(bossFile->teamNames[t], cleanedName);
+				}
+			}
+		}
 
 		ImGui::EndTable();
 	}

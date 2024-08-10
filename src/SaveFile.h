@@ -38,10 +38,22 @@
 const char* const languageNames[NUM_LANGUAGES]
 {
 	"English",
-	"German",
 	"French",
-	"Spanish",
-	"Italian"
+	"German",
+	"Italian",
+	"Spanish"
+};
+
+const char* const teamNames[TEAM_NAMES_COUNT]
+{
+	"Red",
+	"Yellow",
+	"Blue",
+	"Magenta",
+	"Cyan",
+	"Orange",
+	"Pink",
+	"Brown"
 };
 
 const char* const songNames[NUM_SONGS + 1]
