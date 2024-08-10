@@ -16,7 +16,9 @@
 #define MAX_NAME_LENGTH 10
 #define MAX_PLAYERS 4
 #define NUM_WEAPONS 35 // TODO Is this correct?
-#define MULTIPLE_TRACKS_COUNT 6
+#define NUM_SONGS 43
+#define MULTIPLE_TRACKS_SIZE 6
+#define NUM_LANGUAGES 5
 
 // Solo game
 
@@ -32,6 +34,69 @@
 #define NUM_MP_STAGES 16
 #define NUM_MP_STAGES_AND_RANDOM (NUM_MP_STAGES + 1)
 #define TEAM_NAMES_COUNT 8
+
+const char* const languageNames[NUM_LANGUAGES]
+{
+	"English",
+	"German",
+	"French",
+	"Spanish",
+	"Italian"
+};
+
+const char* const songNames[NUM_SONGS + 1]
+{
+	"Dark Combat",
+	"Skedar Mystery",
+	"CI Operative",
+	"dataDyne Action",
+	"Maian Tears",
+	"Alien Conflict",
+	"Carrington Institute",
+	"dD Central",
+	"dD Central X",
+	"dD Research",
+	"dD Research X",
+	"dD Extraction",
+	"dD Extraction X",
+	"Carrington Villa",
+	"Carrington Villa X",
+	"Chicago",
+	"Chicago X",
+	"G5 Building",
+	"G5 Building X",
+	"A51 Infiltration",
+	"A51 Infiltration X",
+	"A51 Rescue",
+	"A51 Rescue X",
+	"A51 Escape",
+	"A51 Escape X",
+	"Air Base",
+	"Air Base X",
+	"Air Force One",
+	"Air Force One X",
+	"Crash Site",
+	"Crash Site X",
+	"Pelagic II",
+	"Pelagic II X",
+	"Deep Sea",
+	"Deep Sea X",
+	"Institute Defense",
+	"Institute Defense X",
+	"Attack Ship",
+	"Attack Ship X",
+	"Skedar Ruins",
+	"Skedar Ruins X",
+	"End Credits",
+	"Skedar Warrior",
+	"Random"
+};
+
+
+
+
+
+
 
 
 
@@ -709,28 +774,6 @@ enum class Abilities
 
 #pragma endregion
 
-#pragma region Stop_N_Swop
-
-enum class SnS
-{
-	COLLECTED_ICE_KEY = 18,
-	COLLECTED_CYAN_EGG,
-	COLLECTED_PINK_EGG,
-	COLLECTED_BLUE_EGG,
-	COLLECTED_GREEN_EGG,
-	COLLECTED_RED_EGG,
-	COLLECTED_YELLOW_EGG,
-	UNLOCKED_ICE_KEY,
-	UNLOCKED_CYAN_EGG,
-	UNLOCKED_PINK_EGG,
-	UNLOCKED_BLUE_EGG,
-	UNLOCKED_GREEN_EGG,
-	UNLOCKED_RED_EGG,
-	UNLOCKED_YELLOW_EGG,
-};
-
-#pragma endregion
-
 struct SaveSlot
 {
 private:
@@ -786,24 +829,6 @@ public:
 
 	bool GetUsedAbility(const Abilities ability) const;
 	void SetUsedAbility(const Abilities ability, const bool value);
-
-	uint32_t GetChecksum(const bool endianSwap) const;
-};
-
-struct GlobalData
-{
-private:
-	uint32_t SnsItems;
-	uint8_t Padding[0x18];
-	uint32_t Checksum;
-
-public:
-	//uint32_t CalculateChecksum() const;
-	//void UpdateChecksum(const bool endianSwap);
-	//bool IsValid(const bool endianSwap) const;
-
-	bool GetSnsItem(const SnS snsItem) const;
-	void SetSnsItem(const SnS snsItem, const bool value);
 
 	uint32_t GetChecksum(const bool endianSwap) const;
 };
@@ -878,13 +903,16 @@ public:
 	uint8_t language = 0;
 	char teamNames[TEAM_NAMES_COUNT][MAX_NAME_LENGTH + 1] = {};
 	uint8_t tracknum = 255;
-	uint8_t multipletracknums[MULTIPLE_TRACKS_COUNT] = {};
+	uint8_t multipletracknums[MULTIPLE_TRACKS_SIZE] = {};
 	bool usingmultipletunes = false;
 	bool altTitleUnlocked = false;
 	bool altTitleEnabled = false;
 
 public:
 	void Load(uint8_t* fileBuffer) override;
+
+	bool IsMultiTrackSlotEnabled(const uint8_t slot) const;
+	void SetMultiTrackSlotEnabled(const uint8_t slot, const bool enable);
 };
 
 struct GameFile : public PakFile

@@ -235,7 +235,7 @@ void MainUI::LoadingProcess() const
 	}
 
 	uint8_t slot = 0;
-	message += "\n";
+	if (!message.empty()) message += "\n";
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{
@@ -249,7 +249,7 @@ void MainUI::LoadingProcess() const
 	}
 
 	slot = 0;
-	message += "\n";
+	if (!message.empty()) message += "\n";
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{
@@ -263,7 +263,7 @@ void MainUI::LoadingProcess() const
 	}
 
 	slot = 0;
-	message += "\n";
+	if (!message.empty()) message += "\n";
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{

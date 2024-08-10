@@ -34,10 +34,20 @@ void SaveEditorUI::DoRender()
 
 		if (saveFile && ImGui::BeginTabBar("Save Slots", tab_bar_flags))
 		{
-			for (int s = 0; s < ACTUAL_NUM_FILE_SLOTS; s++)
+			for (int s = 0; s < 4; s++)
 			{
 				if (ImGui::BeginTabItem(tabNames[s]))
 				{
+					switch (s)
+					{
+						case 0:
+						{
+							RenderGlobalDataSection(saveData, saveFile);
+							break;
+						}
+					}
+
+
 					/*SaveSlot* saveSlot = saveFile->GetSaveSlot(s);
 
 					if (!saveSlot)
@@ -67,12 +77,142 @@ void SaveEditorUI::DoRender()
 				}
 			}
 
-			RenderGlobalDataSection(saveData, saveFile);
-
 			ImGui::EndTabBar();
 		}
 	}
 	ImGui::End();
+}
+
+void SaveEditorUI::RenderGlobalDataSection(const SaveData& saveData, SaveFile* saveFile)
+{
+	BossFile* bossFile = nullptr;
+
+	for (uint8_t f = 0; f < ACTUAL_NUM_BOSS_FILE_SLOTS; f++)
+	{
+		if (saveFile->GetBossFile(f)->IsUsed())
+		{
+			bossFile = saveFile->GetBossFile(f);
+			break;
+		}
+	}
+
+	if (bossFile == nullptr) return;
+
+	//if (!ImGui::BeginTabItem("Global Data")) return;
+
+	if (ImGui::BeginTable("GlobalSettingsTable", 2, 0))
+	{
+		ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Column2", ImGuiTableColumnFlags_WidthStretch);
+
+		ImGui::TableNextRow();
+		ImGui::TableSetColumnIndex(0);
+
+		ImGui::SeparatorText("Settings");
+
+		int language = bossFile->language;
+		if (ImGui::Combo("##Language", &language, languageNames, NUM_LANGUAGES))
+		{
+			bossFile->language = language;
+		}
+
+		ImGui::Checkbox("Alt. title screen unlocked", &bossFile->altTitleUnlocked);
+		ImGui::Checkbox("Alt. title screen enabled", &bossFile->altTitleEnabled);
+
+		ImGui::TableSetColumnIndex(1);
+
+		ImGui::SeparatorText("Team Names");
+
+		ImGui::InputText("Red", bossFile->teamNames[0], MAX_NAME_LENGTH + 1);
+		ImGui::InputText("Yellow", bossFile->teamNames[1], MAX_NAME_LENGTH + 1);
+		ImGui::InputText("Blue", bossFile->teamNames[2], MAX_NAME_LENGTH + 1);
+		ImGui::InputText("Magenta", bossFile->teamNames[3], MAX_NAME_LENGTH + 1);
+		ImGui::InputText("Cyan", bossFile->teamNames[4], MAX_NAME_LENGTH + 1);
+		ImGui::InputText("Orange", bossFile->teamNames[5], MAX_NAME_LENGTH + 1);
+		ImGui::InputText("Pink", bossFile->teamNames[6], MAX_NAME_LENGTH + 1);
+		ImGui::InputText("Brown", bossFile->teamNames[7], MAX_NAME_LENGTH + 1);
+
+		ImGui::EndTable();
+	}
+
+	ImGui::SeparatorText("Soundtrack");
+
+	if (ImGui::BeginTable("SoundtrackTable", 4, 0))
+	{
+		ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Column2", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Column3", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Column4", ImGuiTableColumnFlags_WidthStretch);
+
+		ImGui::TableNextRow();
+		ImGui::TableSetColumnIndex(0);
+
+		ImGui::Checkbox("Use multiple tunes", &bossFile->usingmultipletunes);
+
+		if (!bossFile->usingmultipletunes) ImGui::BeginDisabled();
+
+		if (ImGui::Button("Select All"))
+		{
+			for (uint8_t s = 0; s < NUM_SONGS; s++)
+			{
+				bossFile->SetMultiTrackSlotEnabled(s, true);
+			}
+		}
+
+		if (ImGui::Button("Select None"))
+		{
+			for (uint8_t s = 0; s < NUM_SONGS; s++)
+			{
+				bossFile->SetMultiTrackSlotEnabled(s, false);
+			}
+		}
+
+		if (ImGui::Button("Select Random"))
+		{
+			for (uint8_t s = 0; s < NUM_SONGS; s++)
+			{
+				bool enabled = (bool)(rand() % 2);
+				bossFile->SetMultiTrackSlotEnabled(s, enabled);
+			}
+		}
+
+		if (!bossFile->usingmultipletunes) ImGui::EndDisabled();
+
+		ImGui::TableSetColumnIndex(1);
+
+		if (bossFile->usingmultipletunes)
+		{
+			for (uint8_t s = 0; s < NUM_SONGS; s++)
+			{
+				if (s == 15) ImGui::TableSetColumnIndex(2);
+				else if (s == 30) ImGui::TableSetColumnIndex(3);
+
+				bool enabled = bossFile->IsMultiTrackSlotEnabled(s);
+				if (ImGui::Checkbox(songNames[s], &enabled))
+				{
+					bossFile->SetMultiTrackSlotEnabled(s, enabled);
+				}
+			}
+		}
+		else
+		{
+			int song = bossFile->tracknum == 255 ? NUM_SONGS : bossFile->tracknum;
+
+			for (uint8_t s = 0; s < NUM_SONGS + 1; s++)
+			{
+				if (s == 15) ImGui::TableSetColumnIndex(2);
+				else if (s == 30) ImGui::TableSetColumnIndex(3);
+
+				//bool enabled = s == song;
+				if (ImGui::RadioButton(songNames[s], &song, s))
+				{
+					bossFile->tracknum = s == NUM_SONGS ? 255 : s;
+				}
+			}
+		}
+
+		ImGui::EndTable();
+	}
 }
 
 void SaveEditorUI::RenderLevelDataSection(const SaveData& saveData, SaveSlot* saveSlot)
@@ -195,7 +335,7 @@ void SaveEditorUI::RenderLevelDataSection(const SaveData& saveData, SaveSlot* sa
 			if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
 				ImGui::SetTooltip("%s", Utils::GetTimeString(time).c_str());*/
 
-			//totalPlayTime += time;
+				//totalPlayTime += time;
 
 			ImGui::PopID();
 		}
@@ -684,25 +824,6 @@ void SaveEditorUI::RenderProgressFlagsSection(const SaveData& saveData, SaveSlot
 	ImGui::EndTabItem();
 }
 
-void SaveEditorUI::RenderGlobalDataSection(const SaveData& saveData, SaveFile* saveFile)
-{
-	if (!ImGui::BeginTabItem("Global Data")) return;
-
-	//PrintChecksum(saveFile->GetGlobalData()->GetChecksum(saveData.NeedsEndianSwap()));
-
-	ImGui::SeparatorText("Unlocked / Collected Stop 'N' Swop Items");
-
-	CheckboxSnS(saveData, "Cyan Egg", SnS::UNLOCKED_CYAN_EGG, SnS::COLLECTED_CYAN_EGG);
-	CheckboxSnS(saveData, "Pink Egg", SnS::UNLOCKED_PINK_EGG, SnS::COLLECTED_PINK_EGG);
-	CheckboxSnS(saveData, "Blue Egg", SnS::UNLOCKED_BLUE_EGG, SnS::COLLECTED_BLUE_EGG);
-	CheckboxSnS(saveData, "Green Egg", SnS::UNLOCKED_GREEN_EGG, SnS::COLLECTED_GREEN_EGG);
-	CheckboxSnS(saveData, "Red Egg", SnS::UNLOCKED_RED_EGG, SnS::COLLECTED_RED_EGG);
-	CheckboxSnS(saveData, "Yellow Egg", SnS::UNLOCKED_YELLOW_EGG, SnS::COLLECTED_YELLOW_EGG);
-	CheckboxSnS(saveData, "Ice Key", SnS::UNLOCKED_ICE_KEY, SnS::COLLECTED_ICE_KEY);
-
-	ImGui::EndTabItem();
-}
-
 bool SaveEditorUI::CheckboxProgressFlags(const SaveData& saveData, SaveSlot* saveSlot, const char* label, const ProgressFlags flag) const
 {
 	bool value = saveSlot->GetProgressFlag(flag);
@@ -754,30 +875,30 @@ void SaveEditorUI::CheckboxAbility(const SaveData& saveData, SaveSlot* saveSlot,
 	}*/
 }
 
-void SaveEditorUI::CheckboxSnS(const SaveData& saveData, const char* label, const SnS unlockedSnsItem, const SnS collectedSnsItem) const
-{
-	/*GlobalData* globalData = saveData.GetSaveFile()->GetGlobalData();
-
-	bool unlocked = globalData->GetSnsItem(unlockedSnsItem);
-	bool collected = globalData->GetSnsItem(collectedSnsItem);
-
-	char unlockedId[64];
-	snprintf(unlockedId, 64, "##%s Unlocked", label);
-
-	if (ImGui::Checkbox(unlockedId, &unlocked))
-	{
-		globalData->SetSnsItem(unlockedSnsItem, unlocked);
-		globalData->UpdateChecksum(saveData.NeedsEndianSwap());
-	}
-
-	ImGui::SameLine();
-
-	if (ImGui::Checkbox(label, &collected))
-	{
-		globalData->SetSnsItem(collectedSnsItem, collected);
-		globalData->UpdateChecksum(saveData.NeedsEndianSwap());
-	}*/
-}
+//void SaveEditorUI::CheckboxSnS(const SaveData& saveData, const char* label, const SnS unlockedSnsItem, const SnS collectedSnsItem) const
+//{
+//	GlobalData* globalData = saveData.GetSaveFile()->GetGlobalData();
+//
+//	bool unlocked = globalData->GetSnsItem(unlockedSnsItem);
+//	bool collected = globalData->GetSnsItem(collectedSnsItem);
+//
+//	char unlockedId[64];
+//	snprintf(unlockedId, 64, "##%s Unlocked", label);
+//
+//	if (ImGui::Checkbox(unlockedId, &unlocked))
+//	{
+//		globalData->SetSnsItem(unlockedSnsItem, unlocked);
+//		globalData->UpdateChecksum(saveData.NeedsEndianSwap());
+//	}
+//
+//	ImGui::SameLine();
+//
+//	if (ImGui::Checkbox(label, &collected))
+//	{
+//		globalData->SetSnsItem(collectedSnsItem, collected);
+//		globalData->UpdateChecksum(saveData.NeedsEndianSwap());
+//	}
+//}
 
 void SaveEditorUI::PrintChecksum(const uint32_t checksum) const
 {

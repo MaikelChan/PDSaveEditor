@@ -197,46 +197,6 @@ uint32_t SaveSlot::GetChecksum(const bool endianSwap) const
 
 #pragma endregion
 
-#pragma region GlobalData
-
-//uint32_t GlobalData::CalculateChecksum() const
-//{
-//	return SaveFile::CalculateChecksum((uint8_t*)&SnsItems, (uint8_t*)&Checksum);
-//}
-
-//void GlobalData::UpdateChecksum(const bool endianSwap)
-//{
-//	const uint32_t checksum = CalculateChecksum();
-//	Checksum = endianSwap ? Utils::Swap32(checksum) : checksum;
-//}
-//
-//bool GlobalData::IsValid(const bool endianSwap) const
-//{
-//	const uint32_t checksum = CalculateChecksum();
-//	return Checksum == (endianSwap ? Utils::Swap32(checksum) : checksum);
-//}
-
-bool GlobalData::GetSnsItem(const SnS snsItem) const
-{
-	const uint8_t index = static_cast<uint8_t>(snsItem);
-	return Utils::Swap32(SnsItems) & (1 << index);
-}
-
-void GlobalData::SetSnsItem(const SnS snsItem, const bool value)
-{
-	const uint8_t index = static_cast<uint8_t>(snsItem);
-
-	if (value) SnsItems |= Utils::Swap32(1 << index);
-	else SnsItems &= Utils::Swap32(~(1 << index));
-}
-
-uint32_t GlobalData::GetChecksum(const bool endianSwap) const
-{
-	return endianSwap ? Utils::Swap32(Checksum) : Checksum;
-}
-
-#pragma endregion
-
 #pragma region SaveBuffer
 
 SaveBuffer::SaveBuffer()
@@ -313,7 +273,7 @@ void SaveBuffer::Clear()
 
 #pragma endregion
 
-#pragma region BossFile
+#pragma region PakFile
 
 void PakFile::Load(uint8_t* fileBuffer)
 {
@@ -351,7 +311,7 @@ void BossFile::Load(uint8_t* fileBuffer)
 
 	tracknum = buffer.ReadBits(8);
 
-	for (int32_t i = 0; i < MULTIPLE_TRACKS_COUNT; i++)
+	for (int32_t i = 0; i < MULTIPLE_TRACKS_SIZE; i++)
 	{
 		multipletracknums[i] = buffer.ReadBits(8);
 	}
@@ -359,6 +319,23 @@ void BossFile::Load(uint8_t* fileBuffer)
 	usingmultipletunes = buffer.ReadBits(1);
 	altTitleUnlocked = buffer.ReadBits(1);
 	altTitleEnabled = buffer.ReadBits(1);
+}
+
+bool BossFile::IsMultiTrackSlotEnabled(const uint8_t slot) const
+{
+	uint8_t index = slot >> 3;
+	uint8_t value = 1 << (slot & 7);
+
+	return (multipletracknums[index] & value) != 0;
+}
+
+void BossFile::SetMultiTrackSlotEnabled(const uint8_t slot, const bool enable)
+{
+	uint8_t value = 1 << (slot & 7);
+	uint8_t index = slot >> 3;
+
+	if (enable) multipletracknums[index] |= value;
+	else multipletracknums[index] &= ~value;
 }
 
 #pragma endregion
