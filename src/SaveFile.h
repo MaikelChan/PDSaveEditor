@@ -861,9 +861,14 @@ public:
 	SaveBuffer();
 	SaveBuffer(const uint8_t* bytes, const uint32_t size);
 
+	uint8_t* GetBytes();
+
 	uint32_t ReadBits(const int32_t numbits);
 	void ReadGuid(FileGuid* guid);
+	void WriteGuid(FileGuid* guid);
 	void ReadString(char* dst);
+	void WriteString(char* src);
+	void Or(const uint32_t value, const int32_t numbits);
 	void Clear();
 };
 
@@ -902,6 +907,7 @@ private:
 
 public:
 	virtual void Load(uint8_t* fileBuffer);
+	virtual void Save(uint8_t* fileBuffer);
 
 	bool IsUsed() const { return pakFileHeader.occupied; }
 	bool IsValid() const { return isValid; }
@@ -922,6 +928,7 @@ public:
 
 public:
 	void Load(uint8_t* fileBuffer) override;
+	void Save(uint8_t* fileBuffer) override;
 
 	bool IsMultiTrackSlotEnabled(const uint8_t slot) const;
 	void SetMultiTrackSlotEnabled(const uint8_t slot, const bool enable);
@@ -1014,6 +1021,7 @@ private:
 
 public:
 	void Load(uint8_t* fileBuffer);
+	void Save(uint8_t* fileBuffer);
 
 	BossFile* GetBossFile(const uint8_t index) { return &bossFiles[index]; }
 	GameFile* GetGameFile(const uint8_t index) { return &gameFiles[index]; }

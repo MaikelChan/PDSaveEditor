@@ -79,7 +79,12 @@ void SaveData::Save(const std::string filePath)
 		throw std::runtime_error(std::string("Can't open file \"") + filePath + "\".");
 	}
 
-	stream.write((char*)saveFile, SAVE_FILE_SIZE);
+	uint8_t fileBuffer[SAVE_FILE_SIZE];
+	memset(fileBuffer, 0, SAVE_FILE_SIZE);
+
+	saveFile->Save(fileBuffer);
+
+	stream.write((char*)fileBuffer, SAVE_FILE_SIZE);
 	stream.close();
 }
 

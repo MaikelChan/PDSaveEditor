@@ -213,6 +213,11 @@ SaveBuffer::SaveBuffer(const uint8_t* bytes, const uint32_t size)
 	memcpy(SaveBuffer::bytes, bytes, size);
 }
 
+uint8_t* SaveBuffer::GetBytes()
+{
+	return bytes;
+}
+
 uint32_t SaveBuffer::ReadBits(const int32_t numbits)
 {
 	uint32_t bit = 1 << (numbits - 1);
@@ -237,6 +242,12 @@ void SaveBuffer::ReadGuid(FileGuid* guid)
 {
 	guid->fileid = ReadBits(7);
 	guid->deviceserial = ReadBits(13);
+}
+
+void SaveBuffer::WriteGuid(FileGuid* guid)
+{
+	Or(guid->fileid, 7);
+	Or(guid->deviceserial, 13);
 }
 
 void SaveBuffer::ReadString(char* dst/*, const bool addlinebreak*/)
@@ -265,6 +276,55 @@ void SaveBuffer::ReadString(char* dst/*, const bool addlinebreak*/)
 	dst[++index] = '\0';
 }
 
+void SaveBuffer::WriteString(char* src)
+{
+	bool done = false;
+
+	for (int32_t i = 0; i < MAX_NAME_LENGTH; i++)
+	{
+		if (!done)
+		{
+			if (src[i] == '\0')
+			{
+				done = true;
+			}
+			else if (src[i] == '\n')
+			{
+				done = true;
+			}
+			else
+			{
+				uint32_t c = src[i];
+				Or(c, 8);
+			}
+		}
+
+		if (done)
+		{
+			Or('\0', 8);
+		}
+	}
+}
+
+void SaveBuffer::Or(const uint32_t value, const int32_t numbits)
+{
+	uint32_t bit = 1 << (numbits - 1);
+
+	for (; bit; bit >>= 1)
+	{
+		if (bit & value)
+		{
+			int32_t bitindex = bitpos % 8;
+			uint8_t mask = 1 << (7 - bitindex);
+			int32_t byteindex = bitpos / 8;
+
+			bytes[byteindex] |= mask;
+		}
+
+		bitpos++;
+	}
+}
+
 void SaveBuffer::Clear()
 {
 	bitpos = 0;
@@ -280,13 +340,35 @@ void PakFile::Load(uint8_t* fileBuffer)
 	memcpy(&pakFileHeader, &fileBuffer[0], PACK_HEADER_SIZE);
 
 	uint16_t headerChecksum[2];
-	SaveFile::CalculateChecksum(&fileBuffer[8], &fileBuffer[16], headerChecksum);
+	SaveFile::CalculateChecksum(&fileBuffer[8], &fileBuffer[PACK_HEADER_SIZE], headerChecksum);
 
 	uint16_t bodyChecksum[2];
-	SaveFile::CalculateChecksum(&fileBuffer[16], &fileBuffer[16 + pakFileHeader.bodylen], bodyChecksum);
+	SaveFile::CalculateChecksum(&fileBuffer[PACK_HEADER_SIZE], &fileBuffer[PACK_HEADER_SIZE + pakFileHeader.bodylen], bodyChecksum);
 
 	isValid = pakFileHeader.headersum[0] == headerChecksum[0] && pakFileHeader.headersum[1] == headerChecksum[1] &&
 		pakFileHeader.bodysum[0] == bodyChecksum[0] && pakFileHeader.bodysum[1] == bodyChecksum[1];
+}
+
+void PakFile::Save(uint8_t* fileBuffer)
+{
+	memcpy(&fileBuffer[0], &pakFileHeader, PACK_HEADER_SIZE);
+
+	uint16_t headerChecksum[2];
+	SaveFile::CalculateChecksum(&fileBuffer[8], &fileBuffer[PACK_HEADER_SIZE], headerChecksum);
+	memcpy(&fileBuffer[0], headerChecksum, 4);
+
+	if (pakFileHeader.occupied)
+	{
+		uint16_t bodyChecksum[2];
+		SaveFile::CalculateChecksum(&fileBuffer[PACK_HEADER_SIZE], &fileBuffer[PACK_HEADER_SIZE + pakFileHeader.bodylen], bodyChecksum);
+		memcpy(&fileBuffer[4], bodyChecksum, 4);
+	}
+	else
+	{
+		for (uint8_t i = 0; i < 4; i++) fileBuffer[4 + i] = 0xff;
+	}
+
+	isValid = true;
 }
 
 #pragma endregion
@@ -304,9 +386,9 @@ void BossFile::Load(uint8_t* fileBuffer)
 	unk1 = buffer.ReadBits(1);
 	language = buffer.ReadBits(4);
 
-	for (int32_t t = 0; t < TEAM_NAMES_COUNT; t++)
+	for (int32_t tn = 0; tn < TEAM_NAMES_COUNT; tn++)
 	{
-		buffer.ReadString(teamNames[t]);
+		buffer.ReadString(teamNames[tn]);
 	}
 
 	tracknum = buffer.ReadBits(8);
@@ -319,6 +401,41 @@ void BossFile::Load(uint8_t* fileBuffer)
 	usingmultipletunes = buffer.ReadBits(1);
 	altTitleUnlocked = buffer.ReadBits(1);
 	altTitleEnabled = buffer.ReadBits(1);
+}
+
+void BossFile::Save(uint8_t* fileBuffer)
+{
+	SaveBuffer buffer;
+
+	buffer.WriteGuid(&guid);
+
+	buffer.Or(unk1, 1);
+	buffer.Or(language, 4);
+
+	for (int32_t tn = 0; tn < TEAM_NAMES_COUNT; tn++)
+	{
+		buffer.WriteString(teamNames[tn]);
+	}
+
+	if (tracknum == 255) buffer.Or(255, 8);
+	else buffer.Or(tracknum, 8);
+
+	for (int32_t i = 0; i < MULTIPLE_TRACKS_SIZE; i++)
+	{
+		buffer.Or(multipletracknums[i], 8);
+	}
+
+	buffer.Or(usingmultipletunes, 1);
+	buffer.Or(altTitleUnlocked, 1);
+	buffer.Or(altTitleEnabled, 1);
+
+	uint8_t* bytes = buffer.GetBytes();
+	for (uint8_t i = 0; i < pakFileHeader.filelen - PACK_HEADER_SIZE; i++)
+	{
+		fileBuffer[PACK_HEADER_SIZE + i] = bytes[i % pakFileHeader.bodylen];
+	}
+
+	PakFile::Save(fileBuffer);
 }
 
 bool BossFile::IsMultiTrackSlotEnabled(const uint8_t slot) const
@@ -573,10 +690,10 @@ void SaveFile::Load(uint8_t* fileBuffer)
 		// Print debug data
 
 		uint16_t checksum[2];
-		CalculateChecksum(&fileBuffer[p + 8], &fileBuffer[p + 16], checksum);
+		CalculateChecksum(&fileBuffer[p + 8], &fileBuffer[p + PACK_HEADER_SIZE], checksum);
 		char* headerSumResult = (pakFileHeader.headersum[0] == checksum[0] && pakFileHeader.headersum[1] == checksum[1]) ? "OK " : "BAD";
 
-		CalculateChecksum(&fileBuffer[p + 16], &fileBuffer[p + 16 + pakFileHeader.bodylen], checksum);
+		CalculateChecksum(&fileBuffer[p + PACK_HEADER_SIZE], &fileBuffer[p + PACK_HEADER_SIZE + pakFileHeader.bodylen], checksum);
 		char* bodySumResult = (pakFileHeader.bodysum[0] == checksum[0] && pakFileHeader.bodysum[1] == checksum[1]) ? "OK " : "BAD";
 
 		char* type;
@@ -601,7 +718,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 			case PakFileTypes::MPPLAYER:
 			{
 				char name[MAX_NAME_LENGTH + 1];
-				memcpy(name, &fileBuffer[p + 16], 10);
+				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
 				name[10] = '\0';
 				char gameName[32];
 				snprintf(gameName, 32, "MPPLAYER (%-10s)", name);
@@ -611,7 +728,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 			case PakFileTypes::MPSETUP:
 			{
 				char name[MAX_NAME_LENGTH + 1];
-				memcpy(name, &fileBuffer[p + 16], 10);
+				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
 				name[10] = '\0';
 				char gameName[32];
 				snprintf(gameName, 32, "MPSETUP  (%-10s)", name);
@@ -621,7 +738,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 			case PakFileTypes::GAME:
 			{
 				char name[MAX_NAME_LENGTH + 1];
-				memcpy(name, &fileBuffer[p + 16], 10);
+				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
 				name[10] = '\0';
 				char gameName[32];
 				snprintf(gameName, 32, "GAME     (%-10s)", name);
@@ -638,6 +755,17 @@ void SaveFile::Load(uint8_t* fileBuffer)
 		// Advance to next file
 
 		p += pakFileHeader.filelen;
+	}
+}
+
+void SaveFile::Save(uint8_t* fileBuffer)
+{
+	int32_t p = 0;
+
+	for (uint8_t bf = 0; bf < ACTUAL_NUM_BOSS_FILE_SLOTS; bf++)
+	{
+		bossFiles[bf].Save(&fileBuffer[p]);
+		p += bossFiles[bf].pakFileHeader.filelen;
 	}
 }
 
