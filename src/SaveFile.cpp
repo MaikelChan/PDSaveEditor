@@ -379,6 +379,9 @@ void BossFile::Load(uint8_t* fileBuffer)
 {
 	PakFile::Load(fileBuffer);
 
+	if (pakFileHeader.filelen != PACK_BOSS_SIZE + PACK_HEADER_SIZE)
+		throw std::runtime_error(std::string("Unexpected size of \"BOSS\" file: ") + std::to_string(pakFileHeader.filelen) + ".");
+
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
 	buffer.ReadGuid(&guid);
@@ -463,6 +466,9 @@ void GameFile::Load(uint8_t* fileBuffer)
 {
 	PakFile::Load(fileBuffer);
 
+	if (pakFileHeader.filelen != PACK_GAME_SIZE + PACK_HEADER_SIZE)
+		throw std::runtime_error(std::string("Unexpected size of \"GAME\" file: ") + std::to_string(pakFileHeader.filelen) + ".");
+
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
 	buffer.ReadString(name);
@@ -527,6 +533,9 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer)
 {
 	PakFile::Load(fileBuffer);
 
+	if (pakFileHeader.filelen != PACK_MPPLAYER_SIZE + PACK_HEADER_SIZE)
+		throw std::runtime_error(std::string("Unexpected size of \"MPPLAYER\" file: ") + std::to_string(pakFileHeader.filelen) + ".");
+
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
 	buffer.ReadString(name);
@@ -579,6 +588,9 @@ void MultiplayerSettings::Load(uint8_t* fileBuffer)
 {
 	PakFile::Load(fileBuffer);
 
+	if (pakFileHeader.filelen != PACK_MPSETUP_SIZE + PACK_HEADER_SIZE)
+		throw std::runtime_error(std::string("Unexpected size of \"MPSETUP\" file: ") + std::to_string(pakFileHeader.filelen) + ".");
+
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
 	buffer.ReadString(name);
@@ -615,28 +627,25 @@ void MultiplayerSettings::Load(uint8_t* fileBuffer)
 
 #pragma endregion
 
-#pragma region SaveFile
+#pragma region Terminator
 
-//SaveSlot* SaveFile::GetRawSaveSlot(const uint8_t slotIndex)
-//{
-//	return &saveSlots[slotIndex];
-//}
-//
-//SaveSlot* SaveFile::GetSaveSlot(const uint8_t slotIndex)
-//{
-//	for (uint8_t s = 0; s < TOTAL_NUM_SAVE_SLOTS; s++)
-//	{
-//		if (saveSlots[s].GetMagic() != SAVE_SLOT_MAGIC) continue;
-//		if (saveSlots[s].GetSlotIndex() == slotIndex + 1) return &saveSlots[s];
-//	}
-//
-//	return nullptr;
-//}
-//
-//GlobalData* SaveFile::GetGlobalData()
-//{
-//	return &globalData;
-//}
+void Terminator::Load(uint8_t* fileBuffer)
+{
+	PakFile::Load(fileBuffer);
+
+	if (pakFileHeader.filelen != PACK_TERMINATOR_SIZE + PACK_HEADER_SIZE)
+		throw std::runtime_error(std::string("Unexpected size of \"TERMINATOR\" file: ") + std::to_string(pakFileHeader.filelen) + ".");
+}
+
+void Terminator::Save(uint8_t* fileBuffer)
+{
+	// This never changes, so just copy the header and don't recalculate checksums
+	memcpy(&fileBuffer[0], &pakFileHeader, PACK_HEADER_SIZE);
+}
+
+#pragma endregion
+
+#pragma region SaveFile
 
 void SaveFile::Load(uint8_t* fileBuffer)
 {
@@ -679,6 +688,11 @@ void SaveFile::Load(uint8_t* fileBuffer)
 			case PakFileTypes::GAME:
 			{
 				gameFiles[gameFilesCount++].Load(&fileBuffer[p]);
+				break;
+			}
+			case PakFileTypes::TERMINATOR:
+			{
+				terminator.Load(&fileBuffer[p]);
 				break;
 			}
 			default:
@@ -767,6 +781,29 @@ void SaveFile::Save(uint8_t* fileBuffer)
 		bossFiles[bf].Save(&fileBuffer[p]);
 		p += bossFiles[bf].pakFileHeader.filelen;
 	}
+
+	for (uint8_t mpp = 0; mpp < ACTUAL_NUM_FILE_SLOTS; mpp++)
+	{
+		mpProfiles[mpp].Save(&fileBuffer[p]);
+		p += mpProfiles[mpp].pakFileHeader.filelen;
+	}
+
+	for (uint8_t mps = 0; mps < ACTUAL_NUM_FILE_SLOTS; mps++)
+	{
+		mpSettings[mps].Save(&fileBuffer[p]);
+		p += mpSettings[mps].pakFileHeader.filelen;
+	}
+
+	for (uint8_t gf = 0; gf < ACTUAL_NUM_FILE_SLOTS; gf++)
+	{
+		gameFiles[gf].Save(&fileBuffer[p]);
+		p += gameFiles[gf].pakFileHeader.filelen;
+	}
+
+	if (p != SAVE_FILE_SIZE - PACK_TERMINATOR_ACTUAL_SIZE - PACK_HEADER_SIZE)
+		throw std::runtime_error(std::string("Unexpected position of \"TERMINATOR\" file: ") + std::to_string(p) + ".");
+
+	terminator.Save(&fileBuffer[p]);
 }
 
 void SaveFile::CalculateChecksum(uint8_t* start, uint8_t* end, uint16_t* checksum)

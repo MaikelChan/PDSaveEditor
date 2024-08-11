@@ -72,17 +72,17 @@ void SaveData::Save(const std::string filePath)
 {
 	if (!IsSaveFileLoaded()) return;
 
+	uint8_t fileBuffer[SAVE_FILE_SIZE];
+	memset(fileBuffer, 0, SAVE_FILE_SIZE);
+
+	saveFile->Save(fileBuffer);
+
 	std::ofstream stream = std::ofstream(filePath, std::ios::binary);
 
 	if (!stream || !stream.is_open())
 	{
 		throw std::runtime_error(std::string("Can't open file \"") + filePath + "\".");
 	}
-
-	uint8_t fileBuffer[SAVE_FILE_SIZE];
-	memset(fileBuffer, 0, SAVE_FILE_SIZE);
-
-	saveFile->Save(fileBuffer);
 
 	stream.write((char*)fileBuffer, SAVE_FILE_SIZE);
 	stream.close();

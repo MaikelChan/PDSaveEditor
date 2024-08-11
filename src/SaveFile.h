@@ -8,6 +8,12 @@
 #define SAVE_FILE_SIZE 2048
 #define MAX_PACK_FILE_SIZE 256
 #define PACK_HEADER_SIZE 16
+#define PACK_BOSS_SIZE 96
+#define PACK_MPPLAYER_SIZE 80
+#define PACK_MPSETUP_SIZE 64
+#define PACK_GAME_SIZE 160
+#define PACK_TERMINATOR_SIZE 240
+#define PACK_TERMINATOR_ACTUAL_SIZE 48
 #define TOTAL_NUM_BOSS_FILE_SLOTS 1
 #define ACTUAL_NUM_BOSS_FILE_SLOTS 2
 #define TOTAL_NUM_FILE_SLOTS 4
@@ -1011,6 +1017,13 @@ public:
 	void Load(uint8_t* fileBuffer) override;
 };
 
+struct Terminator : public PakFile
+{
+public:
+	void Load(uint8_t* fileBuffer) override;
+	void Save(uint8_t* fileBuffer) override;
+};
+
 struct SaveFile
 {
 private:
@@ -1018,6 +1031,7 @@ private:
 	GameFile gameFiles[ACTUAL_NUM_FILE_SLOTS] = {};
 	MultiplayerProfile mpProfiles[ACTUAL_NUM_FILE_SLOTS] = {};
 	MultiplayerSettings mpSettings[ACTUAL_NUM_FILE_SLOTS] = {};
+	Terminator terminator = {};
 
 public:
 	void Load(uint8_t* fileBuffer);
