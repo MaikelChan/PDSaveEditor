@@ -26,6 +26,10 @@
 #define NUM_SONGS 43
 #define MULTIPLE_TRACKS_SIZE 6
 #define NUM_LANGUAGES 5
+#define NUM_SCREEN_SIZES 3
+#define NUM_RATIOS 2
+#define NUM_SCREEN_SPLIT_MODES 2
+#define NUM_AIM_CONTROL_MODES 2
 
 // Solo game
 
@@ -80,6 +84,31 @@ const char* const soundModeNames[NUM_SOUND_MODES]
 	"Stereo",
 	"Headphone",
 	"Surround"
+};
+
+const char* const screenSizeNames[NUM_SCREEN_SIZES]
+{
+	"Full",
+	"Wide",
+	"Cinema"
+};
+
+const char* const ratioNames[NUM_RATIOS]
+{
+	"Normal",
+	"16:9"
+};
+
+const char* const screenSplitModeNames[NUM_SCREEN_SPLIT_MODES]
+{
+	"Horizontal",
+	"Vertical"
+};
+
+const char* const aimControlModeNames[NUM_AIM_CONTROL_MODES]
+{
+	"Hold",
+	"Toggle"
 };
 
 const char* const controlModeNames[NUM_CONTROL_MODES]
@@ -1158,8 +1187,7 @@ public:
 	uint8_t sfxVolume = 0;
 	uint8_t musicVolume = 0;
 	uint8_t soundMode = 0;
-	uint8_t controlMode1 = 0;
-	uint8_t controlMode2 = 0;
+	uint8_t controlModes[2] = {};
 	uint8_t flags[GAMEFILE_FLAGS_SIZE] = {};
 	uint16_t unknown1 = 0;
 	uint16_t besttimes[NUM_SOLOSTAGES][NUM_DIFFICULTIES] = {};

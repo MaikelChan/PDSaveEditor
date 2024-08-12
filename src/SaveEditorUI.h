@@ -36,7 +36,7 @@ private:
 	void RenderAbilitiesItemsSection(const SaveData& saveData, SaveSlot* saveSlot);
 	void RenderProgressFlagsSection(const SaveData& saveData, SaveSlot* saveSlot);
 
-	bool CheckboxProgressFlags(GameFile* gameFile, const char* label, const SinglePlayerFlags flag) const;
+	bool CheckboxProgressFlags(GameFile* gameFile, const char* label, const SinglePlayerFlags flag, const bool reverse = false) const;
 	uint8_t InputProgressFlags(const SaveData& saveData, SaveSlot* saveSlot, const char* label, const ProgressFlags flag, const uint8_t bitsCount, const uint8_t maxValue) const;
 	void CheckboxAbility(SaveSlot* saveSlot, const char* label, const Abilities ability) const;
 	void NameInputField(const char* label, char* name) const;

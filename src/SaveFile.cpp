@@ -479,8 +479,8 @@ void GameFile::Load(uint8_t* fileBuffer)
 	sfxVolume = buffer.ReadBits(6);
 	musicVolume = buffer.ReadBits(6);
 	soundMode = buffer.ReadBits(2);
-	controlMode1 = buffer.ReadBits(3);
-	controlMode1 = buffer.ReadBits(3);
+	controlModes[0] = buffer.ReadBits(3);
+	controlModes[1] = buffer.ReadBits(3);
 
 	for (uint8_t i = 0; i < GAMEFILE_FLAGS_SIZE; i++)
 	{
