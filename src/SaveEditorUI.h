@@ -10,7 +10,7 @@ class MainUI;
 const char* const tabNames[]
 {
 	"Global Data",
-	"Solo Mode",
+	"Single Player",
 	"Multiplayer Profiles",
 	"Multiplayer Settings"
 };
@@ -29,16 +29,20 @@ protected:
 	virtual void DoRender() override;
 
 private:
-	void RenderGlobalDataSection(const SaveData& saveData, SaveFile* saveFile);
+	void RenderGlobalDataSection(SaveFile* saveFile);
+	void RenderSinglePlayerSection(SaveFile* saveFile);
+
 	void RenderLevelDataSection(const SaveData& saveData, SaveSlot* saveSlot);
 	void RenderAbilitiesItemsSection(const SaveData& saveData, SaveSlot* saveSlot);
 	void RenderProgressFlagsSection(const SaveData& saveData, SaveSlot* saveSlot);
 
-	bool CheckboxProgressFlags(const SaveData& saveData, SaveSlot* saveSlot, const char* label, const ProgressFlags flag) const;
+	bool CheckboxProgressFlags(GameFile* gameFile, const char* label, const SinglePlayerFlags flag) const;
 	uint8_t InputProgressFlags(const SaveData& saveData, SaveSlot* saveSlot, const char* label, const ProgressFlags flag, const uint8_t bitsCount, const uint8_t maxValue) const;
-	void CheckboxAbility(const SaveData& saveData, SaveSlot* saveSlot, const char* label, const Abilities ability) const;
+	void CheckboxAbility(SaveSlot* saveSlot, const char* label, const Abilities ability) const;
+	void NameInputField(const char* label, char* name) const;
+	void PrintEmptySlot() const;
 	void PrintChecksum(const uint32_t checksum) const;
 	void PrintHeader(const char* label) const;
-	void BeginProgressFlagsGroup(const char* label) const;
-	void EndProgressFlagsGroup() const;
+	void BeginFlagsGroup(const char* label) const;
+	void EndFlagsGroup() const;
 };

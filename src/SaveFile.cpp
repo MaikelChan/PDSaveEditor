@@ -525,6 +525,58 @@ void GameFile::Load(uint8_t* fileBuffer)
 	}
 }
 
+bool GameFile::GetFlag(const SinglePlayerFlags flag) const
+{
+	uint32_t flagnum = (uint32_t)flag;
+	uint32_t byteindex = flagnum / 8;
+	uint8_t mask = 1 << (flagnum % 8);
+
+	return (flags[byteindex] & mask) != 0;
+}
+
+void GameFile::SetFlag(const SinglePlayerFlags flag, const bool set)
+{
+	uint32_t flagnum = (uint32_t)flag;
+	uint32_t byteindex = flagnum / 8;
+	uint8_t mask = 1 << (flagnum % 8);
+
+	if (set) flags[byteindex] |= mask;
+	else flags[byteindex] &= ~mask;
+}
+
+uint8_t GameFile::GetFiringRangeScore(const uint8_t weaponIndex) const
+{
+	return (firingrangescores[weaponIndex >> 2] >> (weaponIndex % 4) * 2) & 3;
+}
+
+void GameFile::SetFiringRangeScore(const uint8_t weaponIndex, const uint8_t difficulty)
+{
+	uint32_t byteindex = weaponIndex >> 2;
+	uint32_t shiftamount = (weaponIndex % 4) * 2;
+	uint32_t value = firingrangescores[byteindex];
+	uint32_t mask = (1 << shiftamount) + (1 << (shiftamount + 1));
+
+	value &= 255 - mask;
+	value += (difficulty << shiftamount) & mask;
+
+	firingrangescores[byteindex] = value;
+}
+
+bool GameFile::GetWeaponFound(const uint8_t weaponIndex) const
+{
+	uint32_t byteindex = weaponIndex >> 3;
+	return (weaponsfound[byteindex] & (1 << (weaponIndex % 8))) != 0;
+}
+
+void GameFile::SetWeaponFound(const uint8_t weaponIndex, const bool found)
+{
+	uint32_t byteindex = weaponIndex >> 3;
+	uint32_t value = weaponsfound[byteindex];
+
+	if (found) weaponsfound[byteindex] |= (1 << (weaponIndex % 8));
+	else weaponsfound[byteindex] &= ~(1 << (weaponIndex % 8));
+}
+
 #pragma endregion
 
 #pragma region MultiplayerProfile

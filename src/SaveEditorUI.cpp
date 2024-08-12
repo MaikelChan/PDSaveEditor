@@ -41,12 +41,13 @@ void SaveEditorUI::DoRender()
 					switch (s)
 					{
 						case 0:
-						{
-							RenderGlobalDataSection(saveData, saveFile);
+							RenderGlobalDataSection(saveFile);
 							break;
-						}
-					}
 
+						case 1:
+							RenderSinglePlayerSection(saveFile);
+							break;
+					}
 
 					/*SaveSlot* saveSlot = saveFile->GetSaveSlot(s);
 
@@ -83,7 +84,7 @@ void SaveEditorUI::DoRender()
 	ImGui::End();
 }
 
-void SaveEditorUI::RenderGlobalDataSection(const SaveData& saveData, SaveFile* saveFile)
+void SaveEditorUI::RenderGlobalDataSection(SaveFile* saveFile)
 {
 	BossFile* bossFile = nullptr;
 
@@ -123,38 +124,7 @@ void SaveEditorUI::RenderGlobalDataSection(const SaveData& saveData, SaveFile* s
 
 		for (uint8_t t = 0; t < TEAM_NAMES_COUNT; t++)
 		{
-			char cleanedName[MAX_NAME_LENGTH + 1] = {};
-			char previousName[MAX_NAME_LENGTH + 1] = {};
-
-			// Workaround for Spanish brown, the only color with special characters
-			if (strcmp("Marrón", bossFile->teamNames[t]) == 0) snprintf(cleanedName, MAX_NAME_LENGTH + 1, "Marron");
-			else strcpy(cleanedName, bossFile->teamNames[t]);
-
-			strcpy(previousName, cleanedName);
-
-			if (ImGui::InputText(teamNames[t], cleanedName, MAX_NAME_LENGTH + 1))
-			{
-				bool valid = true;
-				for (uint8_t c = 0; c < MAX_NAME_LENGTH + 1; c++)
-				{
-					if (cleanedName[c] == '\0') break;
-
-					uint8_t val = (uint8_t)cleanedName[c];
-
-					//      Space            !              .                      0-9                     ?                       A-Z                             a-z
-					if (!(val == 0x20 || val == 0x21 || val == 0x2e || (val >= 0x30 && val <= 0x39) || val == 0x3f || (val >= 0x41 && val <= 0x5a) || (val >= 0x61 && val <= 0x7a)))
-					{
-						valid = false;
-						break;
-					}
-				}
-
-				if (valid)
-				{
-					memset(bossFile->teamNames[t], 0, MAX_NAME_LENGTH + 1);
-					strcpy(bossFile->teamNames[t], cleanedName);
-				}
-			}
+			NameInputField(teamNames[t], bossFile->teamNames[t]);
 		}
 
 		ImGui::EndTable();
@@ -228,7 +198,6 @@ void SaveEditorUI::RenderGlobalDataSection(const SaveData& saveData, SaveFile* s
 				if (s == 15) ImGui::TableSetColumnIndex(2);
 				else if (s == 30) ImGui::TableSetColumnIndex(3);
 
-				//bool enabled = s == song;
 				if (ImGui::RadioButton(songNames[s], &song, s))
 				{
 					bossFile->tracknum = s == NUM_SONGS ? 255 : s;
@@ -237,6 +206,293 @@ void SaveEditorUI::RenderGlobalDataSection(const SaveData& saveData, SaveFile* s
 		}
 
 		ImGui::EndTable();
+	}
+}
+
+void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
+{
+	GameFile* gameFiles[NUM_FILE_SLOTS] = {};
+	uint8_t slot = 0;
+
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		GameFile* gameFile = saveFile->GetGameFile(f);
+		if (gameFile->IsUsed())
+		{
+			gameFiles[slot] = gameFile;
+			slot++;
+		}
+	}
+
+	if (ImGui::BeginTabBar("Single Player Slots", ImGuiTabBarFlags_None))
+	{
+		for (uint8_t f = 0; f < NUM_FILE_SLOTS; f++)
+		{
+			GameFile* gameFile = gameFiles[f];
+
+			// "###Slot%u is used as tab id, to prevent regenerating
+			// the whole window when updating the name of the slot
+
+			char tabName[32];
+			snprintf(tabName, 32, "Slot %u (%s)###Slot%u", f + 1, gameFile != nullptr ? gameFile->name : "Empty", f + 1);
+
+			if (ImGui::BeginTabItem(tabName))
+			{
+				if (gameFile == nullptr)
+				{
+					PrintEmptySlot();
+					ImGui::EndTabItem();
+					continue;
+				}
+
+				ImGui::BeginChild("Single Player Frame", ImVec2(0, 0), false, 0);
+
+				NameInputField("Name", gameFile->name);
+
+				ImGui::InputScalar("Play Time (s)", ImGuiDataType_U32, &gameFile->totaltime, NULL, NULL, "%u");
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
+					ImGui::SetTooltip("%s", Utils::GetTimeString(gameFile->totaltime).c_str());
+
+				int thumbnail = gameFile->thumbnail;
+				if (ImGui::Combo("Slot Thumbnail", &thumbnail, thumbnailNames, NUM_SOLOSTAGES + 1))
+				{
+					gameFile->thumbnail = thumbnail;
+				}
+
+				int autostageindex = gameFile->autostageindex;
+				if (ImGui::Combo("Last Played Stage", &autostageindex, stageNames, NUM_SOLOSTAGES))
+				{
+					gameFile->autostageindex = autostageindex;
+				}
+
+				int autodifficulty = gameFile->autodifficulty;
+				if (ImGui::Combo("Last Played Difficulty", &autodifficulty, difficultyNames, NUM_DIFFICULTIES))
+				{
+					gameFile->autodifficulty = autodifficulty;
+				}
+
+				const ImU8 volumeMin = 0, volumeMax = 40;
+				ImGui::SliderScalar("SFX Volume", ImGuiDataType_U8, &gameFile->sfxVolume, &volumeMin, &volumeMax, "%u");
+				ImGui::SliderScalar("Music Volume", ImGuiDataType_U8, &gameFile->musicVolume, &volumeMin, &volumeMax, "%u");
+
+				int soundMode = gameFile->soundMode;
+				if (ImGui::Combo("Sound Mode", &soundMode, soundModeNames, NUM_SOUND_MODES))
+				{
+					gameFile->soundMode = soundMode;
+				}
+
+				int controlMode1 = gameFile->controlMode1;
+				if (ImGui::Combo("Control Mode P1", &controlMode1, controlModeNames, NUM_CONTROL_MODES))
+				{
+					gameFile->controlMode1 = controlMode1;
+				}
+
+				int controlMode2 = gameFile->controlMode2;
+				if (ImGui::Combo("Control Mode P2", &controlMode2, controlModeNames, NUM_CONTROL_MODES))
+				{
+					gameFile->controlMode2 = controlMode2;
+				}
+
+				BeginFlagsGroup("Random Flags");
+				CheckboxProgressFlags(gameFile, "P1_FORWARDPITCH", SinglePlayerFlags::P1_FORWARDPITCH);
+				CheckboxProgressFlags(gameFile, "P1_AUTOAIM", SinglePlayerFlags::P1_AUTOAIM);
+				CheckboxProgressFlags(gameFile, "P1_AIMCONTROL", SinglePlayerFlags::P1_AIMCONTROL);
+				CheckboxProgressFlags(gameFile, "P1_SIGHTONSCREEN", SinglePlayerFlags::P1_SIGHTONSCREEN);
+				CheckboxProgressFlags(gameFile, "P1_LOOKAHEAD", SinglePlayerFlags::P1_LOOKAHEAD);
+				CheckboxProgressFlags(gameFile, "P1_AMMOONSCREEN", SinglePlayerFlags::P1_AMMOONSCREEN);
+				CheckboxProgressFlags(gameFile, "SCREENSIZE_WIDE", SinglePlayerFlags::SCREENSIZE_WIDE);
+				CheckboxProgressFlags(gameFile, "SCREENRATIO", SinglePlayerFlags::SCREENRATIO);
+				CheckboxProgressFlags(gameFile, "SCREENSIZE_CINEMA", SinglePlayerFlags::SCREENSIZE_CINEMA);
+				CheckboxProgressFlags(gameFile, "P1_HEADROLL", SinglePlayerFlags::P1_HEADROLL);
+				CheckboxProgressFlags(gameFile, "P1_SHOWGUNFUNCTION", SinglePlayerFlags::P1_SHOWGUNFUNCTION);
+				CheckboxProgressFlags(gameFile, "INGAMESUBTITLES", SinglePlayerFlags::INGAMESUBTITLES);
+				CheckboxProgressFlags(gameFile, "P2_FORWARDPITCH", SinglePlayerFlags::P2_FORWARDPITCH);
+				CheckboxProgressFlags(gameFile, "P2_AUTOAIM", SinglePlayerFlags::P2_AUTOAIM);
+				CheckboxProgressFlags(gameFile, "P2_AIMCONTROL", SinglePlayerFlags::P2_AIMCONTROL);
+				CheckboxProgressFlags(gameFile, "P2_SIGHTONSCREEN", SinglePlayerFlags::P2_SIGHTONSCREEN);
+				CheckboxProgressFlags(gameFile, "P2_LOOKAHEAD", SinglePlayerFlags::P2_LOOKAHEAD);
+				CheckboxProgressFlags(gameFile, "P2_AMMOONSCREEN", SinglePlayerFlags::P2_AMMOONSCREEN);
+				CheckboxProgressFlags(gameFile, "P2_HEADROLL", SinglePlayerFlags::P2_HEADROLL);
+				CheckboxProgressFlags(gameFile, "P2_SHOWGUNFUNCTION", SinglePlayerFlags::P2_SHOWGUNFUNCTION);
+				CheckboxProgressFlags(gameFile, "CUTSCENESUBTITLES", SinglePlayerFlags::CUTSCENESUBTITLES);
+				CheckboxProgressFlags(gameFile, "P1_ALWAYSSHOWTARGET", SinglePlayerFlags::P1_ALWAYSSHOWTARGET);
+				CheckboxProgressFlags(gameFile, "P2_ALWAYSSHOWTARGET", SinglePlayerFlags::P2_ALWAYSSHOWTARGET);
+				CheckboxProgressFlags(gameFile, "P1_SHOWZOOMRANGE", SinglePlayerFlags::P1_SHOWZOOMRANGE);
+				CheckboxProgressFlags(gameFile, "P2_SHOWZOOMRANGE", SinglePlayerFlags::P2_SHOWZOOMRANGE);
+				CheckboxProgressFlags(gameFile, "SCREENSPLIT", SinglePlayerFlags::SCREENSPLIT);
+				CheckboxProgressFlags(gameFile, "P1_SHOWMISSIONTIME", SinglePlayerFlags::P1_SHOWMISSIONTIME);
+				CheckboxProgressFlags(gameFile, "P2_SHOWMISSIONTIME", SinglePlayerFlags::P2_SHOWMISSIONTIME);
+				CheckboxProgressFlags(gameFile, "COOPRADARON", SinglePlayerFlags::COOPRADARON);
+				CheckboxProgressFlags(gameFile, "COOPFRIENDLYFIRE", SinglePlayerFlags::COOPFRIENDLYFIRE);
+				CheckboxProgressFlags(gameFile, "ANTIRADARON", SinglePlayerFlags::ANTIRADARON);
+				CheckboxProgressFlags(gameFile, "ANTIPLAYERNUM", SinglePlayerFlags::ANTIPLAYERNUM);
+				CheckboxProgressFlags(gameFile, "P1_PAINTBALL", SinglePlayerFlags::P1_PAINTBALL);
+				CheckboxProgressFlags(gameFile, "P2_PAINTBALL", SinglePlayerFlags::P2_PAINTBALL);
+				CheckboxProgressFlags(gameFile, "HIRES", SinglePlayerFlags::HIRES);
+				CheckboxProgressFlags(gameFile, "USED_TRANSFERPAK", SinglePlayerFlags::USED_TRANSFERPAK);
+				CheckboxProgressFlags(gameFile, "CI_TOUR_DONE", SinglePlayerFlags::CI_TOUR_DONE);
+				CheckboxProgressFlags(gameFile, "UNKNOWN_25", SinglePlayerFlags::UNKNOWN_25);
+				CheckboxProgressFlags(gameFile, "UNKNOWN_26", SinglePlayerFlags::UNKNOWN_26);
+				CheckboxProgressFlags(gameFile, "UNKNOWN_27", SinglePlayerFlags::UNKNOWN_27);
+				CheckboxProgressFlags(gameFile, "UNKNOWN_28", SinglePlayerFlags::UNKNOWN_28);
+				CheckboxProgressFlags(gameFile, "CI_HOLO7_DONE", SinglePlayerFlags::CI_HOLO7_DONE);
+				CheckboxProgressFlags(gameFile, "CI_HOLO6_DONE", SinglePlayerFlags::CI_HOLO6_DONE);
+				CheckboxProgressFlags(gameFile, "CI_HOLO5_DONE", SinglePlayerFlags::CI_HOLO5_DONE);
+				CheckboxProgressFlags(gameFile, "CI_HOLO4_DONE", SinglePlayerFlags::CI_HOLO4_DONE);
+				CheckboxProgressFlags(gameFile, "CI_HOLO3_DONE", SinglePlayerFlags::CI_HOLO3_DONE);
+				CheckboxProgressFlags(gameFile, "CI_HOLO2_DONE", SinglePlayerFlags::CI_HOLO2_DONE);
+				CheckboxProgressFlags(gameFile, "CI_HOLO1_DONE", SinglePlayerFlags::CI_HOLO1_DONE);
+				CheckboxProgressFlags(gameFile, "CI_CLOAK_DONE", SinglePlayerFlags::CI_CLOAK_DONE);
+				CheckboxProgressFlags(gameFile, "CI_DISGUISE_DONE", SinglePlayerFlags::CI_DISGUISE_DONE);
+				CheckboxProgressFlags(gameFile, "CI_XRAY_DONE", SinglePlayerFlags::CI_XRAY_DONE);
+				CheckboxProgressFlags(gameFile, "CI_IR_DONE", SinglePlayerFlags::CI_IR_DONE);
+				CheckboxProgressFlags(gameFile, "CI_RTRACKER_DONE", SinglePlayerFlags::CI_RTRACKER_DONE);
+				CheckboxProgressFlags(gameFile, "CI_DOORDECODER_DONE", SinglePlayerFlags::CI_DOORDECODER_DONE);
+				CheckboxProgressFlags(gameFile, "CI_NIGHTVISION_DONE", SinglePlayerFlags::CI_NIGHTVISION_DONE);
+				CheckboxProgressFlags(gameFile, "CI_CAMSPY_DONE", SinglePlayerFlags::CI_CAMSPY_DONE);
+				CheckboxProgressFlags(gameFile, "CI_ECMMINE_DONE", SinglePlayerFlags::CI_ECMMINE_DONE);
+				CheckboxProgressFlags(gameFile, "CI_UPLINK_DONE", SinglePlayerFlags::CI_UPLINK_DONE);
+				CheckboxProgressFlags(gameFile, "CI_TOUR_STARTED", SinglePlayerFlags::CI_TOUR_STARTED);
+				CheckboxProgressFlags(gameFile, "CRASHSITE_BIKE", SinglePlayerFlags::CRASHSITE_BIKE);
+				CheckboxProgressFlags(gameFile, "DEFENSE_JON", SinglePlayerFlags::DEFENSE_JON);
+				CheckboxProgressFlags(gameFile, "AF1_ENTRY", SinglePlayerFlags::AF1_ENTRY);
+				CheckboxProgressFlags(gameFile, "RESCUE_MECHANIC_DEAD", SinglePlayerFlags::RESCUE_MECHANIC_DEAD);
+				CheckboxProgressFlags(gameFile, "G5_MINE", SinglePlayerFlags::G5_MINE);
+				CheckboxProgressFlags(gameFile, "LANGFILTERON", SinglePlayerFlags::LANGFILTERON);
+				CheckboxProgressFlags(gameFile, "FOUNDTIMEDMINE", SinglePlayerFlags::FOUNDTIMEDMINE);
+				CheckboxProgressFlags(gameFile, "FOUNDPROXYMINE", SinglePlayerFlags::FOUNDPROXYMINE);
+				CheckboxProgressFlags(gameFile, "FOUNDREMOTEMINE", SinglePlayerFlags::FOUNDREMOTEMINE);
+				CheckboxProgressFlags(gameFile, "LANGBIT1", SinglePlayerFlags::LANGBIT1);
+				CheckboxProgressFlags(gameFile, "LANGBIT2", SinglePlayerFlags::LANGBIT2);
+				CheckboxProgressFlags(gameFile, "LANGBIT3", SinglePlayerFlags::LANGBIT3);
+				CheckboxProgressFlags(gameFile, "HOWTO_HOVERCRATE", SinglePlayerFlags::HOWTO_HOVERCRATE);
+				CheckboxProgressFlags(gameFile, "HOWTO_HOVERBIKE", SinglePlayerFlags::HOWTO_HOVERBIKE);
+				CheckboxProgressFlags(gameFile, "HOWTO_DOORS", SinglePlayerFlags::HOWTO_DOORS);
+				CheckboxProgressFlags(gameFile, "HOWTO_ELEVATORS", SinglePlayerFlags::HOWTO_ELEVATORS);
+				CheckboxProgressFlags(gameFile, "HOWTO_TERMINALS", SinglePlayerFlags::HOWTO_TERMINALS);
+				CheckboxProgressFlags(gameFile, "UNKNOWN_4C", SinglePlayerFlags::UNKNOWN_4C);
+				CheckboxProgressFlags(gameFile, "UNKNOWN_4D", SinglePlayerFlags::UNKNOWN_4D);
+				CheckboxProgressFlags(gameFile, "UNKNOWN_4E", SinglePlayerFlags::UNKNOWN_4E);
+				EndFlagsGroup();
+
+				ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuter;
+
+				if (ImGui::BeginTable("StagesTable", 4, flags))
+				{
+					ImGui::TableSetupColumn("Stage Name");
+					ImGui::TableSetupColumn("Agent");
+					ImGui::TableSetupColumn("Special Agent");
+					ImGui::TableSetupColumn("Perfect Agent");
+
+					ImGui::TableHeadersRow();
+
+					for (uint8_t s = 0; s < NUM_SOLOSTAGES; s++)
+					{
+						ImGui::PushID(s);
+
+						ImGui::TableNextRow();
+
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text("%s", stageNames[s]);
+
+						for (uint8_t d = 0; d < NUM_DIFFICULTIES; d++)
+						{
+							ImGui::PushID(d);
+							ImGui::TableSetColumnIndex(d + 1);
+
+							ImGui::InputScalar("##Best Time", ImGuiDataType_U16, &gameFile->besttimes[s][d], NULL, NULL, "%u");
+							if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
+								ImGui::SetTooltip("Best time (s) = %s", Utils::GetTimeString(gameFile->besttimes[s][d]).c_str());
+
+							ImGui::SameLine();
+
+							bool completed = (gameFile->coopcompletions[d] & (1 << s)) != 0;
+							if (ImGui::Checkbox("##Coop", &completed))
+							{
+								if (completed) gameFile->coopcompletions[d] |= (1 << s);
+								else gameFile->coopcompletions[d] &= ~(1 << s);
+							}
+
+							if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
+								ImGui::SetTooltip("Coop Completed");
+
+							ImGui::PopID();
+						}
+
+						ImGui::PopID();
+					}
+
+					ImGui::EndTable();
+				}
+
+				if (ImGui::BeginTable("Challenges Table", 5, flags))
+				{
+					ImGui::TableSetupColumn("Challenge Number");
+					ImGui::TableSetupColumn("Player 1");
+					ImGui::TableSetupColumn("Player 2");
+					ImGui::TableSetupColumn("Player 3");
+					ImGui::TableSetupColumn("Player 4");
+
+					ImGui::TableHeadersRow();
+
+					for (uint8_t c = 0; c < NUM_MP_CHALLENGES; c++)
+					{
+						ImGui::PushID(c);
+
+						ImGui::TableNextRow();
+
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text("Challenge %u", c + 1);
+
+						for (uint8_t p = 0; p < MAX_PLAYERS; p++)
+						{
+							ImGui::PushID(p);
+							ImGui::TableSetColumnIndex(p + 1);
+
+							bool completed = (gameFile->mpChallenges[c] & (1 << p)) != 0;
+							if (ImGui::Checkbox("##Challenge completed", &completed))
+							{
+								if (completed) gameFile->mpChallenges[c] |= (1 << p);
+								else gameFile->mpChallenges[c] &= ~(1 << p);
+							}
+
+							ImGui::PopID();
+						}
+
+						ImGui::PopID();
+					}
+
+					ImGui::EndTable();
+				}
+
+				for (uint8_t w = 0; w < NUM_FIRING_RANGE_WEAPONS; w++)
+				{
+					int medal = gameFile->GetFiringRangeScore(w);
+					char* name = medal == 0 ? "None" : firingRangeMedalNames[medal - 1];
+
+					if (ImGui::SliderInt(weaponNames[w], &medal, 0, NUM_FIRING_RANGE_MEDALS, name, ImGuiSliderFlags_NoInput))
+					{
+						gameFile->SetFiringRangeScore(w, medal);
+					}
+				}
+
+				for (uint8_t w = 0; w < NUM_FIRING_RANGE_WEAPONS; w++)
+				{
+					bool found = gameFile->GetWeaponFound(w);
+
+					if (ImGui::Checkbox(weaponNames[w], &found))
+					{
+						gameFile->SetWeaponFound(w, found);
+					}
+				}
+
+				ImGui::EndChild();
+
+				ImGui::EndTabItem();
+			}
+		}
+
+		ImGui::EndTabBar();
 	}
 }
 
@@ -482,7 +738,7 @@ void SaveEditorUI::RenderAbilitiesItemsSection(const SaveData& saveData, SaveSlo
 
 		ImGui::TableSetColumnIndex(0);
 
-		CheckboxAbility(saveData, saveSlot, "Barge", Abilities::ABILITY_0_BARGE);
+		/*CheckboxAbility(saveData, saveSlot, "Barge", Abilities::ABILITY_0_BARGE);
 		CheckboxAbility(saveData, saveSlot, "Beak Bomb", Abilities::ABILITY_1_BEAK_BOMB);
 		CheckboxAbility(saveData, saveSlot, "Beak Buster", Abilities::ABILITY_2_BEAK_BUSTER);
 		CheckboxAbility(saveData, saveSlot, "Camera Control", Abilities::ABILITY_3_CAMERA_CONTROL);
@@ -510,7 +766,7 @@ void SaveEditorUI::RenderAbilitiesItemsSection(const SaveData& saveData, SaveSlo
 		CheckboxAbility(saveData, saveSlot, "Talon Trot", Abilities::ABILITY_10_TALON_TROT);
 		CheckboxAbility(saveData, saveSlot, "Turbo Talon", Abilities::ABILITY_11_TURBO_TALON);
 		CheckboxAbility(saveData, saveSlot, "Wonderwing", Abilities::ABILITY_12_WONDERWING);
-		CheckboxAbility(saveData, saveSlot, "Open Notedoors", Abilities::ABILITY_13_1ST_NOTEDOOR);
+		CheckboxAbility(saveData, saveSlot, "Open Notedoors", Abilities::ABILITY_13_1ST_NOTEDOOR);*/
 
 		ImGui::EndTable();
 	}
@@ -580,7 +836,7 @@ void SaveEditorUI::RenderProgressFlagsSection(const SaveData& saveData, SaveSlot
 
 		ImGui::TableSetColumnIndex(0);
 
-		BeginProgressFlagsGroup("Unlocked Doors");
+		/*BeginProgressFlagsGroup("Unlocked Doors");
 		CheckboxProgressFlags(saveData, saveSlot, "50 Note Door", ProgressFlags::FILEPROG_3A_NOTE_DOOR_50_OPEN);
 		CheckboxProgressFlags(saveData, saveSlot, "180 Note Door", ProgressFlags::FILEPROG_3B_NOTE_DOOR_180_OPEN);
 		CheckboxProgressFlags(saveData, saveSlot, "260 Note Door", ProgressFlags::FILEPROG_3C_NOTE_DOOR_260_OPEN);
@@ -841,7 +1097,7 @@ void SaveEditorUI::RenderProgressFlagsSection(const SaveData& saveData, SaveSlot
 		CheckboxProgressFlags(saveData, saveSlot, "Game Complete", ProgressFlags::FILEPROG_A6_FURNACE_FUN_COMPLETE);
 		CheckboxProgressFlags(saveData, saveSlot, "Pattern Set", ProgressFlags::FILEPROG_5C_FF_PATTERN_SET);
 		InputProgressFlags(saveData, saveSlot, "Pattern", ProgressFlags::FILEPROG_D3_FF_PATTERN, 8, 255);
-		EndProgressFlagsGroup();
+		EndProgressFlagsGroup();*/
 
 		ImGui::EndTable();
 	}
@@ -849,15 +1105,14 @@ void SaveEditorUI::RenderProgressFlagsSection(const SaveData& saveData, SaveSlot
 	ImGui::EndTabItem();
 }
 
-bool SaveEditorUI::CheckboxProgressFlags(const SaveData& saveData, SaveSlot* saveSlot, const char* label, const ProgressFlags flag) const
+bool SaveEditorUI::CheckboxProgressFlags(GameFile* gameFile, const char* label, const SinglePlayerFlags flag) const
 {
-	bool value = saveSlot->GetProgressFlag(flag);
+	bool value = gameFile->GetFlag(flag);
 
-	/*if (ImGui::Checkbox(label, &value))
+	if (ImGui::Checkbox(label, &value))
 	{
-		saveSlot->SetProgressFlag(flag, value);
-		saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());
-	}*/
+		gameFile->SetFlag(flag, value);
+	}
 
 	return value;
 }
@@ -877,7 +1132,7 @@ uint8_t SaveEditorUI::InputProgressFlags(const SaveData& saveData, SaveSlot* sav
 	return value;
 }
 
-void SaveEditorUI::CheckboxAbility(const SaveData& saveData, SaveSlot* saveSlot, const char* label, const Abilities ability) const
+void SaveEditorUI::CheckboxAbility(SaveSlot* saveSlot, const char* label, const Abilities ability) const
 {
 	/*bool learned = saveSlot->GetLearnedAbility(ability);
 	bool used = saveSlot->GetUsedAbility(ability);
@@ -925,6 +1180,52 @@ void SaveEditorUI::CheckboxAbility(const SaveData& saveData, SaveSlot* saveSlot,
 //	}
 //}
 
+void SaveEditorUI::NameInputField(const char* label, char* name) const
+{
+	char cleanedName[MAX_NAME_LENGTH + 1] = {};
+	char previousName[MAX_NAME_LENGTH + 1] = {};
+
+	// Workaround for Spanish team name brown, the only name with special characters
+	if (strcmp("Marrón", name) == 0) snprintf(cleanedName, MAX_NAME_LENGTH + 1, "Marron");
+	else strcpy(cleanedName, name);
+
+	strcpy(previousName, cleanedName);
+
+	if (ImGui::InputText(label, cleanedName, MAX_NAME_LENGTH + 1))
+	{
+		bool valid = true;
+		for (uint8_t c = 0; c < MAX_NAME_LENGTH + 1; c++)
+		{
+			if (cleanedName[c] == '\0') break;
+
+			uint8_t val = (uint8_t)cleanedName[c];
+
+			//      Space            !              .                      0-9                     ?                       A-Z                             a-z
+			if (!(val == 0x20 || val == 0x21 || val == 0x2e || (val >= 0x30 && val <= 0x39) || val == 0x3f || (val >= 0x41 && val <= 0x5a) || (val >= 0x61 && val <= 0x7a)))
+			{
+				valid = false;
+				break;
+			}
+		}
+
+		if (valid)
+		{
+			memset(name, 0, MAX_NAME_LENGTH + 1);
+			strcpy(name, cleanedName);
+		}
+	}
+}
+
+void SaveEditorUI::PrintEmptySlot() const
+{
+	const char emptyText[] = "The slot is empty.";
+	ImVec2 size = ImGui::CalcTextSize(emptyText);
+	ImVec2 windowSize = ImGui::GetWindowSize();
+	ImGui::SetCursorPosX((windowSize.x / 2.0f) - (size.x / 2.0f));
+	ImGui::SetCursorPosY((windowSize.y / 2.0f) - (size.y / 2.0f));
+	ImGui::Text("%s", emptyText);
+}
+
 void SaveEditorUI::PrintChecksum(const uint32_t checksum) const
 {
 	ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::CalcTextSize("Checksum: 0xFFFFFFFF").x - 32);
@@ -938,13 +1239,13 @@ void SaveEditorUI::PrintHeader(const char* label) const
 	ImGui::PopStyleColor();
 }
 
-void SaveEditorUI::BeginProgressFlagsGroup(const char* label) const
+void SaveEditorUI::BeginFlagsGroup(const char* label) const
 {
 	PrintHeader(label);
 	ImGui::PushID(label);
 }
 
-void SaveEditorUI::EndProgressFlagsGroup() const
+void SaveEditorUI::EndFlagsGroup() const
 {
 	ImGui::PopID();
 }

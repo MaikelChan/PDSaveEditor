@@ -14,14 +14,15 @@
 #define PACK_GAME_SIZE 160
 #define PACK_TERMINATOR_SIZE 240
 #define PACK_TERMINATOR_ACTUAL_SIZE 48
-#define TOTAL_NUM_BOSS_FILE_SLOTS 1
+#define NUM_BOSS_FILE_SLOTS 1
 #define ACTUAL_NUM_BOSS_FILE_SLOTS 2
-#define TOTAL_NUM_FILE_SLOTS 4
+#define NUM_FILE_SLOTS 4
 #define ACTUAL_NUM_FILE_SLOTS 5
 
 #define MAX_NAME_LENGTH 10
 #define MAX_PLAYERS 4
 #define NUM_WEAPONS 35 // TODO Is this correct?
+#define NUM_FIRING_RANGE_WEAPONS 32
 #define NUM_SONGS 43
 #define MULTIPLE_TRACKS_SIZE 6
 #define NUM_LANGUAGES 5
@@ -31,6 +32,10 @@
 #define GAMEFILE_FLAGS_SIZE 10
 #define NUM_SOLOSTAGES 21
 #define NUM_DIFFICULTIES 3
+#define NUM_SOUND_MODES 4
+#define NUM_CONTROL_MODES 8
+#define NUM_FIRING_RANGE_MEDALS 3
+#define NUM_FIRING_RANGE_WEAPONS 32
 
 // Multiplayer
 
@@ -60,6 +65,127 @@ const char* const teamNames[TEAM_NAMES_COUNT]
 	"Orange",
 	"Pink",
 	"Brown"
+};
+
+const char* const difficultyNames[NUM_DIFFICULTIES]
+{
+	"Agent",
+	"Special Agent",
+	"Perfect Agent"
+};
+
+const char* const soundModeNames[NUM_SOUND_MODES]
+{
+	"Mono",
+	"Stereo",
+	"Headphone",
+	"Surround"
+};
+
+const char* const controlModeNames[NUM_CONTROL_MODES]
+{
+	"Single (1.1)",
+	"Single (1.2)",
+	"Single (1.3)",
+	"Single (1.4)",
+	"Double (2.1)",
+	"Double (2.2)",
+	"Double (2.3)",
+	"Double (2.4)"
+};
+
+const char* const firingRangeMedalNames[NUM_FIRING_RANGE_MEDALS]
+{
+	"Bronze",
+	"Silver",
+	"Gold"
+};
+
+const char* const weaponNames[NUM_FIRING_RANGE_WEAPONS]
+{
+	"Falcon 2",
+	"Falcon 2 (silencer)",
+	"Falcon 2 (scope)",
+	"MagSec 4",
+	"Mauler",
+	"Phoenix",
+	"DY357 Magnum",
+	"DY357-LX",
+	"CMP150",
+	"Cyclone",
+	"Callisto NTG",
+	"RC-P120",
+	"Laptop Gun",
+	"Dragon",
+	"K7 Avenger",
+	"AR34",
+	"SuperDragon",
+	"Shotgun",
+	"Reaper",
+	"Sniper Rifle",
+	"FarSight XR-20",
+	"Devastator",
+	"Rocket Launcher",
+	"Slayer",
+	"Combat Knife",
+	"Crossbow",
+	"Tranquilizer",
+	"Laser",
+	"Grenade",
+	"Timed Mine",
+	"Proximity Mine",
+	"Remote Mine"
+};
+
+const char* const stageNames[NUM_SOLOSTAGES]
+{
+	"dataDyne Central - Defection",
+	"dataDyne Research - Investigation",
+	"dataDyne Central - Extraction",
+	"Carrington Villa - Hostage One",
+	"Chicago - Stealth",
+	"G5 Building - Reconnaissance",
+	"Area 51 - Infiltration",
+	"Area 51 - Rescue",
+	"Area 51 - Escape",
+	"Air Base - Espionage",
+	"Air Force One - Antiterrorism",
+	"Crash Site - Confrontation",
+	"Pelagic II - Exploration",
+	"Deep Sea - Nullify Threat",
+	"Carrington Institute - Defense",
+	"Attack Ship - Covert Assault",
+	"Skedar Ruins - Battle Shrine",
+	"Mr. Blonde's Revenge",
+	"Maian SOS",
+	"WAR!",
+	"The Duel"
+};
+
+const char* const thumbnailNames[NUM_SOLOSTAGES + 1]
+{
+	"Joanna Picture",
+	"dataDyne Central - Defection",
+	"dataDyne Research - Investigation",
+	"dataDyne Central - Extraction",
+	"Carrington Villa - Hostage One",
+	"Chicago - Stealth",
+	"G5 Building - Reconnaissance",
+	"Area 51 - Infiltration",
+	"Area 51 - Rescue",
+	"Area 51 - Escape",
+	"Air Base - Espionage",
+	"Air Force One - Antiterrorism",
+	"Crash Site - Confrontation",
+	"Pelagic II - Exploration",
+	"Deep Sea - Nullify Threat",
+	"Carrington Institute - Defense",
+	"Attack Ship - Covert Assault",
+	"Skedar Ruins - Battle Shrine",
+	"Mr. Blonde's Revenge",
+	"Maian SOS",
+	"WAR!",
+	"The Duel"
 };
 
 const char* const songNames[NUM_SONGS + 1]
@@ -110,8 +236,88 @@ const char* const songNames[NUM_SONGS + 1]
 	"Random"
 };
 
-
-
+enum class SinglePlayerFlags
+{
+	P1_FORWARDPITCH = 0x00,
+	P1_AUTOAIM = 0x01,
+	P1_AIMCONTROL = 0x02,
+	P1_SIGHTONSCREEN = 0x03,
+	P1_LOOKAHEAD = 0x04,
+	P1_AMMOONSCREEN = 0x05,
+	SCREENSIZE_WIDE = 0x06,
+	SCREENRATIO = 0x07,
+	SCREENSIZE_CINEMA = 0x08,
+	P1_HEADROLL = 0x09,
+	P1_SHOWGUNFUNCTION = 0x0a,
+	INGAMESUBTITLES = 0x0b,
+	P2_FORWARDPITCH = 0x0c,
+	P2_AUTOAIM = 0x0d,
+	P2_AIMCONTROL = 0x0e,
+	P2_SIGHTONSCREEN = 0x0f,
+	P2_LOOKAHEAD = 0x10,
+	P2_AMMOONSCREEN = 0x11,
+	P2_HEADROLL = 0x12,
+	P2_SHOWGUNFUNCTION = 0x13,
+	CUTSCENESUBTITLES = 0x14,
+	P1_ALWAYSSHOWTARGET = 0x15,
+	P2_ALWAYSSHOWTARGET = 0x16,
+	P1_SHOWZOOMRANGE = 0x17,
+	P2_SHOWZOOMRANGE = 0x18,
+	SCREENSPLIT = 0x19,
+	P1_SHOWMISSIONTIME = 0x1a,
+	P2_SHOWMISSIONTIME = 0x1b,
+	COOPRADARON = 0x1c,
+	COOPFRIENDLYFIRE = 0x1d,
+	ANTIRADARON = 0x1e,
+	ANTIPLAYERNUM = 0x1f,
+	P1_PAINTBALL = 0x20,
+	P2_PAINTBALL = 0x21,
+	HIRES = 0x22,
+	USED_TRANSFERPAK = 0x23,
+	CI_TOUR_DONE = 0x24,
+	UNKNOWN_25 = 0x25,
+	UNKNOWN_26 = 0x26,
+	UNKNOWN_27 = 0x27,
+	UNKNOWN_28 = 0x28,
+	CI_HOLO7_DONE = 0x29,
+	CI_HOLO6_DONE = 0x2a,
+	CI_HOLO5_DONE = 0x2b,
+	CI_HOLO4_DONE = 0x2c,
+	CI_HOLO3_DONE = 0x2d,
+	CI_HOLO2_DONE = 0x2e,
+	CI_HOLO1_DONE = 0x2f,
+	CI_CLOAK_DONE = 0x30,
+	CI_DISGUISE_DONE = 0x31,
+	CI_XRAY_DONE = 0x32,
+	CI_IR_DONE = 0x33,
+	CI_RTRACKER_DONE = 0x34,
+	CI_DOORDECODER_DONE = 0x35,
+	CI_NIGHTVISION_DONE = 0x36,
+	CI_CAMSPY_DONE = 0x37,
+	CI_ECMMINE_DONE = 0x38,
+	CI_UPLINK_DONE = 0x39,
+	CI_TOUR_STARTED = 0x3a,
+	CRASHSITE_BIKE = 0x3b,
+	DEFENSE_JON = 0x3c,
+	AF1_ENTRY = 0x3d,
+	RESCUE_MECHANIC_DEAD = 0x3e,
+	G5_MINE = 0x3f, // true if thrown on top door
+	LANGFILTERON = 0x40,
+	FOUNDTIMEDMINE = 0x41,
+	FOUNDPROXYMINE = 0x42,
+	FOUNDREMOTEMINE = 0x43,
+	LANGBIT1 = 0x44,
+	LANGBIT2 = 0x45,
+	LANGBIT3 = 0x46,
+	HOWTO_HOVERCRATE = 0x47,
+	HOWTO_HOVERBIKE = 0x48,
+	HOWTO_DOORS = 0x49,
+	HOWTO_ELEVATORS = 0x4a,
+	HOWTO_TERMINALS = 0x4b,
+	UNKNOWN_4C = 0x4c,
+	UNKNOWN_4D = 0x4d,
+	UNKNOWN_4E = 0x4e
+};
 
 
 
@@ -890,6 +1096,7 @@ public:
 
 struct PakFileHeader
 {
+public:
 	uint16_t headersum[2];       // checksum from filetype to end of header
 	uint16_t bodysum[2];
 	uint32_t filetype : 9;       // PAKFILETYPE constant
@@ -963,6 +1170,13 @@ public:
 
 public:
 	void Load(uint8_t* fileBuffer) override;
+
+	bool GetFlag(const SinglePlayerFlags flag) const;
+	void SetFlag(const SinglePlayerFlags flag, const bool set);
+	uint8_t GetFiringRangeScore(const uint8_t weaponIndex) const;
+	void SetFiringRangeScore(const uint8_t weaponIndex, const uint8_t difficulty);
+	bool GetWeaponFound(const uint8_t weaponIndex) const;
+	void SetWeaponFound(const uint8_t weaponIndex, const bool found);
 };
 
 struct MultiplayerProfile : public PakFile
