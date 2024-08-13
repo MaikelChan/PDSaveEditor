@@ -107,7 +107,7 @@ void SaveEditorUI::RenderGlobalDataSection(SaveFile* saveFile)
 		ImGui::TableNextRow();
 		ImGui::TableSetColumnIndex(0);
 
-		ImGui::SeparatorText("Settings");
+		PrintHeader("Settings");
 
 		int language = bossFile->language;
 		if (ImGui::Combo("##Language", &language, languageNames, NUM_LANGUAGES))
@@ -120,7 +120,7 @@ void SaveEditorUI::RenderGlobalDataSection(SaveFile* saveFile)
 
 		ImGui::TableSetColumnIndex(1);
 
-		ImGui::SeparatorText("Team Names");
+		PrintHeader("Team Names");
 
 		for (uint8_t t = 0; t < TEAM_NAMES_COUNT; t++)
 		{
@@ -130,7 +130,7 @@ void SaveEditorUI::RenderGlobalDataSection(SaveFile* saveFile)
 		ImGui::EndTable();
 	}
 
-	ImGui::SeparatorText("Soundtrack");
+	PrintHeader("Soundtrack");
 
 	if (ImGui::BeginTable("SoundtrackTable", 4, 0))
 	{
@@ -247,35 +247,33 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 
 				ImGui::BeginChild("Single Player Frame", ImVec2(0, 0), false, 0);
 
+				PrintHeader("Player Stats");
+
+				NameInputField("Name", gameFile->name);
+
+				ImGui::InputScalar("Play Time (s)", ImGuiDataType_U32, &gameFile->totaltime, NULL, NULL, "%u");
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
+					ImGui::SetTooltip("%s", Utils::GetTimeString(gameFile->totaltime).c_str());
+
+				int thumbnail = gameFile->thumbnail;
+				if (ImGui::Combo("Slot Thumbnail", &thumbnail, thumbnailNames, NUM_SOLOSTAGES + 1))
 				{
-					ImGui::SeparatorText("Player Stats");
-
-					NameInputField("Name", gameFile->name);
-
-					ImGui::InputScalar("Play Time (s)", ImGuiDataType_U32, &gameFile->totaltime, NULL, NULL, "%u");
-					if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-						ImGui::SetTooltip("%s", Utils::GetTimeString(gameFile->totaltime).c_str());
-
-					int thumbnail = gameFile->thumbnail;
-					if (ImGui::Combo("Slot Thumbnail", &thumbnail, thumbnailNames, NUM_SOLOSTAGES + 1))
-					{
-						gameFile->thumbnail = thumbnail;
-					}
-
-					int autostageindex = gameFile->autostageindex;
-					if (ImGui::Combo("Last Played Stage", &autostageindex, stageNames, NUM_SOLOSTAGES))
-					{
-						gameFile->autostageindex = autostageindex;
-					}
-
-					int autodifficulty = gameFile->autodifficulty;
-					if (ImGui::Combo("Last Played Difficulty", &autodifficulty, difficultyNames, NUM_DIFFICULTIES))
-					{
-						gameFile->autodifficulty = autodifficulty;
-					}
+					gameFile->thumbnail = thumbnail;
 				}
 
-				ImGui::SeparatorText("Settings");
+				int autostageindex = gameFile->autostageindex;
+				if (ImGui::Combo("Last Played Stage", &autostageindex, stageNames, NUM_SOLOSTAGES))
+				{
+					gameFile->autostageindex = autostageindex;
+				}
+
+				int autodifficulty = gameFile->autodifficulty;
+				if (ImGui::Combo("Last Played Difficulty", &autodifficulty, difficultyNames, NUM_DIFFICULTIES))
+				{
+					gameFile->autodifficulty = autodifficulty;
+				}
+
+				PrintHeader("Settings");
 
 				if (ImGui::BeginTabBar("Single Player Settings", ImGuiTabBarFlags_None))
 				{
@@ -341,7 +339,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 
 								char tabName[10];
 								snprintf(tabName, 10, "Player %u", p + 1);
-								ImGui::SeparatorText(tabName);
+								PrintHeader(tabName);
 
 								int controlMode = gameFile->controlModes[p];
 								if (ImGui::Combo("Control Mode", &controlMode, controlModeNames, NUM_CONTROL_MODES))
@@ -404,7 +402,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 
 								char tabName[10];
 								snprintf(tabName, 10, "Player %u", p + 1);
-								ImGui::SeparatorText(tabName);
+								PrintHeader(tabName);
 
 								if (p == 0)
 								{
@@ -439,58 +437,111 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 					ImGui::EndTabBar();
 				}
 
-				BeginFlagsGroup("Random Flags");
+				if (ImGui::BeginTable("TutorialFlagsTable", 3, 0))
+				{
+					ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
+					ImGui::TableSetupColumn("Column2", ImGuiTableColumnFlags_WidthStretch);
+					ImGui::TableSetupColumn("Column3", ImGuiTableColumnFlags_WidthStretch);
 
-				CheckboxProgressFlags(gameFile, "COOPRADARON", SinglePlayerFlags::COOPRADARON);
-				CheckboxProgressFlags(gameFile, "COOPFRIENDLYFIRE", SinglePlayerFlags::COOPFRIENDLYFIRE);
-				CheckboxProgressFlags(gameFile, "ANTIRADARON", SinglePlayerFlags::ANTIRADARON);
-				CheckboxProgressFlags(gameFile, "ANTIPLAYERNUM", SinglePlayerFlags::ANTIPLAYERNUM);
-				CheckboxProgressFlags(gameFile, "USED_TRANSFERPAK", SinglePlayerFlags::USED_TRANSFERPAK);
-				CheckboxProgressFlags(gameFile, "CI_TOUR_DONE", SinglePlayerFlags::CI_TOUR_DONE);
-				CheckboxProgressFlags(gameFile, "UNKNOWN_25", SinglePlayerFlags::UNKNOWN_25);
-				CheckboxProgressFlags(gameFile, "UNKNOWN_26", SinglePlayerFlags::UNKNOWN_26);
-				CheckboxProgressFlags(gameFile, "UNKNOWN_27", SinglePlayerFlags::UNKNOWN_27);
-				CheckboxProgressFlags(gameFile, "UNKNOWN_28", SinglePlayerFlags::UNKNOWN_28);
-				CheckboxProgressFlags(gameFile, "CI_HOLO7_DONE", SinglePlayerFlags::CI_HOLO7_DONE);
-				CheckboxProgressFlags(gameFile, "CI_HOLO6_DONE", SinglePlayerFlags::CI_HOLO6_DONE);
-				CheckboxProgressFlags(gameFile, "CI_HOLO5_DONE", SinglePlayerFlags::CI_HOLO5_DONE);
-				CheckboxProgressFlags(gameFile, "CI_HOLO4_DONE", SinglePlayerFlags::CI_HOLO4_DONE);
-				CheckboxProgressFlags(gameFile, "CI_HOLO3_DONE", SinglePlayerFlags::CI_HOLO3_DONE);
-				CheckboxProgressFlags(gameFile, "CI_HOLO2_DONE", SinglePlayerFlags::CI_HOLO2_DONE);
-				CheckboxProgressFlags(gameFile, "CI_HOLO1_DONE", SinglePlayerFlags::CI_HOLO1_DONE);
-				CheckboxProgressFlags(gameFile, "CI_CLOAK_DONE", SinglePlayerFlags::CI_CLOAK_DONE);
-				CheckboxProgressFlags(gameFile, "CI_DISGUISE_DONE", SinglePlayerFlags::CI_DISGUISE_DONE);
-				CheckboxProgressFlags(gameFile, "CI_XRAY_DONE", SinglePlayerFlags::CI_XRAY_DONE);
-				CheckboxProgressFlags(gameFile, "CI_IR_DONE", SinglePlayerFlags::CI_IR_DONE);
-				CheckboxProgressFlags(gameFile, "CI_RTRACKER_DONE", SinglePlayerFlags::CI_RTRACKER_DONE);
-				CheckboxProgressFlags(gameFile, "CI_DOORDECODER_DONE", SinglePlayerFlags::CI_DOORDECODER_DONE);
-				CheckboxProgressFlags(gameFile, "CI_NIGHTVISION_DONE", SinglePlayerFlags::CI_NIGHTVISION_DONE);
-				CheckboxProgressFlags(gameFile, "CI_CAMSPY_DONE", SinglePlayerFlags::CI_CAMSPY_DONE);
-				CheckboxProgressFlags(gameFile, "CI_ECMMINE_DONE", SinglePlayerFlags::CI_ECMMINE_DONE);
-				CheckboxProgressFlags(gameFile, "CI_UPLINK_DONE", SinglePlayerFlags::CI_UPLINK_DONE);
-				CheckboxProgressFlags(gameFile, "CI_TOUR_STARTED", SinglePlayerFlags::CI_TOUR_STARTED);
-				CheckboxProgressFlags(gameFile, "CRASHSITE_BIKE", SinglePlayerFlags::CRASHSITE_BIKE);
-				CheckboxProgressFlags(gameFile, "DEFENSE_JON", SinglePlayerFlags::DEFENSE_JON);
-				CheckboxProgressFlags(gameFile, "AF1_ENTRY", SinglePlayerFlags::AF1_ENTRY);
-				CheckboxProgressFlags(gameFile, "RESCUE_MECHANIC_DEAD", SinglePlayerFlags::RESCUE_MECHANIC_DEAD);
-				CheckboxProgressFlags(gameFile, "G5_MINE", SinglePlayerFlags::G5_MINE);
-				CheckboxProgressFlags(gameFile, "FOUNDTIMEDMINE", SinglePlayerFlags::FOUNDTIMEDMINE);
-				CheckboxProgressFlags(gameFile, "FOUNDPROXYMINE", SinglePlayerFlags::FOUNDPROXYMINE);
-				CheckboxProgressFlags(gameFile, "FOUNDREMOTEMINE", SinglePlayerFlags::FOUNDREMOTEMINE);
-				CheckboxProgressFlags(gameFile, "LANGBIT1", SinglePlayerFlags::LANGBIT1);
-				CheckboxProgressFlags(gameFile, "LANGBIT2", SinglePlayerFlags::LANGBIT2);
-				CheckboxProgressFlags(gameFile, "LANGBIT3", SinglePlayerFlags::LANGBIT3);
-				CheckboxProgressFlags(gameFile, "HOWTO_HOVERCRATE", SinglePlayerFlags::HOWTO_HOVERCRATE);
-				CheckboxProgressFlags(gameFile, "HOWTO_HOVERBIKE", SinglePlayerFlags::HOWTO_HOVERBIKE);
-				CheckboxProgressFlags(gameFile, "HOWTO_DOORS", SinglePlayerFlags::HOWTO_DOORS);
-				CheckboxProgressFlags(gameFile, "HOWTO_ELEVATORS", SinglePlayerFlags::HOWTO_ELEVATORS);
-				CheckboxProgressFlags(gameFile, "HOWTO_TERMINALS", SinglePlayerFlags::HOWTO_TERMINALS);
-				CheckboxProgressFlags(gameFile, "UNKNOWN_4C", SinglePlayerFlags::UNKNOWN_4C);
-				CheckboxProgressFlags(gameFile, "UNKNOWN_4D", SinglePlayerFlags::UNKNOWN_4D);
-				CheckboxProgressFlags(gameFile, "UNKNOWN_4E", SinglePlayerFlags::UNKNOWN_4E);
-				EndFlagsGroup();
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+
+					PrintHeader("Carrington Institute");
+					CheckboxProgressFlags(gameFile, "Tour Started", SinglePlayerFlags::CI_TOUR_STARTED);
+					CheckboxProgressFlags(gameFile, "Tour Done", SinglePlayerFlags::CI_TOUR_DONE);
+
+					PrintHeader("How-to messages");
+					CheckboxProgressFlags(gameFile, "Use HoverCrates", SinglePlayerFlags::HOWTO_HOVERCRATE);
+					CheckboxProgressFlags(gameFile, "Use HoveBikes", SinglePlayerFlags::HOWTO_HOVERBIKE);
+					CheckboxProgressFlags(gameFile, "Use Doors", SinglePlayerFlags::HOWTO_DOORS);
+					CheckboxProgressFlags(gameFile, "Use Elevators", SinglePlayerFlags::HOWTO_ELEVATORS);
+					CheckboxProgressFlags(gameFile, "Use Terminals", SinglePlayerFlags::HOWTO_TERMINALS);
+
+					ImGui::TableSetColumnIndex(1);
+
+					PrintHeader("Device Training");
+					CheckboxProgressFlags(gameFile, "Data Uplink", SinglePlayerFlags::CI_UPLINK_DONE);
+					CheckboxProgressFlags(gameFile, "ECM Mine", SinglePlayerFlags::CI_ECMMINE_DONE);
+					CheckboxProgressFlags(gameFile, "CamSpy", SinglePlayerFlags::CI_CAMSPY_DONE);
+					CheckboxProgressFlags(gameFile, "Night Vision", SinglePlayerFlags::CI_NIGHTVISION_DONE);
+					CheckboxProgressFlags(gameFile, "Door Decoder", SinglePlayerFlags::CI_DOORDECODER_DONE);
+					CheckboxProgressFlags(gameFile, "R-Tracker", SinglePlayerFlags::CI_RTRACKER_DONE);
+					CheckboxProgressFlags(gameFile, "IR Scanner", SinglePlayerFlags::CI_IR_DONE);
+					CheckboxProgressFlags(gameFile, "X-Ray Scanner", SinglePlayerFlags::CI_XRAY_DONE);
+					CheckboxProgressFlags(gameFile, "Disguise", SinglePlayerFlags::CI_DISGUISE_DONE);
+					CheckboxProgressFlags(gameFile, "Cloaking Device", SinglePlayerFlags::CI_CLOAK_DONE);
+
+					ImGui::TableSetColumnIndex(2);
+
+					PrintHeader("Holotraining");
+					CheckboxProgressFlags(gameFile, "Holo 1 - Looking Around", SinglePlayerFlags::CI_HOLO1_DONE);
+					CheckboxProgressFlags(gameFile, "Holo 2 - Movement 1", SinglePlayerFlags::CI_HOLO2_DONE);
+					CheckboxProgressFlags(gameFile, "Holo 3 - Movement 2", SinglePlayerFlags::CI_HOLO3_DONE);
+					CheckboxProgressFlags(gameFile, "Holo 4 - Unarmed Combat 1", SinglePlayerFlags::CI_HOLO4_DONE);
+					CheckboxProgressFlags(gameFile, "Holo 5 - Unarmed Combat 2", SinglePlayerFlags::CI_HOLO5_DONE);
+					CheckboxProgressFlags(gameFile, "Holo 6 - Live Combat 1", SinglePlayerFlags::CI_HOLO6_DONE);
+					CheckboxProgressFlags(gameFile, "Holo 7 - Live Combat 2", SinglePlayerFlags::CI_HOLO7_DONE);
+
+					ImGui::EndTable();
+				}
+
+				if (ImGui::BeginTable("TutorialFlagsTable", 2, 0))
+				{
+					ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
+					ImGui::TableSetupColumn("Column2", ImGuiTableColumnFlags_WidthStretch);
+
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+
+					PrintHeader("Co-Operative Options");
+					CheckboxProgressFlags(gameFile, "Radar On###RadarCoOp", SinglePlayerFlags::COOPRADARON);
+					CheckboxProgressFlags(gameFile, "Friendly Fire", SinglePlayerFlags::COOPFRIENDLYFIRE);
+
+					ImGui::TableSetColumnIndex(1);
+
+					PrintHeader("Counter-Operative Options");
+					CheckboxProgressFlags(gameFile, "Radar On###RadarCounterOp", SinglePlayerFlags::ANTIRADARON);
+					int counterOpPlayer = gameFile->GetFlag(SinglePlayerFlags::ANTIPLAYERNUM) ? 1 : 0;
+					if (ImGui::Combo("Counter-Operative", &counterOpPlayer, coOpPlayerNames, 2))
+					{
+						gameFile->SetFlag(SinglePlayerFlags::ANTIPLAYERNUM, counterOpPlayer == 1);
+					}
+
+					ImGui::EndTable();
+				}
+
+				if (ImGui::BeginTable("TutorialFlagsTable", 2, 0))
+				{
+					ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
+					ImGui::TableSetupColumn("Column2", ImGuiTableColumnFlags_WidthStretch);
+
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+
+					PrintHeader("Stage Flags");
+					CheckboxProgressFlags(gameFile, "G5 Building - Mine Position", SinglePlayerFlags::G5_MINE);
+					CheckboxProgressFlags(gameFile, "Area 51 Rescue - Mechanic Dead", SinglePlayerFlags::RESCUE_MECHANIC_DEAD);
+					CheckboxProgressFlags(gameFile, "Air Force One - Entry", SinglePlayerFlags::AF1_ENTRY);
+					CheckboxProgressFlags(gameFile, "Crash Site - Bike", SinglePlayerFlags::CRASHSITE_BIKE);
+					CheckboxProgressFlags(gameFile, "CI Defense - Jonathan Alive", SinglePlayerFlags::DEFENSE_JON);
+
+					ImGui::TableSetColumnIndex(1);
+
+					PrintHeader("Misc. Flags");
+					CheckboxProgressFlags(gameFile, "Used Transfer Pak", SinglePlayerFlags::USED_TRANSFERPAK);
+					CheckboxProgressFlags(gameFile, "Found Timed Mine", SinglePlayerFlags::FOUNDTIMEDMINE);
+					CheckboxProgressFlags(gameFile, "Found Proximity Mine", SinglePlayerFlags::FOUNDPROXYMINE);
+					CheckboxProgressFlags(gameFile, "Found Remote Mine", SinglePlayerFlags::FOUNDREMOTEMINE);
+					CheckboxProgressFlags(gameFile, "Language Flag 1", SinglePlayerFlags::LANGBIT1);
+					CheckboxProgressFlags(gameFile, "Language Flag 2", SinglePlayerFlags::LANGBIT2);
+					CheckboxProgressFlags(gameFile, "Language Flag 3", SinglePlayerFlags::LANGBIT3);
+
+					ImGui::EndTable();
+				}
 
 				ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuter;
+
+				PrintHeader("Stages");
 
 				if (ImGui::BeginTable("StagesTable", 4, flags))
 				{
@@ -540,69 +591,102 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 					ImGui::EndTable();
 				}
 
-				if (ImGui::BeginTable("Challenges Table", 5, flags))
+				if (ImGui::BeginTable("ChallengesWeaponsTables", 2, 0))
 				{
-					ImGui::TableSetupColumn("Challenge Number");
-					ImGui::TableSetupColumn("Player 1");
-					ImGui::TableSetupColumn("Player 2");
-					ImGui::TableSetupColumn("Player 3");
-					ImGui::TableSetupColumn("Player 4");
+					ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
+					ImGui::TableSetupColumn("Column2", ImGuiTableColumnFlags_WidthStretch);
 
-					ImGui::TableHeadersRow();
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
 
-					for (uint8_t c = 0; c < NUM_MP_CHALLENGES; c++)
+					PrintHeader("Weapons");
+
+					if (ImGui::BeginTable("Weapons Table", 3, flags))
 					{
-						ImGui::PushID(c);
+						ImGui::TableSetupColumn("Weapon Name");
+						ImGui::TableSetupColumn("Weapon Found");
+						ImGui::TableSetupColumn("Firing Range Medal");
 
-						ImGui::TableNextRow();
+						ImGui::TableHeadersRow();
 
-						ImGui::TableSetColumnIndex(0);
-						ImGui::Text("Challenge %u", c + 1);
-
-						for (uint8_t p = 0; p < MAX_PLAYERS; p++)
+						for (uint8_t w = 0; w < NUM_FIRING_RANGE_WEAPONS; w++)
 						{
-							ImGui::PushID(p);
-							ImGui::TableSetColumnIndex(p + 1);
+							ImGui::PushID(w);
 
-							bool completed = (gameFile->mpChallenges[c] & (1 << p)) != 0;
-							if (ImGui::Checkbox("##Challenge completed", &completed))
+							ImGui::TableNextRow();
+
+							ImGui::TableSetColumnIndex(0);
+							ImGui::Text(weaponNames[w]);
+
+							ImGui::TableSetColumnIndex(1);
+							bool found = gameFile->GetWeaponFound(w);
+							if (ImGui::Checkbox("##Found", &found))
 							{
-								if (completed) gameFile->mpChallenges[c] |= (1 << p);
-								else gameFile->mpChallenges[c] &= ~(1 << p);
+								gameFile->SetWeaponFound(w, found);
+							}
+
+							ImGui::TableSetColumnIndex(2);
+							int medal = gameFile->GetFiringRangeScore(w);
+							char* name = medal == 0 ? "None" : firingRangeMedalNames[medal - 1];
+							if (ImGui::SliderInt("##Medal", &medal, 0, NUM_FIRING_RANGE_MEDALS, name, ImGuiSliderFlags_NoInput))
+							{
+								gameFile->SetFiringRangeScore(w, medal);
 							}
 
 							ImGui::PopID();
 						}
 
-						ImGui::PopID();
+						ImGui::EndTable();
+					}
+
+					ImGui::TableSetColumnIndex(1);
+
+					PrintHeader("Completed Challenges (for unlocking features)");
+
+					if (ImGui::BeginTable("Challenges Table", 5, flags))
+					{
+						ImGui::TableSetupColumn("Challenge Number");
+						ImGui::TableSetupColumn("Player 1");
+						ImGui::TableSetupColumn("Player 2");
+						ImGui::TableSetupColumn("Player 3");
+						ImGui::TableSetupColumn("Player 4");
+
+						ImGui::TableHeadersRow();
+
+						for (uint8_t c = 0; c < NUM_MP_CHALLENGES; c++)
+						{
+							ImGui::PushID(c);
+
+							ImGui::TableNextRow();
+
+							ImGui::TableSetColumnIndex(0);
+							ImGui::Text("Challenge %u", c + 1);
+
+							for (uint8_t p = 0; p < MAX_PLAYERS; p++)
+							{
+								ImGui::PushID(p);
+								ImGui::TableSetColumnIndex(p + 1);
+
+								bool completed = (gameFile->mpChallenges[c] & (1 << p)) != 0;
+								if (ImGui::Checkbox("##Challenge completed", &completed))
+								{
+									if (completed) gameFile->mpChallenges[c] |= (1 << p);
+									else gameFile->mpChallenges[c] &= ~(1 << p);
+								}
+
+								ImGui::PopID();
+							}
+
+							ImGui::PopID();
+						}
+
+						ImGui::EndTable();
 					}
 
 					ImGui::EndTable();
 				}
 
-				for (uint8_t w = 0; w < NUM_FIRING_RANGE_WEAPONS; w++)
-				{
-					int medal = gameFile->GetFiringRangeScore(w);
-					char* name = medal == 0 ? "None" : firingRangeMedalNames[medal - 1];
-
-					if (ImGui::SliderInt(weaponNames[w], &medal, 0, NUM_FIRING_RANGE_MEDALS, name, ImGuiSliderFlags_NoInput))
-					{
-						gameFile->SetFiringRangeScore(w, medal);
-					}
-				}
-
-				for (uint8_t w = 0; w < NUM_FIRING_RANGE_WEAPONS; w++)
-				{
-					bool found = gameFile->GetWeaponFound(w);
-
-					if (ImGui::Checkbox(weaponNames[w], &found))
-					{
-						gameFile->SetWeaponFound(w, found);
-					}
-				}
-
 				ImGui::EndChild();
-
 				ImGui::EndTabItem();
 			}
 		}

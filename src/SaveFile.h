@@ -111,6 +111,12 @@ const char* const aimControlModeNames[NUM_AIM_CONTROL_MODES]
 	"Toggle"
 };
 
+const char* const coOpPlayerNames[2]
+{
+	"Player 1",
+	"Player 2"
+};
+
 const char* const controlModeNames[NUM_CONTROL_MODES]
 {
 	"Single (1.1)",
