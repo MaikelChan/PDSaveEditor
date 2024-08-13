@@ -235,7 +235,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 
 				NameInputField("Name", gameFile->name);
 
-				ImGui::InputScalar("Play Time (s)", ImGuiDataType_U32, &gameFile->totaltime, NULL, NULL, "%u");
+				InputScalarU32("Play Time (s)", &gameFile->totaltime, 32);
 				if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
 					ImGui::SetTooltip("%s", Utils::GetTimeString(gameFile->totaltime).c_str());
 
@@ -550,7 +550,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 							ImGui::PushID(d);
 							ImGui::TableSetColumnIndex(d + 1);
 
-							ImGui::InputScalar("##Best Time", ImGuiDataType_U16, &gameFile->besttimes[s][d], NULL, NULL, "%u");
+							InputScalarU16("##Best Time", &gameFile->besttimes[s][d], 12);
 							if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
 								ImGui::SetTooltip("Best time (s) = %s", Utils::GetTimeString(gameFile->besttimes[s][d]).c_str());
 
@@ -721,7 +721,7 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 
 				NameInputField("Name", mpProfile->name);
 
-				ImGui::InputScalar("Play Time (s)", ImGuiDataType_U32, &mpProfile->time, NULL, NULL, "%u");
+				InputScalarU32("Play Time (s)", &mpProfile->time, 28);
 				if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
 					ImGui::SetTooltip("%s", Utils::GetTimeString(mpProfile->time).c_str());
 
@@ -733,80 +733,21 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 
 				//TODO: displayoptions
 
-				if (ImGui::InputScalar("Kills", ImGuiDataType_U32, &mpProfile->kills, NULL, NULL, "%u"))
-				{
-					if (mpProfile->kills > 0xFFFFF) mpProfile->kills = 0xFFFFF;
-				}
-
-				if (ImGui::InputScalar("Deaths", ImGuiDataType_U32, &mpProfile->deaths, NULL, NULL, "%u"))
-				{
-					if (mpProfile->deaths > 0xFFFFF) mpProfile->deaths = 0xFFFFF;
-				}
-
-				if (ImGui::InputScalar("Games Played", ImGuiDataType_U32, &mpProfile->gamesplayed, NULL, NULL, "%u"))
-				{
-					if (mpProfile->gamesplayed > 0x7FFFF) mpProfile->gamesplayed = 0x7FFFF;
-				}
-
-				if (ImGui::InputScalar("Games Won", ImGuiDataType_U32, &mpProfile->gameswon, NULL, NULL, "%u"))
-				{
-					if (mpProfile->gameswon > 0x7FFFF) mpProfile->gameswon = 0x7FFFF;
-				}
-
-				if (ImGui::InputScalar("Games Lost", ImGuiDataType_U32, &mpProfile->gameslost, NULL, NULL, "%u"))
-				{
-					if (mpProfile->gameslost > 0x7FFFF) mpProfile->gameslost = 0x7FFFF;
-				}
-
-				if (ImGui::InputScalar("Distance", ImGuiDataType_U32, &mpProfile->distance, NULL, NULL, "%u"))
-				{
-					if (mpProfile->distance > 0x1FFFFFF) mpProfile->distance = 0x1FFFFFF;
-				}
-
-				if (ImGui::InputScalar("Accuracy", ImGuiDataType_U16, &mpProfile->accuracy, NULL, NULL, "%u"))
-				{
-					if (mpProfile->accuracy > 0x3FF) mpProfile->accuracy = 0x3FF;
-				}
-
-				if (ImGui::InputScalar("Damage Dealt", ImGuiDataType_U32, &mpProfile->damagedealt, NULL, NULL, "%u"))
-				{
-					if (mpProfile->damagedealt > 0x3FFFFFF) mpProfile->damagedealt = 0x3FFFFFF;
-				}
-
-				if (ImGui::InputScalar("Pain Received", ImGuiDataType_U32, &mpProfile->painreceived, NULL, NULL, "%u"))
-				{
-					if (mpProfile->painreceived > 0xFFFFF) mpProfile->painreceived = 0xFFFFF;
-				}
-
-				if (ImGui::InputScalar("Head Shots", ImGuiDataType_U32, &mpProfile->headshots, NULL, NULL, "%u"))
-				{
-					if (mpProfile->headshots > 0xFFFFF) mpProfile->headshots = 0xFFFFF;
-				}
-
-				if (ImGui::InputScalar("Ammo Used", ImGuiDataType_U32, &mpProfile->ammoused, NULL, NULL, "%u"))
-				{
-					if (mpProfile->ammoused > 0x3FFFFFFF) mpProfile->ammoused = 0x3FFFFFFF;
-				}
-
-				if (ImGui::InputScalar("Accuracy Medals", ImGuiDataType_U32, &mpProfile->accuracymedals, NULL, NULL, "%u"))
-				{
-					if (mpProfile->accuracymedals > 0x3FFFF) mpProfile->accuracymedals = 0x3FFFF;
-				}
-
-				if (ImGui::InputScalar("Head Shot Medals", ImGuiDataType_U32, &mpProfile->headshotmedals, NULL, NULL, "%u"))
-				{
-					if (mpProfile->headshotmedals > 0x3FFFF) mpProfile->headshotmedals = 0x3FFFF;
-				}
-
-				if (ImGui::InputScalar("Kill Master Medals", ImGuiDataType_U32, &mpProfile->killmastermedals, NULL, NULL, "%u"))
-				{
-					if (mpProfile->killmastermedals > 0x3FFFF) mpProfile->killmastermedals = 0x3FFFF;
-				}
-
-				if (ImGui::InputScalar("Survivor Medals", ImGuiDataType_U16, &mpProfile->survivormedals, NULL, NULL, "%u"))
-				{
-					if (mpProfile->survivormedals > 0xFFFF) mpProfile->survivormedals = 0xFFFF;
-				}
+				InputScalarU32("Kills", &mpProfile->kills, 20);
+				InputScalarU32("Deaths", &mpProfile->deaths, 20);
+				InputScalarU32("Games Played", &mpProfile->gamesplayed, 19);
+				InputScalarU32("Games Won", &mpProfile->gameswon, 19);
+				InputScalarU32("Games Lost", &mpProfile->gameslost, 19);
+				InputScalarU32("Distance", &mpProfile->distance, 25);
+				InputScalarU16("Accuracy", &mpProfile->accuracy, 10);
+				InputScalarU32("Damage Dealt", &mpProfile->damagedealt, 26);
+				InputScalarU32("Pain Received", &mpProfile->painreceived, 26);
+				InputScalarU32("Head Shots", &mpProfile->headshots, 20);
+				InputScalarU32("Ammo Used", &mpProfile->ammoused, 30);
+				InputScalarU32("Accuracy Medals", &mpProfile->accuracymedals, 18);
+				InputScalarU32("Head Shot Medals", &mpProfile->headshotmedals, 18);
+				InputScalarU32("Kill Master Medals", &mpProfile->killmastermedals, 18);
+				InputScalarU16("Survivor Medals", &mpProfile->survivormedals, 16);
 
 				uint8_t title = (uint8_t)mpProfile->GetPlayerTitle(true);
 				ImGui::Text("%s: %u", titleNames[title], NUM_MP_TITLES - title);
@@ -1495,69 +1436,6 @@ bool SaveEditorUI::CheckboxProgressFlags(GameFile* gameFile, const char* label, 
 	return value;
 }
 
-uint8_t SaveEditorUI::InputProgressFlags(const SaveData& saveData, SaveSlot* saveSlot, const char* label, const ProgressFlags flag, const uint8_t bitsCount, const uint8_t maxValue) const
-{
-	uint8_t value = saveSlot->GetProgressValue(flag, bitsCount);
-
-	/*ImGui::SetNextItemWidth(28);
-	if (ImGui::InputScalar(label, ImGuiDataType_U8, &value, NULL, NULL, "%u"))
-	{
-		if (value > maxValue) value = maxValue;
-		saveSlot->SetProgressValue(flag, bitsCount, value);
-		saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());
-	}*/
-
-	return value;
-}
-
-void SaveEditorUI::CheckboxAbility(SaveSlot* saveSlot, const char* label, const Abilities ability) const
-{
-	/*bool learned = saveSlot->GetLearnedAbility(ability);
-	bool used = saveSlot->GetUsedAbility(ability);
-
-	char learnedId[64];
-	snprintf(learnedId, 64, "##%s Learned", label);
-
-	if (ImGui::Checkbox(learnedId, &learned))
-	{
-		saveSlot->SetLearnedAbility(ability, learned);
-		saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());
-	}
-
-	ImGui::SameLine();
-
-	if (ImGui::Checkbox(label, &used))
-	{
-		saveSlot->SetUsedAbility(ability, used);
-		saveSlot->UpdateChecksum(saveData.NeedsEndianSwap());
-	}*/
-}
-
-//void SaveEditorUI::CheckboxSnS(const SaveData& saveData, const char* label, const SnS unlockedSnsItem, const SnS collectedSnsItem) const
-//{
-//	GlobalData* globalData = saveData.GetSaveFile()->GetGlobalData();
-//
-//	bool unlocked = globalData->GetSnsItem(unlockedSnsItem);
-//	bool collected = globalData->GetSnsItem(collectedSnsItem);
-//
-//	char unlockedId[64];
-//	snprintf(unlockedId, 64, "##%s Unlocked", label);
-//
-//	if (ImGui::Checkbox(unlockedId, &unlocked))
-//	{
-//		globalData->SetSnsItem(unlockedSnsItem, unlocked);
-//		globalData->UpdateChecksum(saveData.NeedsEndianSwap());
-//	}
-//
-//	ImGui::SameLine();
-//
-//	if (ImGui::Checkbox(label, &collected))
-//	{
-//		globalData->SetSnsItem(collectedSnsItem, collected);
-//		globalData->UpdateChecksum(saveData.NeedsEndianSwap());
-//	}
-//}
-
 void SaveEditorUI::NameInputField(const char* label, char* name) const
 {
 	char cleanedName[MAX_NAME_LENGTH + 1] = {};
@@ -1591,6 +1469,28 @@ void SaveEditorUI::NameInputField(const char* label, char* name) const
 			memset(name, 0, MAX_NAME_LENGTH + 1);
 			strcpy(name, cleanedName);
 		}
+	}
+}
+
+void SaveEditorUI::InputScalarU16(const char* label, uint16_t* value, const uint8_t bits) const
+{
+	uint32_t value32 = *value;
+	if (ImGui::InputScalar(label, ImGuiDataType_U32, &value32, NULL, NULL))
+	{
+		uint16_t mask = (uint16_t)(((uint32_t)1 << bits) - 1);
+		if (value32 > mask) value32 = mask;
+		*value = (uint16_t)value32;
+	}
+}
+
+void SaveEditorUI::InputScalarU32(const char* label, uint32_t* value, const uint8_t bits) const
+{
+	uint64_t value64 = *value;
+	if (ImGui::InputScalar(label, ImGuiDataType_U64, &value64, NULL, NULL))
+	{
+		uint32_t mask = (uint32_t)(((uint64_t)1 << bits) - 1);
+		if (value64 > mask) value64 = mask;
+		*value = (uint32_t)value64;
 	}
 }
 
