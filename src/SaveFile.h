@@ -1204,6 +1204,7 @@ public:
 
 public:
 	void Load(uint8_t* fileBuffer) override;
+	void Save(uint8_t* fileBuffer) override;
 
 	bool GetFlag(const SinglePlayerFlags flag) const;
 	void SetFlag(const SinglePlayerFlags flag, const bool set);

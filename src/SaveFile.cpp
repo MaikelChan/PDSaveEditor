@@ -515,7 +515,7 @@ void GameFile::Load(uint8_t* fileBuffer)
 
 	for (uint8_t i = 0; i < 9; i++)
 	{
-		int32_t numbits = i == (9 - 1) ? 2 : 8;
+		int32_t numbits = i == 8 ? 2 : 8;
 		firingrangescores[i] = buffer.ReadBits(numbits);
 	}
 
@@ -523,6 +523,69 @@ void GameFile::Load(uint8_t* fileBuffer)
 	{
 		weaponsfound[i] = buffer.ReadBits(8);
 	}
+}
+
+void GameFile::Save(uint8_t* fileBuffer)
+{
+	SaveBuffer buffer;
+
+	buffer.WriteString(name);
+	buffer.Or(thumbnail, 5);
+	buffer.Or(totaltime, 32);
+	buffer.Or(autodifficulty, 2);
+	buffer.Or(autostageindex, 5);
+	buffer.Or(sfxVolume, 6);
+	buffer.Or(musicVolume, 6);
+	buffer.Or(soundMode, 2);
+	buffer.Or(controlModes[0], 3);
+	buffer.Or(controlModes[1], 3);
+
+	for (uint8_t i = 0; i < GAMEFILE_FLAGS_SIZE; i++)
+	{
+		buffer.Or(flags[i], 8);
+	}
+
+	buffer.Or(unknown1, 16);
+
+	for (uint8_t i = 0; i < NUM_SOLOSTAGES; i++)
+	{
+		for (uint8_t j = 0; j < NUM_DIFFICULTIES; j++)
+		{
+			buffer.Or(besttimes[i][j], 12);
+		}
+	}
+
+	for (uint8_t i = 0; i < NUM_MP_CHALLENGES; i++)
+	{
+		for (uint8_t j = 0; j < MAX_PLAYERS; j++)
+		{
+			uint32_t completed = (mpChallenges[i] & (1 << j)) != 0 ? 1 : 0;
+			buffer.Or(completed, 1);
+		}
+	}
+
+	for (uint8_t i = 0; i < NUM_DIFFICULTIES; i++)
+	{
+		buffer.Or(coopcompletions[i], NUM_SOLOSTAGES);
+	}
+
+	for (uint8_t i = 0; i < 9; i++)
+	{
+		buffer.Or(firingrangescores[i], i == 8 ? 2 : 8);
+	}
+
+	for (uint8_t i = 0; i < 4; i++)
+	{
+		buffer.Or(weaponsfound[i], 8);
+	}
+
+	uint8_t* bytes = buffer.GetBytes();
+	for (uint8_t i = 0; i < pakFileHeader.filelen - PACK_HEADER_SIZE; i++)
+	{
+		fileBuffer[PACK_HEADER_SIZE + i] = bytes[i % pakFileHeader.bodylen];
+	}
+
+	PakFile::Save(fileBuffer);
 }
 
 bool GameFile::GetFlag(const SinglePlayerFlags flag) const
