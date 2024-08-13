@@ -695,6 +695,92 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer)
 	}
 }
 
+MultiplayerTitles MultiplayerProfile::GetPlayerTitle(const bool newMethod) const
+{
+	const uint32_t tiersNew[] = { 2, 4, 8, 16, 28, 60, 100, 150, 210, 300 };
+	const uint32_t tiersOld[] = { 2, 4, 8, 16, 28, 48, 78, 138, 198, 300 };
+
+	int32_t tallies[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	int32_t max;
+	int32_t i;
+
+#define MULT(val) (val * (newMethod ? 3 : 1))
+#define TIERS (newMethod ? tiersNew : tiersOld)
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		if (kills >= TIERS[i] * MULT(20)) tallies[0]++;
+		else break;
+	}
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		if (gameswon >= TIERS[i] * MULT(1))tallies[1]++;
+		else break;
+	}
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		if (accuracymedals >= TIERS[i] * MULT(1)) tallies[2]++;
+		else break;
+	}
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		if (headshotmedals >= TIERS[i] * MULT(1)) tallies[3]++;
+		else break;
+	}
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		if (killmastermedals >= TIERS[i] * MULT(1)) tallies[4]++;
+		else break;
+	}
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		if (time >= TIERS[i] * MULT(1200)) tallies[5]++;
+		else break;
+	}
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		if (distance >= TIERS[i] * MULT(100)) tallies[6]++;
+		else break;
+	}
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		if (damagedealt >= TIERS[i] * MULT(1)) tallies[7]++;
+		else break;
+	}
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		if (ammoused >= TIERS[i] * MULT(500)) tallies[8]++;
+		else break;
+	}
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		if (survivormedals >= TIERS[i] * MULT(1)) tallies[9]++;
+		else break;
+	}
+
+	int32_t sum = 0;
+
+	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	{
+		sum = sum + tallies[i];
+	}
+
+	if (sum > 100) sum = 100;
+	MultiplayerTitles title = (MultiplayerTitles)(sum / 5);
+
+	if (title > MultiplayerTitles::PERFECT) return MultiplayerTitles::PERFECT;
+	return title;
+}
+
 #pragma endregion
 
 #pragma region MultiplayerSettings

@@ -47,32 +47,15 @@ void SaveEditorUI::DoRender()
 						case 1:
 							RenderSinglePlayerSection(saveFile);
 							break;
+
+						case 2:
+							RenderMultiplayerProfilesSection(saveFile);
+							break;
+
+						case 3:
+							RenderMultiplayerSettingsSection(saveFile);
+							break;
 					}
-
-					/*SaveSlot* saveSlot = saveFile->GetSaveSlot(s);
-
-					if (!saveSlot)
-					{
-						const char emptyText[] = "The slot is empty.";
-						ImVec2 size = ImGui::CalcTextSize(emptyText);
-						ImVec2 windowSize = ImGui::GetWindowSize();
-						ImGui::SetCursorPosX((windowSize.x / 2.0f) - (size.x / 2.0f));
-						ImGui::SetCursorPosY((windowSize.y / 2.0f) - (size.y / 2.0f));
-						ImGui::Text("%s", emptyText);
-					}
-					else
-					{
-						PrintChecksum(saveSlot->GetChecksum(saveData.NeedsEndianSwap()));
-
-						if (ImGui::BeginTabBar("Sections", tab_bar_flags))
-						{
-							RenderLevelDataSection(saveData, saveSlot);
-							RenderAbilitiesItemsSection(saveData, saveSlot);
-							RenderProgressFlagsSection(saveData, saveSlot);
-
-							ImGui::EndTabBar();
-						}
-					}*/
 
 					ImGui::EndTabItem();
 				}
@@ -81,6 +64,7 @@ void SaveEditorUI::DoRender()
 			ImGui::EndTabBar();
 		}
 	}
+
 	ImGui::End();
 }
 
@@ -685,6 +669,199 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 
 					ImGui::EndTable();
 				}
+
+				ImGui::EndChild();
+				ImGui::EndTabItem();
+			}
+		}
+
+		ImGui::EndTabBar();
+	}
+}
+
+void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
+{
+	MultiplayerProfile* mpProfiles[NUM_FILE_SLOTS] = {};
+	uint8_t slot = 0;
+
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		MultiplayerProfile* mpProfile = saveFile->GetMultiplayerProfile(f);
+		if (mpProfile->IsUsed())
+		{
+			mpProfiles[slot] = mpProfile;
+			slot++;
+		}
+	}
+
+	if (ImGui::BeginTabBar("Multiplayer Profile Slots", ImGuiTabBarFlags_None))
+	{
+		for (uint8_t f = 0; f < NUM_FILE_SLOTS; f++)
+		{
+			MultiplayerProfile* mpProfile = mpProfiles[f];
+
+			// "###Slot%u is used as tab id, to prevent regenerating
+			// the whole window when updating the name of the slot
+
+			char tabName[32];
+			snprintf(tabName, 32, "Slot %u (%s)###Slot%u", f + 1, mpProfile != nullptr ? mpProfile->name : "Empty", f + 1);
+
+			if (ImGui::BeginTabItem(tabName))
+			{
+				if (mpProfile == nullptr)
+				{
+					PrintEmptySlot();
+					ImGui::EndTabItem();
+					continue;
+				}
+
+				ImGui::BeginChild("Multiplayer Profile Frame", ImVec2(0, 0), false, 0);
+
+				PrintHeader("Player Stats");
+
+				NameInputField("Name", mpProfile->name);
+
+				ImGui::InputScalar("Play Time (s)", ImGuiDataType_U32, &mpProfile->time, NULL, NULL, "%u");
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
+					ImGui::SetTooltip("%s", Utils::GetTimeString(mpProfile->time).c_str());
+
+				const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS;
+				ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpProfile->mpheadnum, &headsMin, &headsMax, "%u");
+
+				const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES;
+				ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpProfile->mpbodynum, &bodyMin, &bodyMax, "%u");
+
+				//TODO: displayoptions
+
+				if (ImGui::InputScalar("Kills", ImGuiDataType_U32, &mpProfile->kills, NULL, NULL, "%u"))
+				{
+					if (mpProfile->kills > 0xFFFFF) mpProfile->kills = 0xFFFFF;
+				}
+
+				if (ImGui::InputScalar("Deaths", ImGuiDataType_U32, &mpProfile->deaths, NULL, NULL, "%u"))
+				{
+					if (mpProfile->deaths > 0xFFFFF) mpProfile->deaths = 0xFFFFF;
+				}
+
+				if (ImGui::InputScalar("Games Played", ImGuiDataType_U32, &mpProfile->gamesplayed, NULL, NULL, "%u"))
+				{
+					if (mpProfile->gamesplayed > 0x7FFFF) mpProfile->gamesplayed = 0x7FFFF;
+				}
+
+				if (ImGui::InputScalar("Games Won", ImGuiDataType_U32, &mpProfile->gameswon, NULL, NULL, "%u"))
+				{
+					if (mpProfile->gameswon > 0x7FFFF) mpProfile->gameswon = 0x7FFFF;
+				}
+
+				if (ImGui::InputScalar("Games Lost", ImGuiDataType_U32, &mpProfile->gameslost, NULL, NULL, "%u"))
+				{
+					if (mpProfile->gameslost > 0x7FFFF) mpProfile->gameslost = 0x7FFFF;
+				}
+
+				if (ImGui::InputScalar("Distance", ImGuiDataType_U32, &mpProfile->distance, NULL, NULL, "%u"))
+				{
+					if (mpProfile->distance > 0x1FFFFFF) mpProfile->distance = 0x1FFFFFF;
+				}
+
+				if (ImGui::InputScalar("Accuracy", ImGuiDataType_U16, &mpProfile->accuracy, NULL, NULL, "%u"))
+				{
+					if (mpProfile->accuracy > 0x3FF) mpProfile->accuracy = 0x3FF;
+				}
+
+				if (ImGui::InputScalar("Damage Dealt", ImGuiDataType_U32, &mpProfile->damagedealt, NULL, NULL, "%u"))
+				{
+					if (mpProfile->damagedealt > 0x3FFFFFF) mpProfile->damagedealt = 0x3FFFFFF;
+				}
+
+				if (ImGui::InputScalar("Pain Received", ImGuiDataType_U32, &mpProfile->painreceived, NULL, NULL, "%u"))
+				{
+					if (mpProfile->painreceived > 0xFFFFF) mpProfile->painreceived = 0xFFFFF;
+				}
+
+				if (ImGui::InputScalar("Head Shots", ImGuiDataType_U32, &mpProfile->headshots, NULL, NULL, "%u"))
+				{
+					if (mpProfile->headshots > 0xFFFFF) mpProfile->headshots = 0xFFFFF;
+				}
+
+				if (ImGui::InputScalar("Ammo Used", ImGuiDataType_U32, &mpProfile->ammoused, NULL, NULL, "%u"))
+				{
+					if (mpProfile->ammoused > 0x3FFFFFFF) mpProfile->ammoused = 0x3FFFFFFF;
+				}
+
+				if (ImGui::InputScalar("Accuracy Medals", ImGuiDataType_U32, &mpProfile->accuracymedals, NULL, NULL, "%u"))
+				{
+					if (mpProfile->accuracymedals > 0x3FFFF) mpProfile->accuracymedals = 0x3FFFF;
+				}
+
+				if (ImGui::InputScalar("Head Shot Medals", ImGuiDataType_U32, &mpProfile->headshotmedals, NULL, NULL, "%u"))
+				{
+					if (mpProfile->headshotmedals > 0x3FFFF) mpProfile->headshotmedals = 0x3FFFF;
+				}
+
+				if (ImGui::InputScalar("Kill Master Medals", ImGuiDataType_U32, &mpProfile->killmastermedals, NULL, NULL, "%u"))
+				{
+					if (mpProfile->killmastermedals > 0x3FFFF) mpProfile->killmastermedals = 0x3FFFF;
+				}
+
+				if (ImGui::InputScalar("Survivor Medals", ImGuiDataType_U16, &mpProfile->survivormedals, NULL, NULL, "%u"))
+				{
+					if (mpProfile->survivormedals > 0xFFFF) mpProfile->survivormedals = 0xFFFF;
+				}
+
+				uint8_t title = (uint8_t)mpProfile->GetPlayerTitle(true);
+				ImGui::Text("%s: %u", titleNames[title], NUM_MP_TITLES - title);
+
+				ImGui::EndChild();
+				ImGui::EndTabItem();
+			}
+		}
+
+		ImGui::EndTabBar();
+	}
+}
+
+void SaveEditorUI::RenderMultiplayerSettingsSection(SaveFile* saveFile)
+{
+	MultiplayerSettings* mpSettings[NUM_FILE_SLOTS] = {};
+	uint8_t slot = 0;
+
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		MultiplayerSettings* mpSetting = saveFile->GetMultiplayerSettings(f);
+		if (mpSetting->IsUsed())
+		{
+			mpSettings[slot] = mpSetting;
+			slot++;
+		}
+	}
+
+	if (ImGui::BeginTabBar("Multiplayer Settings Slots", ImGuiTabBarFlags_None))
+	{
+		for (uint8_t f = 0; f < NUM_FILE_SLOTS; f++)
+		{
+			MultiplayerSettings* mpSetting = mpSettings[f];
+
+			// "###Slot%u is used as tab id, to prevent regenerating
+			// the whole window when updating the name of the slot
+
+			char tabName[32];
+			snprintf(tabName, 32, "Slot %u (%s)###Slot%u", f + 1, mpSetting != nullptr ? mpSetting->name : "Empty", f + 1);
+
+			if (ImGui::BeginTabItem(tabName))
+			{
+				if (mpSetting == nullptr)
+				{
+					PrintEmptySlot();
+					ImGui::EndTabItem();
+					continue;
+				}
+
+				ImGui::BeginChild("Multiplayer Settings Frame", ImVec2(0, 0), false, 0);
+
+				PrintHeader("Player Stats");
+
+				NameInputField("Name", mpSetting->name);
+
 
 				ImGui::EndChild();
 				ImGui::EndTabItem();

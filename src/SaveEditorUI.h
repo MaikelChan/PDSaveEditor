@@ -31,6 +31,8 @@ protected:
 private:
 	void RenderGlobalDataSection(SaveFile* saveFile);
 	void RenderSinglePlayerSection(SaveFile* saveFile);
+	void RenderMultiplayerProfilesSection(SaveFile* saveFile);
+	void RenderMultiplayerSettingsSection(SaveFile* saveFile);
 
 	void RenderLevelDataSection(const SaveData& saveData, SaveSlot* saveSlot);
 	void RenderAbilitiesItemsSection(const SaveData& saveData, SaveSlot* saveSlot);

@@ -49,6 +49,10 @@
 #define NUM_MP_STAGES 16
 #define NUM_MP_STAGES_AND_RANDOM (NUM_MP_STAGES + 1)
 #define TEAM_NAMES_COUNT 8
+#define NUM_MP_HEADS 75
+#define NUM_MP_BODIES 61
+#define NUM_MP_TIERS_TALLIES 10
+#define NUM_MP_TITLES 21
 
 const char* const languageNames[NUM_LANGUAGES]
 {
@@ -271,6 +275,31 @@ const char* const songNames[NUM_SONGS + 1]
 	"Random"
 };
 
+const char* const titleNames[NUM_MP_TITLES]
+{
+	"Beginner",
+	"Trainee",
+	"Amateur",
+	"Rookie",
+	"Novice",
+	"Trooper",
+	"Agent",
+	"Star Agent",
+	"Special Agent",
+	"Expert",
+	"Veteran",
+	"Professional",
+	"Dangerous",
+	"Deadly",
+	"Killer",
+	"Assassin",
+	"Lethal",
+	"Elite",
+	"Invincible",
+	"Near Perfect",
+	"Perfect"
+};
+
 enum class SinglePlayerFlags
 {
 	P1_FORWARDPITCH = 0x00,
@@ -354,7 +383,30 @@ enum class SinglePlayerFlags
 	UNKNOWN_4E = 0x4e
 };
 
-
+enum class MultiplayerTitles
+{
+	BEGINNER,
+	TRAINEE,
+	AMATEUR,
+	ROOKIE,
+	NOVICE,
+	TROOPER,
+	AGENT,
+	STARAGENT,
+	SPECIALAGENT,
+	EXPERT,
+	VETERAN,
+	PROFESSIONAL,
+	DANGEROUS,
+	DEADLY,
+	KILLER,
+	ASSASSIN,
+	LETHAL,
+	ELITE,
+	INVINCIBLE,
+	NEARPERFECT,
+	PERFECT
+};
 
 
 
@@ -1245,6 +1297,8 @@ public:
 
 public:
 	void Load(uint8_t* fileBuffer) override;
+
+	MultiplayerTitles GetPlayerTitle(const bool newMethod) const;
 };
 
 struct MultiplayerSettings : public PakFile
