@@ -22,7 +22,6 @@
 #define MAX_NAME_LENGTH 10
 #define MAX_PLAYERS 4
 #define NUM_WEAPONS 35 // TODO Is this correct?
-#define NUM_FIRING_RANGE_WEAPONS 32
 #define NUM_SONGS 43
 #define MULTIPLE_TRACKS_SIZE 6
 #define NUM_LANGUAGES 5
@@ -140,8 +139,10 @@ const char* const firingRangeMedalNames[NUM_FIRING_RANGE_MEDALS]
 	"Gold"
 };
 
-const char* const weaponNames[NUM_FIRING_RANGE_WEAPONS]
+const char* const weaponNames[NUM_WEAPONS + 1]
 {
+	"Nothing",
+	"Unarmed",
 	"Falcon 2",
 	"Falcon 2 (silencer)",
 	"Falcon 2 (scope)",
@@ -171,9 +172,47 @@ const char* const weaponNames[NUM_FIRING_RANGE_WEAPONS]
 	"Tranquilizer",
 	"Laser",
 	"Grenade",
+	"N-Bomb",
 	"Timed Mine",
 	"Proximity Mine",
-	"Remote Mine"
+	"Remote Mine",
+	"Combat Boost"
+};
+
+const uint8_t const frWeaponNameIndices[NUM_FIRING_RANGE_WEAPONS]
+{
+	2,
+	4,
+	3,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	21,
+	22,
+	27,
+	28,
+	20,
+	23,
+	24,
+	25,
+	26,
+	29,
+	30,
+	32,
+	33,
+	34
 };
 
 const char* const stageNames[NUM_SOLOSTAGES]
@@ -406,6 +445,72 @@ enum class MultiplayerTitles
 	INVINCIBLE,
 	NEARPERFECT,
 	PERFECT
+};
+
+enum class MultiplayerOptionsFlags
+{
+	FORWARDPITCH = 0x0001,
+	LOOKAHEAD = 0x0002,
+	SIGHTONSCREEN = 0x0004,
+	AUTOAIM = 0x0008,
+	AIMCONTROL = 0x0010,
+	AMMOONSCREEN = 0x0020,
+	SHOWGUNFUNCTION = 0x0040,
+	HEADROLL = 0x0080,
+	UNUSED_0100 = 0x0100,
+	ALWAYSSHOWTARGET = 0x0200,
+	SHOWZOOMRANGE = 0x0400,
+	PAINTBALL = 0x0800,
+	ASKEDSAVEPLAYER = 0x4000,
+	SHOWMISSIONTIME = 0x8000
+};
+
+enum class MultiplayerDisplayOptionsFlags
+{
+	HIGHLIGHTPLAYERS = 0x01,
+	HIGHLIGHTPICKUPS = 0x02,
+	RADAR = 0x04,
+	HIGHLIGHTTEAMS = 0x08
+};
+
+enum class Weapons
+{
+	Nothing,
+	Unarmed,
+	Falcon_2,
+	Falcon_2_Silencer,
+	Falcon_2_Scope,
+	MagSec_4,
+	Mauler,
+	Phoenix,
+	DY357_Magnum,
+	DY357_LX,
+	CMP150,
+	Cyclone,
+	Callisto_NTG,
+	RC_P120,
+	Laptop_Gun,
+	Dragon,
+	K7_Avenger,
+	AR34,
+	SuperDragon,
+	Shotgun,
+	Reaper,
+	Sniper_Rifle,
+	FarSight_XR_20,
+	Devastator,
+	Rocket_Launcher,
+	Slayer,
+	Combat_Knife,
+	Crossbow,
+	Tranquilizer,
+	Laser,
+	Grenade,
+	N_Bomb,
+	Timed_Mine,
+	Proximity_Mine,
+	Remote_Mine,
+	Combat_Boost
 };
 
 
@@ -1293,10 +1398,17 @@ public:
 	uint8_t controlmode = 0;
 	uint16_t options = 0;
 	uint8_t mpChallenges[NUM_MP_CHALLENGES] = {};
-	uint8_t gunfuncs[NUM_WEAPONS] = {};
+	uint8_t gunfuncs[6] = {};
 
 public:
 	void Load(uint8_t* fileBuffer) override;
+
+	bool GetOptionsFlag(const MultiplayerOptionsFlags flag) const;
+	void SetOptionsFlag(const MultiplayerOptionsFlags flag, const bool set);
+	bool GetDisplayOptionsFlag(const MultiplayerDisplayOptionsFlags flag) const;
+	void SetDisplayOptionsFlag(const MultiplayerDisplayOptionsFlags flag, const bool set);
+	bool GetWeaponSecondaryFunction(const uint8_t weaponIndex) const;
+	void SetWeaponSecondaryFunction(const uint8_t weaponIndex, const bool secondary);
 
 	MultiplayerTitles GetPlayerTitle(const bool newMethod) const;
 };

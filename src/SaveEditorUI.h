@@ -39,6 +39,8 @@ private:
 	void RenderProgressFlagsSection(const SaveData& saveData, SaveSlot* saveSlot);
 
 	bool CheckboxProgressFlags(GameFile* gameFile, const char* label, const SinglePlayerFlags flag, const bool reverse = false) const;
+	bool CheckboxMpOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerOptionsFlags flag, const bool reverse = false) const;
+	bool CheckboxMpDisplayOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerDisplayOptionsFlags flag, const bool reverse = false) const;
 	void NameInputField(const char* label, char* name) const;
 	void InputScalarU16(const char* label, uint16_t* value, const uint8_t bits) const;
 	void InputScalarU32(const char* label, uint32_t* value, const uint8_t bits) const;

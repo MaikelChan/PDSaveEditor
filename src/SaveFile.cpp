@@ -689,10 +689,51 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer)
 		}
 	}
 
-	for (uint8_t i = 0; i < NUM_WEAPONS; i++)
+	int32_t bitsremaining = NUM_WEAPONS;
+	uint8_t w = 0;
+	while (bitsremaining > 0)
 	{
-		gunfuncs[i] = buffer.ReadBits(1);
+		int32_t numbits = bitsremaining;
+		if (numbits > 8) numbits = 8;
+
+		gunfuncs[w] = buffer.ReadBits(numbits);
+
+		bitsremaining -= 8;
+		w++;
 	}
+}
+
+bool MultiplayerProfile::GetOptionsFlag(const MultiplayerOptionsFlags flag) const
+{
+	return (options & (uint16_t)flag) != 0;
+}
+
+void MultiplayerProfile::SetOptionsFlag(const MultiplayerOptionsFlags flag, const bool set)
+{
+	if (set) options |= (uint16_t)flag;
+	else options &= ~(uint16_t)flag;
+}
+
+bool MultiplayerProfile::GetDisplayOptionsFlag(const MultiplayerDisplayOptionsFlags flag) const
+{
+	return (displayoptions & (uint16_t)flag) != 0;
+}
+
+void MultiplayerProfile::SetDisplayOptionsFlag(const MultiplayerDisplayOptionsFlags flag, const bool set)
+{
+	if (set) displayoptions |= (uint16_t)flag;
+	else displayoptions &= ~(uint16_t)flag;
+}
+
+bool MultiplayerProfile::GetWeaponSecondaryFunction(const uint8_t weaponIndex) const
+{
+	return gunfuncs[(weaponIndex - 1) >> 3] & (1 << ((weaponIndex - 1) & 7));
+}
+
+void MultiplayerProfile::SetWeaponSecondaryFunction(const uint8_t weaponIndex, const bool secondary)
+{
+	if (secondary) gunfuncs[(weaponIndex - 1) >> 3] |= (1 << ((weaponIndex - 1) & 7));
+	else gunfuncs[(weaponIndex - 1) >> 3] &= ~(1 << ((weaponIndex - 1) & 7));
 }
 
 MultiplayerTitles MultiplayerProfile::GetPlayerTitle(const bool newMethod) const

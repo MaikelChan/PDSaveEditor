@@ -231,7 +231,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 
 				ImGui::BeginChild("Single Player Frame", ImVec2(0, 0), false, 0);
 
-				PrintHeader("Player Stats");
+				PrintHeader("Slot Info");
 
 				NameInputField("Name", gameFile->name);
 
@@ -600,7 +600,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 							ImGui::TableNextRow();
 
 							ImGui::TableSetColumnIndex(0);
-							ImGui::Text(weaponNames[w]);
+							ImGui::Text(weaponNames[frWeaponNameIndices[w]]);
 
 							ImGui::TableSetColumnIndex(1);
 							bool found = gameFile->GetWeaponFound(w);
@@ -717,40 +717,186 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 
 				ImGui::BeginChild("Multiplayer Profile Frame", ImVec2(0, 0), false, 0);
 
-				PrintHeader("Player Stats");
+				if (ImGui::BeginTable("MpPlayerInfoStatsTable", 2, 0))
+				{
+					ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
+					ImGui::TableSetupColumn("Column2", ImGuiTableColumnFlags_WidthStretch);
 
-				NameInputField("Name", mpProfile->name);
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
 
-				InputScalarU32("Play Time (s)", &mpProfile->time, 28);
-				if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
-					ImGui::SetTooltip("%s", Utils::GetTimeString(mpProfile->time).c_str());
+					PrintHeader("Slot Info");
 
-				const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS;
-				ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpProfile->mpheadnum, &headsMin, &headsMax, "%u");
+					NameInputField("Name", mpProfile->name);
 
-				const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES;
-				ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpProfile->mpbodynum, &bodyMin, &bodyMax, "%u");
+					InputScalarU32("Play Time (s)", &mpProfile->time, 28);
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
+						ImGui::SetTooltip("%s", Utils::GetTimeString(mpProfile->time).c_str());
 
-				//TODO: displayoptions
+					const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS;
+					ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpProfile->mpheadnum, &headsMin, &headsMax, "%u");
 
-				InputScalarU32("Kills", &mpProfile->kills, 20);
-				InputScalarU32("Deaths", &mpProfile->deaths, 20);
-				InputScalarU32("Games Played", &mpProfile->gamesplayed, 19);
-				InputScalarU32("Games Won", &mpProfile->gameswon, 19);
-				InputScalarU32("Games Lost", &mpProfile->gameslost, 19);
-				InputScalarU32("Distance", &mpProfile->distance, 25);
-				InputScalarU16("Accuracy", &mpProfile->accuracy, 10);
-				InputScalarU32("Damage Dealt", &mpProfile->damagedealt, 26);
-				InputScalarU32("Pain Received", &mpProfile->painreceived, 26);
-				InputScalarU32("Head Shots", &mpProfile->headshots, 20);
-				InputScalarU32("Ammo Used", &mpProfile->ammoused, 30);
-				InputScalarU32("Accuracy Medals", &mpProfile->accuracymedals, 18);
-				InputScalarU32("Head Shot Medals", &mpProfile->headshotmedals, 18);
-				InputScalarU32("Kill Master Medals", &mpProfile->killmastermedals, 18);
-				InputScalarU16("Survivor Medals", &mpProfile->survivormedals, 16);
+					const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES;
+					ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpProfile->mpbodynum, &bodyMin, &bodyMax, "%u");
 
-				uint8_t title = (uint8_t)mpProfile->GetPlayerTitle(true);
-				ImGui::Text("%s: %u", titleNames[title], NUM_MP_TITLES - title);
+					ImGui::TableSetColumnIndex(1);
+					PrintHeader("Statistics");
+
+					InputScalarU32("Kills", &mpProfile->kills, 20);
+					InputScalarU32("Deaths", &mpProfile->deaths, 20);
+					InputScalarU32("Games Played", &mpProfile->gamesplayed, 19);
+					InputScalarU32("Games Won", &mpProfile->gameswon, 19);
+					InputScalarU32("Games Lost", &mpProfile->gameslost, 19);
+					InputScalarU32("Distance", &mpProfile->distance, 25);
+					InputScalarU16("Accuracy", &mpProfile->accuracy, 10);
+					InputScalarU32("Damage Dealt", &mpProfile->damagedealt, 26);
+					InputScalarU32("Pain Received", &mpProfile->painreceived, 26);
+					InputScalarU32("Head Shots", &mpProfile->headshots, 20);
+					InputScalarU32("Ammo Used", &mpProfile->ammoused, 30);
+					InputScalarU32("Accuracy Medals", &mpProfile->accuracymedals, 18);
+					InputScalarU32("Head Shot Medals", &mpProfile->headshotmedals, 18);
+					InputScalarU32("Kill Master Medals", &mpProfile->killmastermedals, 18);
+					InputScalarU16("Survivor Medals", &mpProfile->survivormedals, 16);
+
+					uint8_t title = (uint8_t)mpProfile->GetPlayerTitle(true);
+					ImGui::Text("%s: %u", titleNames[title], NUM_MP_TITLES - title);
+
+					ImGui::EndTable();
+				}
+
+				if (ImGui::BeginTable("MpOptionsTable", 2, 0))
+				{
+					ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
+					ImGui::TableSetupColumn("Column2", ImGuiTableColumnFlags_WidthStretch);
+
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+
+					PrintHeader("Control");
+
+					int controlMode = mpProfile->controlmode;
+					if (ImGui::Combo("Control Mode", &controlMode, controlModeNames, NUM_CONTROL_MODES - 4))
+					{
+						mpProfile->controlmode = controlMode;
+					}
+
+					CheckboxMpOptionsFlags(mpProfile, "Reverse Pitch", MultiplayerOptionsFlags::FORWARDPITCH, true);
+					CheckboxMpOptionsFlags(mpProfile, "Look Ahead", MultiplayerOptionsFlags::LOOKAHEAD);
+					CheckboxMpOptionsFlags(mpProfile, "Head Roll", MultiplayerOptionsFlags::HEADROLL);
+					CheckboxMpOptionsFlags(mpProfile, "Auto-Aim", MultiplayerOptionsFlags::AUTOAIM);
+
+					int aimControl = mpProfile->GetOptionsFlag(MultiplayerOptionsFlags::AIMCONTROL) ? 1 : 0;
+					if (ImGui::Combo("Aim Control", &aimControl, aimControlModeNames, NUM_AIM_CONTROL_MODES))
+					{
+						mpProfile->SetOptionsFlag(MultiplayerOptionsFlags::AIMCONTROL, aimControl != 0);
+					}
+
+					CheckboxMpOptionsFlags(mpProfile, "Sight on Screen", MultiplayerOptionsFlags::SIGHTONSCREEN);
+					CheckboxMpOptionsFlags(mpProfile, "Show Target", MultiplayerOptionsFlags::ALWAYSSHOWTARGET);
+					CheckboxMpOptionsFlags(mpProfile, "Zoom Range", MultiplayerOptionsFlags::SHOWZOOMRANGE);
+					CheckboxMpOptionsFlags(mpProfile, "Ammo on Screen", MultiplayerOptionsFlags::AMMOONSCREEN);
+					CheckboxMpOptionsFlags(mpProfile, "Gun Function", MultiplayerOptionsFlags::SHOWGUNFUNCTION);
+					CheckboxMpOptionsFlags(mpProfile, "Paintball", MultiplayerOptionsFlags::PAINTBALL);
+
+					ImGui::TableSetColumnIndex(1);
+
+					PrintHeader("Options");
+
+					CheckboxMpDisplayOptionsFlags(mpProfile, "Highlight Pickups", MultiplayerDisplayOptionsFlags::HIGHLIGHTPICKUPS);
+					CheckboxMpDisplayOptionsFlags(mpProfile, "Highlight Players", MultiplayerDisplayOptionsFlags::HIGHLIGHTPLAYERS);
+					CheckboxMpDisplayOptionsFlags(mpProfile, "Highlight Teams", MultiplayerDisplayOptionsFlags::HIGHLIGHTTEAMS);
+					CheckboxMpDisplayOptionsFlags(mpProfile, "Radar", MultiplayerDisplayOptionsFlags::RADAR);
+
+					ImGui::EndTable();
+				}
+
+				if (ImGui::BeginTable("MpChallengesWeaponsTables", 2, 0))
+				{
+					ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
+					ImGui::TableSetupColumn("Column2", ImGuiTableColumnFlags_WidthStretch);
+
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+
+					ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuter;
+
+					PrintHeader("Weapon Functions");
+
+					if (ImGui::BeginTable("Weapons Functions Table", 2, flags))
+					{
+						ImGui::TableSetupColumn("Weapon Name");
+						ImGui::TableSetupColumn("Secondary Function");
+
+						ImGui::TableHeadersRow();
+
+						for (uint8_t w = (uint8_t)Weapons::Unarmed; w <= (uint8_t)Weapons::Combat_Boost; w++)
+						{
+							ImGui::PushID(w);
+
+							ImGui::TableNextRow();
+
+							ImGui::TableSetColumnIndex(0);
+							ImGui::Text(weaponNames[w]);
+
+							ImGui::TableSetColumnIndex(1);
+							bool secondaryFunc = mpProfile->GetWeaponSecondaryFunction(w);
+							if (ImGui::Checkbox("##Seconday Func", &secondaryFunc))
+							{
+								mpProfile->SetWeaponSecondaryFunction(w, secondaryFunc);
+							}
+
+							ImGui::PopID();
+						}
+
+						ImGui::EndTable();
+					}
+
+					ImGui::TableSetColumnIndex(1);
+
+					PrintHeader("Completed Challenges");
+
+					if (ImGui::BeginTable("Challenges Table", 5, flags))
+					{
+						ImGui::TableSetupColumn("Challenge Number");
+						ImGui::TableSetupColumn("Player 1");
+						ImGui::TableSetupColumn("Player 2");
+						ImGui::TableSetupColumn("Player 3");
+						ImGui::TableSetupColumn("Player 4");
+
+						ImGui::TableHeadersRow();
+
+						for (uint8_t c = 0; c < NUM_MP_CHALLENGES; c++)
+						{
+							ImGui::PushID(c);
+
+							ImGui::TableNextRow();
+
+							ImGui::TableSetColumnIndex(0);
+							ImGui::Text("Challenge %u", c + 1);
+
+							for (uint8_t p = 0; p < MAX_PLAYERS; p++)
+							{
+								ImGui::PushID(p);
+								ImGui::TableSetColumnIndex(p + 1);
+
+								bool completed = (mpProfile->mpChallenges[c] & (1 << p)) != 0;
+								if (ImGui::Checkbox("##Challenge completed", &completed))
+								{
+									if (completed) mpProfile->mpChallenges[c] |= (1 << p);
+									else mpProfile->mpChallenges[c] &= ~(1 << p);
+								}
+
+								ImGui::PopID();
+							}
+
+							ImGui::PopID();
+						}
+
+						ImGui::EndTable();
+					}
+
+					ImGui::EndTable();
+				}
 
 				ImGui::EndChild();
 				ImGui::EndTabItem();
@@ -1431,6 +1577,34 @@ bool SaveEditorUI::CheckboxProgressFlags(GameFile* gameFile, const char* label, 
 	{
 		if (reverse) value = !value;
 		gameFile->SetFlag(flag, value);
+	}
+
+	return value;
+}
+
+bool SaveEditorUI::CheckboxMpOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerOptionsFlags flag, const bool reverse) const
+{
+	bool value = mpProfile->GetOptionsFlag(flag);
+	if (reverse) value = !value;
+
+	if (ImGui::Checkbox(label, &value))
+	{
+		if (reverse) value = !value;
+		mpProfile->SetOptionsFlag(flag, value);
+	}
+
+	return value;
+}
+
+bool SaveEditorUI::CheckboxMpDisplayOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerDisplayOptionsFlags flag, const bool reverse) const
+{
+	bool value = mpProfile->GetDisplayOptionsFlag(flag);
+	if (reverse) value = !value;
+
+	if (ImGui::Checkbox(label, &value))
+	{
+		if (reverse) value = !value;
+		mpProfile->SetDisplayOptionsFlag(flag, value);
 	}
 
 	return value;
