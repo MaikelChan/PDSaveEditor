@@ -658,7 +658,6 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer)
 	mpheadnum = buffer.ReadBits(7);
 	mpbodynum = buffer.ReadBits(7);
 	buffer.ReadGuid(&guid);
-
 	displayoptions = buffer.ReadBits(8);
 	kills = buffer.ReadBits(20);
 	deaths = buffer.ReadBits(20);
@@ -701,6 +700,65 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer)
 		bitsremaining -= 8;
 		w++;
 	}
+}
+
+void MultiplayerProfile::Save(uint8_t* fileBuffer)
+{
+	SaveBuffer buffer;
+
+	buffer.WriteString(name);
+	buffer.Or(time, 28);
+	buffer.Or(mpheadnum, 7);
+	buffer.Or(mpbodynum, 7);
+	buffer.WriteGuid(&guid);
+	buffer.Or(displayoptions, 8);
+	buffer.Or(kills, 20);
+	buffer.Or(deaths, 20);
+	buffer.Or(gamesplayed, 19);
+	buffer.Or(gameswon, 19);
+	buffer.Or(gameslost, 19);
+	buffer.Or(distance, 25);
+	buffer.Or(accuracy, 10);
+	buffer.Or(damagedealt, 26);
+	buffer.Or(painreceived, 26);
+	buffer.Or(headshots, 20);
+	buffer.Or(ammoused, 30);
+	buffer.Or(accuracymedals, 18);
+	buffer.Or(headshotmedals, 18);
+	buffer.Or(killmastermedals, 18);
+	buffer.Or(survivormedals, 16);
+	buffer.Or(controlmode, 2);
+	buffer.Or(options, 12);
+
+	for (uint8_t i = 0; i < NUM_MP_CHALLENGES; i++)
+	{
+		for (uint8_t j = 0; j < MAX_PLAYERS; j++)
+		{
+			uint32_t completed = (mpChallenges[i] & (1 << j)) != 0 ? 1 : 0;
+			buffer.Or(completed, 1);
+		}
+	}
+
+	int32_t bitsremaining = NUM_WEAPONS;
+	uint8_t w = 0;
+	while (bitsremaining > 0)
+	{
+		int32_t numbits = bitsremaining;
+		if (numbits > 8) numbits = 8;
+
+		buffer.Or(gunfuncs[w], numbits);
+
+		bitsremaining -= 8;
+		w++;
+	}
+
+	uint8_t* bytes = buffer.GetBytes();
+	for (uint8_t i = 0; i < pakFileHeader.filelen - PACK_HEADER_SIZE; i++)
+	{
+		fileBuffer[PACK_HEADER_SIZE + i] = bytes[i % pakFileHeader.bodylen];
+	}
+
+	PakFile::Save(fileBuffer);
 }
 
 bool MultiplayerProfile::GetOptionsFlag(const MultiplayerOptionsFlags flag) const

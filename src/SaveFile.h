@@ -179,7 +179,7 @@ const char* const weaponNames[NUM_WEAPONS + 1]
 	"Combat Boost"
 };
 
-const uint8_t const frWeaponNameIndices[NUM_FIRING_RANGE_WEAPONS]
+const uint8_t const frWeaponNameIndices[NUM_FIRING_RANGE_WEAPONS] // frGetWeaponIndexByWeapon(u32 weaponnum)
 {
 	2,
 	4,
@@ -1402,6 +1402,7 @@ public:
 
 public:
 	void Load(uint8_t* fileBuffer) override;
+	void Save(uint8_t* fileBuffer) override;
 
 	bool GetOptionsFlag(const MultiplayerOptionsFlags flag) const;
 	void SetOptionsFlag(const MultiplayerOptionsFlags flag, const bool set);
