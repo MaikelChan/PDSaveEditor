@@ -34,10 +34,6 @@ private:
 	void RenderMultiplayerProfilesSection(SaveFile* saveFile);
 	void RenderMultiplayerSettingsSection(SaveFile* saveFile);
 
-	void RenderLevelDataSection(const SaveData& saveData, SaveSlot* saveSlot);
-	void RenderAbilitiesItemsSection(const SaveData& saveData, SaveSlot* saveSlot);
-	void RenderProgressFlagsSection(const SaveData& saveData, SaveSlot* saveSlot);
-
 	bool CheckboxProgressFlags(GameFile* gameFile, const char* label, const SinglePlayerFlags flag, const bool reverse = false) const;
 	bool CheckboxMpProfileOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerOptionsFlags flag, const bool reverse = false) const;
 	bool CheckboxMpProfileDisplayOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerDisplayOptionsFlags flag, const bool reverse = false) const;
@@ -46,10 +42,6 @@ private:
 	void InputScalarU16(const char* label, uint16_t* value, const uint8_t bits) const;
 	void InputScalarU32(const char* label, uint32_t* value, const uint8_t bits) const;
 
-
 	void PrintEmptySlot() const;
-	void PrintChecksum(const uint32_t checksum) const;
 	void PrintHeader(const char* label) const;
-	void BeginFlagsGroup(const char* label) const;
-	void EndFlagsGroup() const;
 };
