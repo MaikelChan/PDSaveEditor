@@ -986,5 +986,7 @@ public:
 	static void CalculateChecksum(uint8_t* start, uint8_t* end, uint16_t* checksum);
 
 private:
+	void PrintFileInfo(uint8_t* fileBuffer) const;
+
 	static uint32_t TransformSeed(uint64_t* seed);
 };

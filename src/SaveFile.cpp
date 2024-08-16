@@ -804,15 +804,14 @@ void Terminator::Save(uint8_t* fileBuffer)
 
 void SaveFile::Load(uint8_t* fileBuffer)
 {
-	// Read headers
+	PrintFileInfo(fileBuffer);
 
-	printf("Position  Header CRC       Body CRC         Type (Name)            Size  ID  Used  Device  Generation  Written  Version\n");
-	printf("-----------------------------------------------------------------------------------------------------------------------\n");
+	// Read headers
 
 	uint8_t bossFilesCount = 0;
 	uint8_t gameFilesCount = 0;
 	uint8_t mpProfilesCount = 0;
-	uint8_t mpSettingsCount = 0;
+	uint8_t mpSetupsCount = 0;
 
 	int32_t p = 0;
 
@@ -837,7 +836,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 			}
 			case PakFileTypes::MPSETUP:
 			{
-				mpSetups[mpSettingsCount++].Load(&fileBuffer[p]);
+				mpSetups[mpSetupsCount++].Load(&fileBuffer[p]);
 				break;
 			}
 			case PakFileTypes::GAME:
@@ -855,71 +854,6 @@ void SaveFile::Load(uint8_t* fileBuffer)
 				break;
 			}
 		}
-
-		// Print debug data
-
-		uint16_t checksum[2];
-		CalculateChecksum(&fileBuffer[p + 8], &fileBuffer[p + PACK_HEADER_SIZE], checksum);
-		char* headerSumResult = (pakFileHeader.headersum[0] == checksum[0] && pakFileHeader.headersum[1] == checksum[1]) ? "OK " : "BAD";
-
-		CalculateChecksum(&fileBuffer[p + PACK_HEADER_SIZE], &fileBuffer[p + PACK_HEADER_SIZE + pakFileHeader.bodylen], checksum);
-		char* bodySumResult = (pakFileHeader.bodysum[0] == checksum[0] && pakFileHeader.bodysum[1] == checksum[1]) ? "OK " : "BAD";
-
-		char* type;
-
-		switch ((PakFileTypes)pakFileHeader.filetype)
-		{
-			case PakFileTypes::UNUSED_001:
-				type = "UNUSED_001           ";
-				break;
-			case PakFileTypes::BLANK:
-				type = "BLANK                ";
-				break;
-			case PakFileTypes::TERMINATOR:
-				type = "TERMINATOR           ";
-				break;
-			case PakFileTypes::CAMERA:
-				type = "CAMERA               ";
-				break;
-			case PakFileTypes::BOSS:
-				type = "BOSS                 ";
-				break;
-			case PakFileTypes::MPPLAYER:
-			{
-				char name[MAX_NAME_LENGTH + 1];
-				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
-				name[10] = '\0';
-				char gameName[32];
-				snprintf(gameName, 32, "MPPLAYER (%-10s)", name);
-				type = gameName;
-				break;
-			}
-			case PakFileTypes::MPSETUP:
-			{
-				char name[MAX_NAME_LENGTH + 1];
-				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
-				name[10] = '\0';
-				char gameName[32];
-				snprintf(gameName, 32, "MPSETUP  (%-10s)", name);
-				type = gameName;
-				break;
-			}
-			case PakFileTypes::GAME:
-			{
-				char name[MAX_NAME_LENGTH + 1];
-				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
-				name[10] = '\0';
-				char gameName[32];
-				snprintf(gameName, 32, "GAME     (%-10s)", name);
-				type = gameName;
-				break;
-			}
-			default:
-				type = "UNKNOWN              ";
-				break;
-		}
-
-		printf("0x%04X    %04X-%04X (%s)  %04X-%04X (%s)  %s  %3u   %2u  %u     %4u    %3u         %u        %u\n", p, pakFileHeader.headersum[0], pakFileHeader.headersum[1], headerSumResult, pakFileHeader.bodysum[0], pakFileHeader.bodysum[1], bodySumResult, type, pakFileHeader.bodylen, pakFileHeader.id, pakFileHeader.occupied, pakFileHeader.deviceSerial, pakFileHeader.generation, pakFileHeader.writecompleted, pakFileHeader.version);
 
 		// Advance to next file
 
@@ -981,6 +915,108 @@ void SaveFile::CalculateChecksum(uint8_t* start, uint8_t* end, uint16_t* checksu
 
 	checksum[0] = sum1 & 0xffff;
 	checksum[1] = sum2 & 0xffff;
+}
+
+void SaveFile::PrintFileInfo(uint8_t* fileBuffer) const
+{
+	printf("Position  Header CRC       Body CRC         Type (Name)            Size  ID  Used  Device  Generation  Written  Version\n");
+	printf("-----------------------------------------------------------------------------------------------------------------------\n");
+
+	uint8_t bossFilesCount = 0;
+	uint8_t gameFilesCount = 0;
+	uint8_t mpProfilesCount = 0;
+	uint8_t mpSetupsCount = 0;
+
+	int32_t p = 0;
+
+	while (p < SAVE_FILE_SIZE)
+	{
+		PakFileHeader pakFileHeader = {};
+		memcpy(&pakFileHeader, &fileBuffer[p], PACK_HEADER_SIZE);
+
+		// Print debug data
+
+		uint16_t checksum[2];
+		CalculateChecksum(&fileBuffer[p + 8], &fileBuffer[p + PACK_HEADER_SIZE], checksum);
+		char* headerSumResult = (pakFileHeader.headersum[0] == checksum[0] && pakFileHeader.headersum[1] == checksum[1]) ? "OK " : "BAD";
+
+		CalculateChecksum(&fileBuffer[p + PACK_HEADER_SIZE], &fileBuffer[p + PACK_HEADER_SIZE + pakFileHeader.bodylen], checksum);
+		char* bodySumResult = (pakFileHeader.bodysum[0] == checksum[0] && pakFileHeader.bodysum[1] == checksum[1]) ? "OK " : "BAD";
+
+		char* type;
+
+		switch ((PakFileTypes)pakFileHeader.filetype)
+		{
+			case PakFileTypes::UNUSED_001:
+			{
+				type = "UNUSED_001           ";
+				break;
+			}
+			case PakFileTypes::BLANK:
+			{
+				type = "BLANK                ";
+				break;
+			}
+			case PakFileTypes::TERMINATOR:
+			{
+				type = "TERMINATOR           ";
+				break;
+			}
+			case PakFileTypes::CAMERA:
+			{
+				type = "CAMERA               ";
+				break;
+			}
+			case PakFileTypes::BOSS:
+			{
+				type = "BOSS                 ";
+				break;
+			}
+			case PakFileTypes::MPPLAYER:
+			{
+				char name[MAX_NAME_LENGTH + 1];
+				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
+				name[10] = '\0';
+				char gameName[32];
+				snprintf(gameName, 32, "MPPLAYER (%-10s)", name);
+				type = gameName;
+				break;
+			}
+			case PakFileTypes::MPSETUP:
+			{
+				char name[MAX_NAME_LENGTH + 1];
+				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
+				name[10] = '\0';
+				char gameName[32];
+				snprintf(gameName, 32, "MPSETUP  (%-10s)", name);
+				type = gameName;
+				break;
+			}
+			case PakFileTypes::GAME:
+			{
+				char name[MAX_NAME_LENGTH + 1];
+				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
+				name[10] = '\0';
+				char gameName[32];
+				snprintf(gameName, 32, "GAME     (%-10s)", name);
+				type = gameName;
+				break;
+			}
+			default:
+			{
+				type = "UNKNOWN              ";
+				break;
+			}
+		}
+
+		printf("0x%04X    %04X-%04X (%s)  %04X-%04X (%s)  %s  %3u   %2u  %u     %4u    %3u         %u        %u\n", p, pakFileHeader.headersum[0], pakFileHeader.headersum[1], headerSumResult, pakFileHeader.bodysum[0], pakFileHeader.bodysum[1], bodySumResult, type, pakFileHeader.bodylen, pakFileHeader.id, pakFileHeader.occupied, pakFileHeader.deviceSerial, pakFileHeader.generation, pakFileHeader.writecompleted, pakFileHeader.version);
+
+		// Advance to next file
+
+		p += pakFileHeader.filelen;
+	}
+
+	printf("\n");
 }
 
 uint32_t SaveFile::TransformSeed(uint64_t* seed)
