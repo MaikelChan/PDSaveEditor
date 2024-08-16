@@ -901,7 +901,7 @@ void MultiplayerSettings::Load(uint8_t* fileBuffer)
 	scenarioParams = buffer.ReadBits(8);
 	options = buffer.ReadBits(21);
 
-	for (uint8_t i = 0; i < MAX_BOTS; i++)
+	for (uint8_t i = 0; i < MAX_SIMULANTS; i++)
 	{
 		botsData[i].type = buffer.ReadBits(5);
 		botsData[i].difficulty = buffer.ReadBits(3);
@@ -923,6 +923,58 @@ void MultiplayerSettings::Load(uint8_t* fileBuffer)
 	{
 		teams[i] = buffer.ReadBits(3);
 	}
+}
+
+uint8_t MultiplayerSettings::GetArena() const
+{
+	for (uint8_t s = 0; s < NUM_MP_STAGES_AND_RANDOM; s++)
+	{
+		if (mpStageIndices[s] == stagenum) return s;
+	}
+
+	return 1; // Random
+}
+
+void MultiplayerSettings::SetArena(const uint8_t arena)
+{
+	stagenum = mpStageIndices[arena];
+}
+
+bool MultiplayerSettings::GetOptionsFlag(const MultiplayerSetupFlags flag) const
+{
+	return (options & (uint32_t)flag) != 0;
+}
+
+void MultiplayerSettings::SetOptionsFlag(const MultiplayerSetupFlags flag, const bool set)
+{
+	if (set) options |= (uint32_t)flag;
+	else options &= ~(uint32_t)flag;
+}
+
+uint8_t MultiplayerSettings::GetSlowMotionMode() const
+{
+	if (GetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_SMART)) return 2;
+	else if (GetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_ON)) return 1;
+	return 0;
+}
+
+void MultiplayerSettings::SetSlowMotionMode(const uint8_t mode)
+{
+	SetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_SMART, false);
+	SetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_ON, false);
+
+	if (mode == 1) SetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_ON, true);
+	else if (mode == 2) SetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_SMART, true);
+}
+
+uint8_t MultiplayerSettings::GetHillTime() const
+{
+	return scenarioParams + 10;
+}
+
+void MultiplayerSettings::SetHillTime(const uint8_t time)
+{
+	scenarioParams = time - 10;
 }
 
 #pragma endregion

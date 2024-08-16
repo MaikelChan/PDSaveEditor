@@ -21,7 +21,7 @@
 
 #define MAX_NAME_LENGTH 10
 #define MAX_PLAYERS 4
-#define NUM_WEAPONS 35 // TODO Is this correct?
+#define NUM_WEAPONS 35
 #define NUM_SONGS 43
 #define MULTIPLE_TRACKS_SIZE 6
 #define NUM_LANGUAGES 5
@@ -43,7 +43,7 @@
 // Multiplayer
 
 #define NUM_MP_CHALLENGES 30
-#define MAX_BOTS 8
+#define MAX_SIMULANTS 8
 #define NUM_MPWEAPONSLOTS 6
 #define NUM_MP_STAGES 16
 #define NUM_MP_STAGES_AND_RANDOM (NUM_MP_STAGES + 1)
@@ -52,6 +52,12 @@
 #define NUM_MP_BODIES 61
 #define NUM_MP_TIERS_TALLIES 10
 #define NUM_MP_TITLES 21
+#define NUM_MP_SCENARIOS 6
+#define NUM_MP_SLOWMOTION_MODES 3
+#define NUM_MP_SIMULANT_DIFFICULTIES 6
+#define NUM_MP_SIMULANT_TYPES 13
+#define NUM_MP_WEAPONS_N64 39
+#define NUM_MP_WEAPONS_PC 47
 
 const char* const languageNames[NUM_LANGUAGES]
 {
@@ -139,7 +145,7 @@ const char* const firingRangeMedalNames[NUM_FIRING_RANGE_MEDALS]
 	"Gold"
 };
 
-const char* const weaponNames[NUM_WEAPONS + 1]
+const char* const weaponNames[]
 {
 	"Nothing",
 	"Unarmed",
@@ -169,14 +175,26 @@ const char* const weaponNames[NUM_WEAPONS + 1]
 	"Slayer",
 	"Combat Knife",
 	"Crossbow",
-	"Tranquilizer",
+	"Tranquilizer",//28
 	"Laser",
 	"Grenade",
 	"N-Bomb",
 	"Timed Mine",
 	"Proximity Mine",
 	"Remote Mine",
-	"Combat Boost"
+	"Combat Boost",
+	"PP9i",
+	"CC13",
+	"KLO1313",
+	"KF7 Special",
+	"ZZT (9mm)",
+	"DMC",
+	"AR53",
+	"RC-P45",
+	"Shield",
+	"X-Ray Scanner",
+	"Cloaking Device",//46
+	"Disabled"
 };
 
 const uint8_t const frWeaponNameIndices[NUM_FIRING_RANGE_WEAPONS] // frGetWeaponIndexByWeapon(u32 weaponnum)
@@ -213,6 +231,100 @@ const uint8_t const frWeaponNameIndices[NUM_FIRING_RANGE_WEAPONS] // frGetWeapon
 	32,
 	33,
 	34
+};
+
+const uint8_t const mpWeaponNameIndicesN64[NUM_MP_WEAPONS_N64] // struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
+{
+	0,
+	2,
+	3,
+	4,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	30,
+	31,
+	32,
+	33,
+	34,
+	29,
+	45,
+	46,
+	35,
+	44,
+	47
+};
+
+const uint8_t const mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC] // struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
+{
+	0,
+	2,
+	3,
+	4,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	30,
+	31,
+	32,
+	33,
+	34,
+	29,
+	45,
+	46,
+	35,
+	36,
+	37,
+	38,
+	39,
+	40,
+	41,
+	42,
+	43,
+	44,
+	47
 };
 
 const char* const stageNames[NUM_SOLOSTAGES]
@@ -337,6 +449,93 @@ const char* const titleNames[NUM_MP_TITLES]
 	"Invincible",
 	"Near Perfect",
 	"Perfect"
+};
+
+const char* const mpStageNames[NUM_MP_STAGES_AND_RANDOM]
+{
+	"Skedar",
+	"Pipes",
+	"Ravine",
+	"G5 Building",
+	"Sewers",
+	"Warehouse",
+	"Grid",
+	"Ruins",
+	"Area 52",
+	"Base",
+	"Fortress",
+	"Villa",
+	"Car Park",
+	"Temple",
+	"Complex",
+	"Felicity",
+	"Random"
+};
+
+const uint8_t const mpStageIndices[NUM_MP_STAGES_AND_RANDOM]
+{
+	0x32,
+	0x29,
+	0x17,
+	0x20,
+	0x42,
+	0x3c,
+	0x47,
+	0x41,
+	0x3b,
+	0x39,
+	0x44,
+	0x45,
+	0x3d,
+	0x25,
+	0x1f,
+	0x43,
+	0x01
+};
+
+const char* const mpScenarioNames[NUM_MP_SCENARIOS]
+{
+	"Combat",
+	"Hold the Briefcase",
+	"Hacker Central",
+	"Pop a Cap",
+	"King of the Hill",
+	"Capture the Case"
+};
+
+const char* const mpSlowMotionNames[NUM_MP_SLOWMOTION_MODES]
+{
+	"Off",
+	"On",
+	"Smart"
+};
+
+const char* const mpSimulantDifficultyNames[NUM_MP_SIMULANT_DIFFICULTIES + 1]
+{
+	"Meat",
+	"Easy",
+	"Normal",
+	"Hard",
+	"Perfect",
+	"Dark",
+	"Disabled"
+};
+
+const char* const mpSimulantTypeNames[NUM_MP_SIMULANT_TYPES]
+{
+	"GeneralSim",
+	"PeaceSim",
+	"ShieldSim",
+	"RocketSim",
+	"KazeSim",
+	"FistSim",
+	"PreySim",
+	"CowardSim",
+	"JudgeSim",
+	"FeudSim",
+	"SpeedSim",
+	"TurtleSim",
+	"VengeSim"
 };
 
 enum class SinglePlayerFlags
@@ -465,6 +664,31 @@ enum class MultiplayerOptionsFlags
 	SHOWMISSIONTIME = 0x8000
 };
 
+enum class MultiplayerSetupFlags
+{
+	ONEHITKILLS = 0x00000001,
+	TEAMSENABLED = 0x00000002,
+	NORADAR = 0x00000004,
+	NOAUTOAIM = 0x00000008,
+	NOPLAYERHIGHLIGHT = 0x00000010,
+	NOPICKUPHIGHLIGHT = 0x00000020,
+	SLOWMOTION_ON = 0x00000040,
+	SLOWMOTION_SMART = 0x00000080,
+	FASTMOVEMENT = 0x00000100,
+	DISPLAYTEAM = 0x00000200,
+	KILLSSCORE = 0x00000400,
+	HTB_HIGHLIGHTBRIEFCASE = 0x00000800,
+	HTB_SHOWONRADAR = 0x00001000,
+	CTC_SHOWONRADAR = 0x00002000,
+	KOH_HILLONRADAR = 0x00004000,
+	KOH_MOBILEHILL = 0x00008000,
+	UNUSED_00010000 = 0x00010000,
+	HTM_HIGHLIGHTTERMINAL = 0x00020000,
+	HTM_SHOWONRADAR = 0x00040000,
+	PAC_HIGHLIGHTTARGET = 0x00080000,
+	PAC_SHOWONRADAR = 0x00100000
+};
+
 enum class MultiplayerDisplayOptionsFlags
 {
 	HIGHLIGHTPLAYERS = 0x01,
@@ -473,45 +697,83 @@ enum class MultiplayerDisplayOptionsFlags
 	HIGHLIGHTTEAMS = 0x08
 };
 
-enum class Weapons
+enum class MultiplayerScenarios
 {
-	Nothing,
-	Unarmed,
-	Falcon_2,
-	Falcon_2_Silencer,
-	Falcon_2_Scope,
-	MagSec_4,
-	Mauler,
-	Phoenix,
-	DY357_Magnum,
-	DY357_LX,
-	CMP150,
-	Cyclone,
-	Callisto_NTG,
-	RC_P120,
-	Laptop_Gun,
-	Dragon,
-	K7_Avenger,
-	AR34,
-	SuperDragon,
-	Shotgun,
-	Reaper,
-	Sniper_Rifle,
-	FarSight_XR_20,
-	Devastator,
-	Rocket_Launcher,
-	Slayer,
-	Combat_Knife,
-	Crossbow,
-	Tranquilizer,
-	Laser,
-	Grenade,
-	N_Bomb,
-	Timed_Mine,
-	Proximity_Mine,
-	Remote_Mine,
-	Combat_Boost
+	COMBAT = 0,
+	HOLDTHEBRIEFCASE = 1,
+	HACKERCENTRAL = 2,
+	POPACAP = 3,
+	KINGOFTHEHILL = 4,
+	CAPTURETHECASE = 5
 };
+
+enum class SimulantDifficulties
+{
+	MEAT = 0,
+	EASY = 1,
+	NORMAL = 2,
+	HARD = 3,
+	PERFECT = 4,
+	DARK = 5,
+	DISABLED = 6
+};
+
+enum class SimulantTypes
+{
+	GENERAL = 0,
+	PEACE = 1,
+	SHIELD = 2,
+	ROCKET = 3,
+	KAZE = 4,
+	FIST = 5,
+	PREY = 6,
+	COWARD = 7,
+	JUDGE = 8,
+	FEUD = 9,
+	SPEED = 10,
+	TURTLE = 11,
+	VENGE = 12
+};
+
+//enum class Weapons
+//{
+//	Nothing,
+//	Unarmed,
+//	Falcon_2,
+//	Falcon_2_Silencer,
+//	Falcon_2_Scope,
+//	MagSec_4,
+//	Mauler,
+//	Phoenix,
+//	DY357_Magnum,
+//	DY357_LX,
+//	CMP150,
+//	Cyclone,
+//	Callisto_NTG,
+//	RC_P120,
+//	Laptop_Gun,
+//	Dragon,
+//	K7_Avenger,
+//	AR34,
+//	SuperDragon,
+//	Shotgun,
+//	Reaper,
+//	Sniper_Rifle,
+//	FarSight_XR_20,
+//	Devastator,
+//	Rocket_Launcher,
+//	Slayer,
+//	Combat_Knife,
+//	Crossbow,
+//	Tranquilizer,
+//	Laser,
+//	Grenade,
+//	N_Bomb,
+//	Timed_Mine,
+//	Proximity_Mine,
+//	Remote_Mine,
+//	Combat_Boost
+//};
 
 
 
@@ -1422,7 +1684,7 @@ public:
 	uint8_t scenario = 0;
 	uint8_t scenarioParams = 0; // Changes depending on scenario (KoH: Hill time)
 	uint32_t options = 0;
-	BotData botsData[MAX_BOTS] = {};
+	BotData botsData[MAX_SIMULANTS] = {};
 	uint8_t weaponSlots[NUM_MPWEAPONSLOTS] = {};
 	uint8_t timelimit = 0;
 	uint8_t scorelimit = 0;
@@ -1431,6 +1693,15 @@ public:
 
 public:
 	void Load(uint8_t* fileBuffer) override;
+
+	uint8_t GetArena() const;
+	void SetArena(const uint8_t arena);
+	bool GetOptionsFlag(const MultiplayerSetupFlags flag) const;
+	void SetOptionsFlag(const MultiplayerSetupFlags flag, const bool set);
+	uint8_t GetSlowMotionMode() const;
+	void SetSlowMotionMode(const uint8_t mode);
+	uint8_t GetHillTime() const;
+	void SetHillTime(const uint8_t time);
 };
 
 struct Terminator : public PakFile

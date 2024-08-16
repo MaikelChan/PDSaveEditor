@@ -780,10 +780,10 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 						mpProfile->controlmode = controlMode;
 					}
 
-					CheckboxMpOptionsFlags(mpProfile, "Reverse Pitch", MultiplayerOptionsFlags::FORWARDPITCH, true);
-					CheckboxMpOptionsFlags(mpProfile, "Look Ahead", MultiplayerOptionsFlags::LOOKAHEAD);
-					CheckboxMpOptionsFlags(mpProfile, "Head Roll", MultiplayerOptionsFlags::HEADROLL);
-					CheckboxMpOptionsFlags(mpProfile, "Auto-Aim", MultiplayerOptionsFlags::AUTOAIM);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Reverse Pitch", MultiplayerOptionsFlags::FORWARDPITCH, true);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Look Ahead", MultiplayerOptionsFlags::LOOKAHEAD);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Head Roll", MultiplayerOptionsFlags::HEADROLL);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Auto-Aim", MultiplayerOptionsFlags::AUTOAIM);
 
 					int aimControl = mpProfile->GetOptionsFlag(MultiplayerOptionsFlags::AIMCONTROL) ? 1 : 0;
 					if (ImGui::Combo("Aim Control", &aimControl, aimControlModeNames, NUM_AIM_CONTROL_MODES))
@@ -791,21 +791,23 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 						mpProfile->SetOptionsFlag(MultiplayerOptionsFlags::AIMCONTROL, aimControl != 0);
 					}
 
-					CheckboxMpOptionsFlags(mpProfile, "Sight on Screen", MultiplayerOptionsFlags::SIGHTONSCREEN);
-					CheckboxMpOptionsFlags(mpProfile, "Show Target", MultiplayerOptionsFlags::ALWAYSSHOWTARGET);
-					CheckboxMpOptionsFlags(mpProfile, "Zoom Range", MultiplayerOptionsFlags::SHOWZOOMRANGE);
-					CheckboxMpOptionsFlags(mpProfile, "Ammo on Screen", MultiplayerOptionsFlags::AMMOONSCREEN);
-					CheckboxMpOptionsFlags(mpProfile, "Gun Function", MultiplayerOptionsFlags::SHOWGUNFUNCTION);
-					CheckboxMpOptionsFlags(mpProfile, "Paintball", MultiplayerOptionsFlags::PAINTBALL);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Sight on Screen", MultiplayerOptionsFlags::SIGHTONSCREEN);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Show Target", MultiplayerOptionsFlags::ALWAYSSHOWTARGET);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Zoom Range", MultiplayerOptionsFlags::SHOWZOOMRANGE);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Ammo on Screen", MultiplayerOptionsFlags::AMMOONSCREEN);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Gun Function", MultiplayerOptionsFlags::SHOWGUNFUNCTION);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Paintball", MultiplayerOptionsFlags::PAINTBALL);
+
+					// TODO: Missing options?
 
 					ImGui::TableSetColumnIndex(1);
 
-					PrintHeader("Options");
+					PrintHeader("Player Options");
 
-					CheckboxMpDisplayOptionsFlags(mpProfile, "Highlight Pickups", MultiplayerDisplayOptionsFlags::HIGHLIGHTPICKUPS);
-					CheckboxMpDisplayOptionsFlags(mpProfile, "Highlight Players", MultiplayerDisplayOptionsFlags::HIGHLIGHTPLAYERS);
-					CheckboxMpDisplayOptionsFlags(mpProfile, "Highlight Teams", MultiplayerDisplayOptionsFlags::HIGHLIGHTTEAMS);
-					CheckboxMpDisplayOptionsFlags(mpProfile, "Radar", MultiplayerDisplayOptionsFlags::RADAR);
+					CheckboxMpProfileDisplayOptionsFlags(mpProfile, "Highlight Pickups", MultiplayerDisplayOptionsFlags::HIGHLIGHTPICKUPS);
+					CheckboxMpProfileDisplayOptionsFlags(mpProfile, "Highlight Players", MultiplayerDisplayOptionsFlags::HIGHLIGHTPLAYERS);
+					CheckboxMpProfileDisplayOptionsFlags(mpProfile, "Highlight Teams", MultiplayerDisplayOptionsFlags::HIGHLIGHTTEAMS);
+					CheckboxMpProfileDisplayOptionsFlags(mpProfile, "Radar", MultiplayerDisplayOptionsFlags::RADAR);
 
 					ImGui::EndTable();
 				}
@@ -829,7 +831,7 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 
 						ImGui::TableHeadersRow();
 
-						for (uint8_t w = (uint8_t)Weapons::Unarmed; w <= (uint8_t)Weapons::Combat_Boost; w++)
+						for (uint8_t w = 1 /* Unarmed */; w <= 35 /* Combat Boost */; w++)
 						{
 							ImGui::PushID(w);
 
@@ -945,10 +947,274 @@ void SaveEditorUI::RenderMultiplayerSettingsSection(SaveFile* saveFile)
 
 				ImGui::BeginChild("Multiplayer Settings Frame", ImVec2(0, 0), false, 0);
 
-				PrintHeader("Player Stats");
+				PrintHeader("Game Setup");
 
 				NameInputField("Name", mpSetting->name);
 
+				int arena = mpSetting->GetArena();
+				if (ImGui::Combo("Arena", &arena, mpStageNames, NUM_MP_STAGES_AND_RANDOM))
+				{
+					mpSetting->SetArena(arena);
+				}
+
+				int scenario = mpSetting->scenario;
+				if (ImGui::Combo("Scenario", &scenario, mpScenarioNames, NUM_MP_SCENARIOS))
+				{
+					mpSetting->scenario = scenario;
+				}
+
+				switch ((MultiplayerScenarios)scenario)
+				{
+					case MultiplayerScenarios::COMBAT:
+					{
+						PrintHeader("Combat Options");
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "One-Hit Kills", MultiplayerSetupFlags::ONEHITKILLS);
+
+						int slowmo = mpSetting->GetSlowMotionMode();
+						if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
+						{
+							mpSetting->SetSlowMotionMode(slowmo);
+						}
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Display Team", MultiplayerSetupFlags::DISPLAYTEAM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Radar", MultiplayerSetupFlags::NORADAR);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Auto-Aim", MultiplayerSetupFlags::NOAUTOAIM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Player Highlight", MultiplayerSetupFlags::NOPLAYERHIGHLIGHT);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Pickup Highlight", MultiplayerSetupFlags::NOPICKUPHIGHLIGHT);
+
+						break;
+					}
+
+					case MultiplayerScenarios::HOLDTHEBRIEFCASE:
+					{
+						PrintHeader("Briefcase Options");
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "One-Hit Kills", MultiplayerSetupFlags::ONEHITKILLS);
+
+						int slowmo = mpSetting->GetSlowMotionMode();
+						if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
+						{
+							mpSetting->SetSlowMotionMode(slowmo);
+						}
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Display Team", MultiplayerSetupFlags::DISPLAYTEAM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Radar", MultiplayerSetupFlags::NORADAR);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Auto-Aim", MultiplayerSetupFlags::NOAUTOAIM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Kills Score", MultiplayerSetupFlags::KILLSSCORE);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Highlight Briefcase", MultiplayerSetupFlags::HTB_HIGHLIGHTBRIEFCASE);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Show on Radar", MultiplayerSetupFlags::HTB_SHOWONRADAR);
+
+						break;
+					}
+
+					case MultiplayerScenarios::HACKERCENTRAL:
+					{
+						PrintHeader("Hacker Options");
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "One-Hit Kills", MultiplayerSetupFlags::ONEHITKILLS);
+
+						int slowmo = mpSetting->GetSlowMotionMode();
+						if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
+						{
+							mpSetting->SetSlowMotionMode(slowmo);
+						}
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Display Team", MultiplayerSetupFlags::DISPLAYTEAM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Radar", MultiplayerSetupFlags::NORADAR);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Auto-Aim", MultiplayerSetupFlags::NOAUTOAIM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Kills Score", MultiplayerSetupFlags::KILLSSCORE);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Highlight Terminal", MultiplayerSetupFlags::HTM_HIGHLIGHTTERMINAL);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Show on Radar", MultiplayerSetupFlags::HTM_SHOWONRADAR);
+
+						break;
+					}
+
+					case MultiplayerScenarios::POPACAP:
+					{
+						PrintHeader("Pop a Cap Options");
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "One-Hit Kills", MultiplayerSetupFlags::ONEHITKILLS);
+
+						int slowmo = mpSetting->GetSlowMotionMode();
+						if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
+						{
+							mpSetting->SetSlowMotionMode(slowmo);
+						}
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Display Team", MultiplayerSetupFlags::DISPLAYTEAM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Radar", MultiplayerSetupFlags::NORADAR);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Auto-Aim", MultiplayerSetupFlags::NOAUTOAIM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Kills Score", MultiplayerSetupFlags::KILLSSCORE);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Highlight Target", MultiplayerSetupFlags::PAC_HIGHLIGHTTARGET);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Show on Radar", MultiplayerSetupFlags::PAC_SHOWONRADAR);
+
+						break;
+					}
+
+					case MultiplayerScenarios::KINGOFTHEHILL:
+					{
+						PrintHeader("Hill Options");
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "One-Hit Kills", MultiplayerSetupFlags::ONEHITKILLS);
+
+						int slowmo = mpSetting->GetSlowMotionMode();
+						if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
+						{
+							mpSetting->SetSlowMotionMode(slowmo);
+						}
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Display Team", MultiplayerSetupFlags::DISPLAYTEAM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Radar", MultiplayerSetupFlags::NORADAR);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Auto-Aim", MultiplayerSetupFlags::NOAUTOAIM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Kills Score", MultiplayerSetupFlags::KILLSSCORE);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Hill on Radar", MultiplayerSetupFlags::KOH_HILLONRADAR);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Mobile Hill", MultiplayerSetupFlags::KOH_MOBILEHILL);
+
+						const ImU8 hillMin = 10, hillMax = 120;
+						uint8_t hillTime = mpSetting->GetHillTime();
+						if (ImGui::SliderScalar("Time (s / Point)", ImGuiDataType_U8, &hillTime, &hillMin, &hillMax))
+						{
+							mpSetting->SetHillTime(hillTime);
+						}
+
+						break;
+					}
+
+					case MultiplayerScenarios::CAPTURETHECASE:
+					{
+						PrintHeader("Capture Options");
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "One-Hit Kills", MultiplayerSetupFlags::ONEHITKILLS);
+
+						int slowmo = mpSetting->GetSlowMotionMode();
+						if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
+						{
+							mpSetting->SetSlowMotionMode(slowmo);
+						}
+
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Display Team", MultiplayerSetupFlags::DISPLAYTEAM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Radar", MultiplayerSetupFlags::NORADAR);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "No Auto-Aim", MultiplayerSetupFlags::NOAUTOAIM);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Kills Score", MultiplayerSetupFlags::KILLSSCORE);
+						CheckboxMpSettingsOptionsFlags(mpSetting, "Show on Radar", MultiplayerSetupFlags::CTC_SHOWONRADAR);
+
+						break;
+					}
+				}
+
+				PrintHeader("Simulants");
+
+				if (ImGui::BeginTabBar("Multiplayer Simulants Settings", ImGuiTabBarFlags_None))
+				{
+					for (uint8_t s = 0; s < MAX_SIMULANTS; s++)
+					{
+						char tabName[32];
+						snprintf(tabName, 32, "Simulant %u", s + 1);
+
+						if (ImGui::BeginTabItem(tabName))
+						{
+							int difficulty = mpSetting->botsData[s].difficulty;
+							if (ImGui::Combo("Difficulty", &difficulty, mpSimulantDifficultyNames, NUM_MP_SIMULANT_DIFFICULTIES + 1))
+							{
+								mpSetting->botsData[s].difficulty = difficulty;
+							}
+
+							if ((SimulantDifficulties)difficulty == SimulantDifficulties::DISABLED) ImGui::BeginDisabled();
+
+							int type = mpSetting->botsData[s].type;
+							if (ImGui::Combo("Type", &type, mpSimulantTypeNames, NUM_MP_SIMULANT_TYPES))
+							{
+								mpSetting->botsData[s].type = type;
+							}
+
+							int team = mpSetting->botsData[s].team;
+							if (ImGui::Combo("Team", &team, teamNames, TEAM_NAMES_COUNT))
+							{
+								mpSetting->botsData[s].team = team;
+							}
+
+							const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS;
+							ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpSetting->botsData[s].mpheadnum, &headsMin, &headsMax, "%u");
+
+							const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES;
+							ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpSetting->botsData[s].mpbodynum, &bodyMin, &bodyMax, "%u");
+
+							if ((SimulantDifficulties)difficulty == SimulantDifficulties::DISABLED) ImGui::EndDisabled();
+
+							ImGui::EndTabItem();
+						}
+					}
+
+					ImGui::EndTabBar();
+				}
+
+				PrintHeader("Weapons");
+
+				const char* wNames[NUM_MP_WEAPONS_PC];
+				for (uint8_t w = 0; w < NUM_MP_WEAPONS_PC; w++) wNames[w] = weaponNames[mpWeaponNameIndicesPC[w]];
+
+				for (uint8_t ws = 0; ws < NUM_MPWEAPONSLOTS; ws++)
+				{
+					char weaponSlotLabel[16];
+					snprintf(weaponSlotLabel, 16, "Weapon %u", ws + 1);
+
+					int weapon = mpSetting->weaponSlots[ws];
+					if (ImGui::Combo(weaponSlotLabel, &weapon, wNames, NUM_MP_WEAPONS_PC))
+					{
+						mpSetting->weaponSlots[ws] = weapon;
+					}
+				}
+
+				PrintHeader("Limits");
+
+				const ImU8 timeMin = 1, timeMax = 61;
+				uint8_t timelimit = mpSetting->timelimit + 1;
+				if (ImGui::SliderScalar("Time (min)", ImGuiDataType_U8, &timelimit, &timeMin, &timeMax, timelimit > 60 ? "No Limit" : "%u"))
+				{
+					mpSetting->timelimit = timelimit - 1;
+				}
+
+				const ImU8 scoreMin = 1, scoreMax = 101;
+				uint8_t scorelimit = mpSetting->scorelimit + 1;
+				if (ImGui::SliderScalar("Score", ImGuiDataType_U8, &scorelimit, &scoreMin, &scoreMax, scorelimit > 100 ? "No Limit" : "%u"))
+				{
+					mpSetting->scorelimit = scorelimit - 1;
+				}
+
+				const ImU16 teamScoreMin = 1, teamScoreMax = 401;
+				uint16_t teamscorelimit = mpSetting->teamscorelimit + 1;
+				if (ImGui::SliderScalar("Team Score", ImGuiDataType_U16, &teamscorelimit, &teamScoreMin, &teamScoreMax, teamscorelimit > 400 ? "No Limit" : "%u"))
+				{
+					mpSetting->teamscorelimit = teamscorelimit - 1;
+				}
+
+				PrintHeader("Player Teams");
+
+				CheckboxMpSettingsOptionsFlags(mpSetting, "Teams Enabled", MultiplayerSetupFlags::TEAMSENABLED);
+
+				if (!mpSetting->GetOptionsFlag(MultiplayerSetupFlags::TEAMSENABLED)) ImGui::BeginDisabled();
+
+				for (uint8_t p = 0; p < MAX_PLAYERS; p++)
+				{
+					ImGui::PushID(p);
+
+					int team = mpSetting->teams[p];
+					if (ImGui::Combo("Team", &team, teamNames, TEAM_NAMES_COUNT))
+					{
+						mpSetting->teams[p] = team;
+					}
+
+					ImGui::PopID();
+				}
+
+				if (!mpSetting->GetOptionsFlag(MultiplayerSetupFlags::TEAMSENABLED)) ImGui::EndDisabled();
 
 				ImGui::EndChild();
 				ImGui::EndTabItem();
@@ -1582,7 +1848,7 @@ bool SaveEditorUI::CheckboxProgressFlags(GameFile* gameFile, const char* label, 
 	return value;
 }
 
-bool SaveEditorUI::CheckboxMpOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerOptionsFlags flag, const bool reverse) const
+bool SaveEditorUI::CheckboxMpProfileOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerOptionsFlags flag, const bool reverse) const
 {
 	bool value = mpProfile->GetOptionsFlag(flag);
 	if (reverse) value = !value;
@@ -1596,7 +1862,7 @@ bool SaveEditorUI::CheckboxMpOptionsFlags(MultiplayerProfile* mpProfile, const c
 	return value;
 }
 
-bool SaveEditorUI::CheckboxMpDisplayOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerDisplayOptionsFlags flag, const bool reverse) const
+bool SaveEditorUI::CheckboxMpProfileDisplayOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerDisplayOptionsFlags flag, const bool reverse) const
 {
 	bool value = mpProfile->GetDisplayOptionsFlag(flag);
 	if (reverse) value = !value;
@@ -1605,6 +1871,20 @@ bool SaveEditorUI::CheckboxMpDisplayOptionsFlags(MultiplayerProfile* mpProfile, 
 	{
 		if (reverse) value = !value;
 		mpProfile->SetDisplayOptionsFlag(flag, value);
+	}
+
+	return value;
+}
+
+bool SaveEditorUI::CheckboxMpSettingsOptionsFlags(MultiplayerSettings* mpSettings, const char* label, const MultiplayerSetupFlags flag, const bool reverse) const
+{
+	bool value = mpSettings->GetOptionsFlag(flag);
+	if (reverse) value = !value;
+
+	if (ImGui::Checkbox(label, &value))
+	{
+		if (reverse) value = !value;
+		mpSettings->SetOptionsFlag(flag, value);
 	}
 
 	return value;
