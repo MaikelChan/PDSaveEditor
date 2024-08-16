@@ -106,7 +106,7 @@ void SaveEditorUI::RenderGlobalDataSection(SaveFile* saveFile)
 
 		PrintHeader("Team Names");
 
-		for (uint8_t t = 0; t < TEAM_NAMES_COUNT; t++)
+		for (uint8_t t = 0; t < NUM_MP_TEAMS; t++)
 		{
 			NameInputField(teamNames[t], bossFile->teamNames[t]);
 		}
@@ -734,10 +734,10 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 						ImGui::SetTooltip("%s", Utils::GetTimeString(mpProfile->time).c_str());
 
 					const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS;
-					ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpProfile->mpheadnum, &headsMin, &headsMax, "%u");
+					ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpProfile->headIndex, &headsMin, &headsMax, "%u");
 
 					const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES;
-					ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpProfile->mpbodynum, &bodyMin, &bodyMax, "%u");
+					ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpProfile->bodyIndex, &bodyMin, &bodyMax, "%u");
 
 					ImGui::TableSetColumnIndex(1);
 					PrintHeader("Statistics");
@@ -1135,16 +1135,16 @@ void SaveEditorUI::RenderMultiplayerSettingsSection(SaveFile* saveFile)
 							}
 
 							int team = mpSetting->botsData[s].team;
-							if (ImGui::Combo("Team", &team, teamNames, TEAM_NAMES_COUNT))
+							if (ImGui::Combo("Team", &team, teamNames, NUM_MP_TEAMS))
 							{
 								mpSetting->botsData[s].team = team;
 							}
 
 							const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS;
-							ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpSetting->botsData[s].mpheadnum, &headsMin, &headsMax, "%u");
+							ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpSetting->botsData[s].headIndex, &headsMin, &headsMax, "%u");
 
 							const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES;
-							ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpSetting->botsData[s].mpbodynum, &bodyMin, &bodyMax, "%u");
+							ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpSetting->botsData[s].bodyIndex, &bodyMin, &bodyMax, "%u");
 
 							if ((SimulantDifficulties)difficulty == SimulantDifficulties::DISABLED) ImGui::EndDisabled();
 
@@ -1160,7 +1160,7 @@ void SaveEditorUI::RenderMultiplayerSettingsSection(SaveFile* saveFile)
 				const char* wNames[NUM_MP_WEAPONS_PC];
 				for (uint8_t w = 0; w < NUM_MP_WEAPONS_PC; w++) wNames[w] = weaponNames[mpWeaponNameIndicesPC[w]];
 
-				for (uint8_t ws = 0; ws < NUM_MPWEAPONSLOTS; ws++)
+				for (uint8_t ws = 0; ws < NUM_MP_WEAPONSLOTS; ws++)
 				{
 					char weaponSlotLabel[16];
 					snprintf(weaponSlotLabel, 16, "Weapon %u", ws + 1);
@@ -1206,7 +1206,7 @@ void SaveEditorUI::RenderMultiplayerSettingsSection(SaveFile* saveFile)
 					ImGui::PushID(p);
 
 					int team = mpSetting->teams[p];
-					if (ImGui::Combo("Team", &team, teamNames, TEAM_NAMES_COUNT))
+					if (ImGui::Combo("Team", &team, teamNames, NUM_MP_TEAMS))
 					{
 						mpSetting->teams[p] = team;
 					}

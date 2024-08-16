@@ -23,36 +23,55 @@ uint8_t* SaveBuffer::GetBytes()
 	return bytes;
 }
 
-uint32_t SaveBuffer::ReadBits(const int32_t numbits)
+uint32_t SaveBuffer::ReadBits(const int32_t numBits)
 {
-	uint32_t bit = 1 << (numbits - 1);
+	uint32_t bit = 1 << (numBits - 1);
 	uint32_t value = 0;
 
 	for (; bit; bit >>= 1) {
-		int32_t bitindex = bitpos % 8;
+		int32_t bitindex = bitPosition % 8;
 		uint8_t mask = 1 << (7 - bitindex);
-		int32_t byteindex = bitpos / 8;
+		int32_t byteindex = bitPosition / 8;
 
 		if (bytes[byteindex] & mask) {
 			value |= bit;
 		}
 
-		bitpos++;
+		bitPosition++;
 	}
 
 	return value;
 }
 
+void SaveBuffer::Or(const uint32_t value, const int32_t numBits)
+{
+	uint32_t bit = 1 << (numBits - 1);
+
+	for (; bit; bit >>= 1)
+	{
+		if (bit & value)
+		{
+			int32_t bitindex = bitPosition % 8;
+			uint8_t mask = 1 << (7 - bitindex);
+			int32_t byteindex = bitPosition / 8;
+
+			bytes[byteindex] |= mask;
+		}
+
+		bitPosition++;
+	}
+}
+
 void SaveBuffer::ReadGuid(FileGuid* guid)
 {
-	guid->fileid = ReadBits(7);
-	guid->deviceserial = ReadBits(13);
+	guid->id = ReadBits(7);
+	guid->deviceSerial = ReadBits(13);
 }
 
 void SaveBuffer::WriteGuid(FileGuid* guid)
 {
-	Or(guid->fileid, 7);
-	Or(guid->deviceserial, 13);
+	Or(guid->id, 7);
+	Or(guid->deviceSerial, 13);
 }
 
 void SaveBuffer::ReadString(char* dst)
@@ -110,28 +129,9 @@ void SaveBuffer::WriteString(char* src)
 	}
 }
 
-void SaveBuffer::Or(const uint32_t value, const int32_t numbits)
-{
-	uint32_t bit = 1 << (numbits - 1);
-
-	for (; bit; bit >>= 1)
-	{
-		if (bit & value)
-		{
-			int32_t bitindex = bitpos % 8;
-			uint8_t mask = 1 << (7 - bitindex);
-			int32_t byteindex = bitpos / 8;
-
-			bytes[byteindex] |= mask;
-		}
-
-		bitpos++;
-	}
-}
-
 void SaveBuffer::Clear()
 {
-	bitpos = 0;
+	bitPosition = 0;
 	memset(bytes, 0, SAVE_BUFFER_SIZE);
 }
 
@@ -193,14 +193,14 @@ void BossFile::Load(uint8_t* fileBuffer)
 	unk1 = buffer.ReadBits(1);
 	language = buffer.ReadBits(4);
 
-	for (int32_t tn = 0; tn < TEAM_NAMES_COUNT; tn++)
+	for (int32_t tn = 0; tn < NUM_MP_TEAMS; tn++)
 	{
 		buffer.ReadString(teamNames[tn]);
 	}
 
 	tracknum = buffer.ReadBits(8);
 
-	for (int32_t i = 0; i < MULTIPLE_TRACKS_SIZE; i++)
+	for (int32_t i = 0; i < 6; i++)
 	{
 		multipletracknums[i] = buffer.ReadBits(8);
 	}
@@ -219,7 +219,7 @@ void BossFile::Save(uint8_t* fileBuffer)
 	buffer.Or(unk1, 1);
 	buffer.Or(language, 4);
 
-	for (int32_t tn = 0; tn < TEAM_NAMES_COUNT; tn++)
+	for (int32_t tn = 0; tn < NUM_MP_TEAMS; tn++)
 	{
 		buffer.WriteString(teamNames[tn]);
 	}
@@ -227,7 +227,7 @@ void BossFile::Save(uint8_t* fileBuffer)
 	if (tracknum == 255) buffer.Or(255, 8);
 	else buffer.Or(tracknum, 8);
 
-	for (int32_t i = 0; i < MULTIPLE_TRACKS_SIZE; i++)
+	for (int32_t i = 0; i < 6; i++)
 	{
 		buffer.Or(multipletracknums[i], 8);
 	}
@@ -319,8 +319,8 @@ void GameFile::Load(uint8_t* fileBuffer)
 
 	for (uint8_t i = 0; i < 9; i++)
 	{
-		int32_t numbits = i == 8 ? 2 : 8;
-		firingrangescores[i] = buffer.ReadBits(numbits);
+		int32_t numBits = i == 8 ? 2 : 8;
+		firingrangescores[i] = buffer.ReadBits(numBits);
 	}
 
 	for (uint8_t i = 0; i < 4; i++)
@@ -459,8 +459,8 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer)
 
 	buffer.ReadString(name);
 	time = buffer.ReadBits(28);
-	mpheadnum = buffer.ReadBits(7);
-	mpbodynum = buffer.ReadBits(7);
+	headIndex = buffer.ReadBits(7);
+	bodyIndex = buffer.ReadBits(7);
 	buffer.ReadGuid(&guid);
 	displayoptions = buffer.ReadBits(8);
 	kills = buffer.ReadBits(20);
@@ -496,10 +496,10 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer)
 	uint8_t w = 0;
 	while (bitsremaining > 0)
 	{
-		int32_t numbits = bitsremaining;
-		if (numbits > 8) numbits = 8;
+		int32_t numBits = bitsremaining;
+		if (numBits > 8) numBits = 8;
 
-		gunfuncs[w] = buffer.ReadBits(numbits);
+		gunfuncs[w] = buffer.ReadBits(numBits);
 
 		bitsremaining -= 8;
 		w++;
@@ -512,8 +512,8 @@ void MultiplayerProfile::Save(uint8_t* fileBuffer)
 
 	buffer.WriteString(name);
 	buffer.Or(time, 28);
-	buffer.Or(mpheadnum, 7);
-	buffer.Or(mpbodynum, 7);
+	buffer.Or(headIndex, 7);
+	buffer.Or(bodyIndex, 7);
 	buffer.WriteGuid(&guid);
 	buffer.Or(displayoptions, 8);
 	buffer.Or(kills, 20);
@@ -547,10 +547,10 @@ void MultiplayerProfile::Save(uint8_t* fileBuffer)
 	uint8_t w = 0;
 	while (bitsremaining > 0)
 	{
-		int32_t numbits = bitsremaining;
-		if (numbits > 8) numbits = 8;
+		int32_t numBits = bitsremaining;
+		if (numBits > 8) numBits = 8;
 
-		buffer.Or(gunfuncs[w], numbits);
+		buffer.Or(gunfuncs[w], numBits);
 
 		bitsremaining -= 8;
 		w++;
@@ -604,7 +604,6 @@ MultiplayerTitles MultiplayerProfile::GetPlayerTitle(const bool newMethod) const
 	const uint32_t tiersOld[] = { 2, 4, 8, 16, 28, 48, 78, 138, 198, 300 };
 
 	int32_t tallies[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-	int32_t max;
 	int32_t i;
 
 #define MULT(val) (val * (newMethod ? 3 : 1))
@@ -709,12 +708,12 @@ void MultiplayerSettings::Load(uint8_t* fileBuffer)
 	{
 		botsData[i].type = buffer.ReadBits(5);
 		botsData[i].difficulty = buffer.ReadBits(3);
-		botsData[i].mpheadnum = buffer.ReadBits(7);
-		botsData[i].mpbodynum = buffer.ReadBits(7);
+		botsData[i].headIndex = buffer.ReadBits(7);
+		botsData[i].bodyIndex = buffer.ReadBits(7);
 		botsData[i].team = buffer.ReadBits(3);
 	}
 
-	for (uint8_t i = 0; i < NUM_MPWEAPONSLOTS; i++)
+	for (uint8_t i = 0; i < NUM_MP_WEAPONSLOTS; i++)
 	{
 		weaponSlots[i] = buffer.ReadBits(7);
 	}
@@ -920,7 +919,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 				break;
 		}
 
-		printf("0x%04X    %04X-%04X (%s)  %04X-%04X (%s)  %s  %3u   %2u  %u     %4u    %3u         %u        %u\n", p, pakFileHeader.headersum[0], pakFileHeader.headersum[1], headerSumResult, pakFileHeader.bodysum[0], pakFileHeader.bodysum[1], bodySumResult, type, pakFileHeader.bodylen, pakFileHeader.fileid, pakFileHeader.occupied, pakFileHeader.deviceserial, pakFileHeader.generation, pakFileHeader.writecompleted, pakFileHeader.version);
+		printf("0x%04X    %04X-%04X (%s)  %04X-%04X (%s)  %s  %3u   %2u  %u     %4u    %3u         %u        %u\n", p, pakFileHeader.headersum[0], pakFileHeader.headersum[1], headerSumResult, pakFileHeader.bodysum[0], pakFileHeader.bodysum[1], bodySumResult, type, pakFileHeader.bodylen, pakFileHeader.id, pakFileHeader.occupied, pakFileHeader.deviceSerial, pakFileHeader.generation, pakFileHeader.writecompleted, pakFileHeader.version);
 
 		// Advance to next file
 

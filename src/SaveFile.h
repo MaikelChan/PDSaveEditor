@@ -2,9 +2,7 @@
 
 #include <cstdint>
 
-#pragma region Defines
-
-// General
+#pragma region Data_Structures
 
 #define SAVE_BUFFER_SIZE 220
 #define SAVE_FILE_SIZE 2048
@@ -21,113 +19,41 @@
 #define NUM_FILE_SLOTS 4
 #define ACTUAL_NUM_FILE_SLOTS 5
 
-#define MAX_NAME_LENGTH 10
-#define MAX_PLAYERS 4
-#define NUM_WEAPONS 35
-#define NUM_SONGS 43
-#define MULTIPLE_TRACKS_SIZE 6
-#define NUM_LANGUAGES 5
-#define NUM_SCREEN_SIZES 3
-#define NUM_RATIOS 2
-#define NUM_SCREEN_SPLIT_MODES 2
-#define NUM_AIM_CONTROL_MODES 2
-
-// Solo game
-
 #define GAMEFILE_FLAGS_SIZE 10
-#define NUM_SOLOSTAGES 21
-#define NUM_DIFFICULTIES 3
-#define NUM_SOUND_MODES 4
-#define NUM_CONTROL_MODES 8
-#define NUM_FIRING_RANGE_MEDALS 3
-#define NUM_FIRING_RANGE_WEAPONS 32
 
-// Multiplayer
-
-#define NUM_MP_CHALLENGES 30
-#define MAX_SIMULANTS 8
-#define NUM_MPWEAPONSLOTS 6
-#define NUM_MP_STAGES 16
-#define NUM_MP_STAGES_AND_RANDOM (NUM_MP_STAGES + 1)
-#define TEAM_NAMES_COUNT 8
-#define NUM_MP_HEADS 75
-#define NUM_MP_BODIES 61
-#define NUM_MP_TIERS_TALLIES 10
-#define NUM_MP_TITLES 21
-#define NUM_MP_SCENARIOS 6
-#define NUM_MP_SLOWMOTION_MODES 3
-#define NUM_MP_SIMULANT_DIFFICULTIES 6
-#define NUM_MP_SIMULANT_TYPES 13
-#define NUM_MP_WEAPONS_N64 39
-#define NUM_MP_WEAPONS_PC 47
+enum class PakFileTypes
+{
+	UNUSED_001 = 0x001, // Unused
+	BLANK = 0x002,      // Blank space (ie. deleted file)
+	TERMINATOR = 0x004, // Marks the end of the device's filesystem
+	CAMERA = 0x008,     // PerfectHead File
+	BOSS = 0x010,       // EEPROM only, one per cart (stores language, MP team names, selected MP soundtracks)
+	MPPLAYER = 0x020,   // Combat Simulator Player File
+	MPSETUP = 0x040,    // Combat Simulator Settings File
+	GAME = 0x080,       // Single Player Agent File
+	ALL = 0x100         // Not really a file type
+};
 
 #pragma endregion
 
-const char* const languageNames[NUM_LANGUAGES]
-{
-	"English",
-	"French",
-	"German",
-	"Italian",
-	"Spanish"
-};
+#pragma region General
 
-const char* const teamNames[TEAM_NAMES_COUNT]
-{
-	"Red",
-	"Yellow",
-	"Blue",
-	"Magenta",
-	"Cyan",
-	"Orange",
-	"Pink",
-	"Brown"
-};
+#define MAX_NAME_LENGTH 10
+#define MAX_PLAYERS 4
 
-const char* const difficultyNames[NUM_DIFFICULTIES]
-{
-	"Agent",
-	"Special Agent",
-	"Perfect Agent"
-};
-
-const char* const soundModeNames[NUM_SOUND_MODES]
-{
-	"Mono",
-	"Stereo",
-	"Headphone",
-	"Surround"
-};
-
-const char* const screenSizeNames[NUM_SCREEN_SIZES]
-{
-	"Full",
-	"Wide",
-	"Cinema"
-};
-
-const char* const ratioNames[NUM_RATIOS]
-{
-	"Normal",
-	"16:9"
-};
-
-const char* const screenSplitModeNames[NUM_SCREEN_SPLIT_MODES]
-{
-	"Horizontal",
-	"Vertical"
-};
+#define NUM_AIM_CONTROL_MODES 2
+#define NUM_CONTROL_MODES 8
+#define NUM_LANGUAGES 5
+#define NUM_RATIOS 2
+#define NUM_SCREEN_SIZES 3
+#define NUM_SCREEN_SPLIT_MODES 2
+#define NUM_SONGS 43
+#define NUM_SOUND_MODES 4
 
 const char* const aimControlModeNames[NUM_AIM_CONTROL_MODES]
 {
 	"Hold",
 	"Toggle"
-};
-
-const char* const coOpPlayerNames[2]
-{
-	"Player 1",
-	"Player 2"
 };
 
 const char* const controlModeNames[NUM_CONTROL_MODES]
@@ -142,244 +68,32 @@ const char* const controlModeNames[NUM_CONTROL_MODES]
 	"Double (2.4)"
 };
 
-const char* const firingRangeMedalNames[NUM_FIRING_RANGE_MEDALS]
+const char* const languageNames[NUM_LANGUAGES]
 {
-	"Bronze",
-	"Silver",
-	"Gold"
+	"English",
+	"French",
+	"German",
+	"Italian",
+	"Spanish"
 };
 
-const char* const weaponNames[]
+const char* const ratioNames[NUM_RATIOS]
 {
-	"Nothing",
-	"Unarmed",
-	"Falcon 2",
-	"Falcon 2 (silencer)",
-	"Falcon 2 (scope)",
-	"MagSec 4",
-	"Mauler",
-	"Phoenix",
-	"DY357 Magnum",
-	"DY357-LX",
-	"CMP150",
-	"Cyclone",
-	"Callisto NTG",
-	"RC-P120",
-	"Laptop Gun",
-	"Dragon",
-	"K7 Avenger",
-	"AR34",
-	"SuperDragon",
-	"Shotgun",
-	"Reaper",
-	"Sniper Rifle",
-	"FarSight XR-20",
-	"Devastator",
-	"Rocket Launcher",
-	"Slayer",
-	"Combat Knife",
-	"Crossbow",
-	"Tranquilizer",//28
-	"Laser",
-	"Grenade",
-	"N-Bomb",
-	"Timed Mine",
-	"Proximity Mine",
-	"Remote Mine",
-	"Combat Boost",
-	"PP9i",
-	"CC13",
-	"KLO1313",
-	"KF7 Special",
-	"ZZT (9mm)",
-	"DMC",
-	"AR53",
-	"RC-P45",
-	"Shield",
-	"X-Ray Scanner",
-	"Cloaking Device",//46
-	"Disabled"
+	"Normal",
+	"16:9"
 };
 
-const uint8_t const frWeaponNameIndices[NUM_FIRING_RANGE_WEAPONS] // frGetWeaponIndexByWeapon(u32 weaponnum)
+const char* const screenSizeNames[NUM_SCREEN_SIZES]
 {
-	2,
-	4,
-	3,
-	5,
-	6,
-	7,
-	8,
-	9,
-	10,
-	11,
-	12,
-	13,
-	14,
-	15,
-	16,
-	17,
-	18,
-	19,
-	21,
-	22,
-	27,
-	28,
-	20,
-	23,
-	24,
-	25,
-	26,
-	29,
-	30,
-	32,
-	33,
-	34
+	"Full",
+	"Wide",
+	"Cinema"
 };
 
-const uint8_t const mpWeaponNameIndicesN64[NUM_MP_WEAPONS_N64] // struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
+const char* const screenSplitModeNames[NUM_SCREEN_SPLIT_MODES]
 {
-	0,
-	2,
-	3,
-	4,
-	5,
-	6,
-	7,
-	8,
-	9,
-	10,
-	11,
-	12,
-	13,
-	14,
-	15,
-	16,
-	17,
-	18,
-	19,
-	20,
-	21,
-	22,
-	23,
-	24,
-	25,
-	26,
-	27,
-	28,
-	30,
-	31,
-	32,
-	33,
-	34,
-	29,
-	45,
-	46,
-	35,
-	44,
-	47
-};
-
-const uint8_t const mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC] // struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
-{
-	0,
-	2,
-	3,
-	4,
-	5,
-	6,
-	7,
-	8,
-	9,
-	10,
-	11,
-	12,
-	13,
-	14,
-	15,
-	16,
-	17,
-	18,
-	19,
-	20,
-	21,
-	22,
-	23,
-	24,
-	25,
-	26,
-	27,
-	28,
-	30,
-	31,
-	32,
-	33,
-	34,
-	29,
-	45,
-	46,
-	35,
-	36,
-	37,
-	38,
-	39,
-	40,
-	41,
-	42,
-	43,
-	44,
-	47
-};
-
-const char* const stageNames[NUM_SOLOSTAGES]
-{
-	"dataDyne Central - Defection",
-	"dataDyne Research - Investigation",
-	"dataDyne Central - Extraction",
-	"Carrington Villa - Hostage One",
-	"Chicago - Stealth",
-	"G5 Building - Reconnaissance",
-	"Area 51 - Infiltration",
-	"Area 51 - Rescue",
-	"Area 51 - Escape",
-	"Air Base - Espionage",
-	"Air Force One - Antiterrorism",
-	"Crash Site - Confrontation",
-	"Pelagic II - Exploration",
-	"Deep Sea - Nullify Threat",
-	"Carrington Institute - Defense",
-	"Attack Ship - Covert Assault",
-	"Skedar Ruins - Battle Shrine",
-	"Mr. Blonde's Revenge",
-	"Maian SOS",
-	"WAR!",
-	"The Duel"
-};
-
-const char* const thumbnailNames[NUM_SOLOSTAGES + 1]
-{
-	"Joanna Picture",
-	"dataDyne Central - Defection",
-	"dataDyne Research - Investigation",
-	"dataDyne Central - Extraction",
-	"Carrington Villa - Hostage One",
-	"Chicago - Stealth",
-	"G5 Building - Reconnaissance",
-	"Area 51 - Infiltration",
-	"Area 51 - Rescue",
-	"Area 51 - Escape",
-	"Air Base - Espionage",
-	"Air Force One - Antiterrorism",
-	"Crash Site - Confrontation",
-	"Pelagic II - Exploration",
-	"Deep Sea - Nullify Threat",
-	"Carrington Institute - Defense",
-	"Attack Ship - Covert Assault",
-	"Skedar Ruins - Battle Shrine",
-	"Mr. Blonde's Revenge",
-	"Maian SOS",
-	"WAR!",
-	"The Duel"
+	"Horizontal",
+	"Vertical"
 };
 
 const char* const songNames[NUM_SONGS + 1]
@@ -430,116 +144,91 @@ const char* const songNames[NUM_SONGS + 1]
 	"Random"
 };
 
-const char* const titleNames[NUM_MP_TITLES]
+const char* const soundModeNames[NUM_SOUND_MODES]
 {
-	"Beginner",
-	"Trainee",
-	"Amateur",
-	"Rookie",
-	"Novice",
-	"Trooper",
+	"Mono",
+	"Stereo",
+	"Headphone",
+	"Surround"
+};
+
+#pragma endregion
+
+#pragma region Single_Player
+
+#define NUM_DIFFICULTIES 3
+#define NUM_FIRING_RANGE_MEDALS 3
+#define NUM_SOLOSTAGES 21
+
+const char* const difficultyNames[NUM_DIFFICULTIES]
+{
 	"Agent",
-	"Star Agent",
 	"Special Agent",
-	"Expert",
-	"Veteran",
-	"Professional",
-	"Dangerous",
-	"Deadly",
-	"Killer",
-	"Assassin",
-	"Lethal",
-	"Elite",
-	"Invincible",
-	"Near Perfect",
-	"Perfect"
+	"Perfect Agent"
 };
 
-const char* const mpStageNames[NUM_MP_STAGES_AND_RANDOM]
+const char* const firingRangeMedalNames[NUM_FIRING_RANGE_MEDALS]
 {
-	"Skedar",
-	"Pipes",
-	"Ravine",
-	"G5 Building",
-	"Sewers",
-	"Warehouse",
-	"Grid",
-	"Ruins",
-	"Area 52",
-	"Base",
-	"Fortress",
-	"Villa",
-	"Car Park",
-	"Temple",
-	"Complex",
-	"Felicity",
-	"Random"
+	"Bronze",
+	"Silver",
+	"Gold"
 };
 
-const uint8_t const mpStageIndices[NUM_MP_STAGES_AND_RANDOM]
+const char* const stageNames[NUM_SOLOSTAGES]
 {
-	0x32,
-	0x29,
-	0x17,
-	0x20,
-	0x42,
-	0x3c,
-	0x47,
-	0x41,
-	0x3b,
-	0x39,
-	0x44,
-	0x45,
-	0x3d,
-	0x25,
-	0x1f,
-	0x43,
-	0x01
+	"dataDyne Central - Defection",
+	"dataDyne Research - Investigation",
+	"dataDyne Central - Extraction",
+	"Carrington Villa - Hostage One",
+	"Chicago - Stealth",
+	"G5 Building - Reconnaissance",
+	"Area 51 - Infiltration",
+	"Area 51 - Rescue",
+	"Area 51 - Escape",
+	"Air Base - Espionage",
+	"Air Force One - Antiterrorism",
+	"Crash Site - Confrontation",
+	"Pelagic II - Exploration",
+	"Deep Sea - Nullify Threat",
+	"Carrington Institute - Defense",
+	"Attack Ship - Covert Assault",
+	"Skedar Ruins - Battle Shrine",
+	"Mr. Blonde's Revenge",
+	"Maian SOS",
+	"WAR!",
+	"The Duel"
 };
 
-const char* const mpScenarioNames[NUM_MP_SCENARIOS]
+const char* const coOpPlayerNames[2]
 {
-	"Combat",
-	"Hold the Briefcase",
-	"Hacker Central",
-	"Pop a Cap",
-	"King of the Hill",
-	"Capture the Case"
+	"Player 1",
+	"Player 2"
 };
 
-const char* const mpSlowMotionNames[NUM_MP_SLOWMOTION_MODES]
+const char* const thumbnailNames[NUM_SOLOSTAGES + 1]
 {
-	"Off",
-	"On",
-	"Smart"
-};
-
-const char* const mpSimulantDifficultyNames[NUM_MP_SIMULANT_DIFFICULTIES + 1]
-{
-	"Meat",
-	"Easy",
-	"Normal",
-	"Hard",
-	"Perfect",
-	"Dark",
-	"Disabled"
-};
-
-const char* const mpSimulantTypeNames[NUM_MP_SIMULANT_TYPES]
-{
-	"GeneralSim",
-	"PeaceSim",
-	"ShieldSim",
-	"RocketSim",
-	"KazeSim",
-	"FistSim",
-	"PreySim",
-	"CowardSim",
-	"JudgeSim",
-	"FeudSim",
-	"SpeedSim",
-	"TurtleSim",
-	"VengeSim"
+	"Joanna Picture",
+	"dataDyne Central - Defection",
+	"dataDyne Research - Investigation",
+	"dataDyne Central - Extraction",
+	"Carrington Villa - Hostage One",
+	"Chicago - Stealth",
+	"G5 Building - Reconnaissance",
+	"Area 51 - Infiltration",
+	"Area 51 - Rescue",
+	"Area 51 - Escape",
+	"Air Base - Espionage",
+	"Air Force One - Antiterrorism",
+	"Crash Site - Confrontation",
+	"Pelagic II - Exploration",
+	"Deep Sea - Nullify Threat",
+	"Carrington Institute - Defense",
+	"Attack Ship - Covert Assault",
+	"Skedar Ruins - Battle Shrine",
+	"Mr. Blonde's Revenge",
+	"Maian SOS",
+	"WAR!",
+	"The Duel"
 };
 
 enum class SinglePlayerFlags
@@ -623,6 +312,150 @@ enum class SinglePlayerFlags
 	UNKNOWN_4C = 0x4c,
 	UNKNOWN_4D = 0x4d,
 	UNKNOWN_4E = 0x4e
+};
+
+#pragma endregion
+
+#pragma region Multiplayer
+
+#define MAX_SIMULANTS 8
+
+#define NUM_MP_BODIES 61
+#define NUM_MP_CHALLENGES 30
+#define NUM_MP_HEADS 75
+#define NUM_MP_SCENARIOS 6
+#define NUM_MP_SIMULANT_DIFFICULTIES 6
+#define NUM_MP_SIMULANT_TYPES 13
+#define NUM_MP_SLOWMOTION_MODES 3
+#define NUM_MP_STAGES 16
+#define NUM_MP_STAGES_AND_RANDOM (NUM_MP_STAGES + 1)
+#define NUM_MP_TEAMS 8
+#define NUM_MP_TIERS_TALLIES 10
+#define NUM_MP_TITLES 21
+#define NUM_MP_WEAPONSLOTS 6
+
+const char* const mpScenarioNames[NUM_MP_SCENARIOS]
+{
+	"Combat",
+	"Hold the Briefcase",
+	"Hacker Central",
+	"Pop a Cap",
+	"King of the Hill",
+	"Capture the Case"
+};
+
+const char* const mpSimulantDifficultyNames[NUM_MP_SIMULANT_DIFFICULTIES + 1]
+{
+	"Meat",
+	"Easy",
+	"Normal",
+	"Hard",
+	"Perfect",
+	"Dark",
+	"Disabled"
+};
+
+const char* const mpSimulantTypeNames[NUM_MP_SIMULANT_TYPES]
+{
+	"GeneralSim",
+	"PeaceSim",
+	"ShieldSim",
+	"RocketSim",
+	"KazeSim",
+	"FistSim",
+	"PreySim",
+	"CowardSim",
+	"JudgeSim",
+	"FeudSim",
+	"SpeedSim",
+	"TurtleSim",
+	"VengeSim"
+};
+
+const char* const mpSlowMotionNames[NUM_MP_SLOWMOTION_MODES]
+{
+	"Off",
+	"On",
+	"Smart"
+};
+
+const char* const mpStageNames[NUM_MP_STAGES_AND_RANDOM]
+{
+	"Skedar",
+	"Pipes",
+	"Ravine",
+	"G5 Building",
+	"Sewers",
+	"Warehouse",
+	"Grid",
+	"Ruins",
+	"Area 52",
+	"Base",
+	"Fortress",
+	"Villa",
+	"Car Park",
+	"Temple",
+	"Complex",
+	"Felicity",
+	"Random"
+};
+
+const uint8_t mpStageIndices[NUM_MP_STAGES_AND_RANDOM] // struct mparena g_MpArenas[]
+{
+	0x32,	// STAGE_MP_SKEDAR
+	0x29,	// STAGE_MP_PIPES
+	0x17,	// STAGE_MP_RAVINE
+	0x20,	// STAGE_MP_G5BUILDING
+	0x42,	// STAGE_MP_SEWERS
+	0x3c,	// STAGE_MP_WAREHOUSE
+	0x47,	// STAGE_MP_GRID
+	0x41,	// STAGE_MP_RUINS
+	0x3b,	// STAGE_MP_AREA52
+	0x39,	// STAGE_MP_BASE
+	0x44,	// STAGE_MP_FORTRESS
+	0x45,	// STAGE_MP_VILLA
+	0x3d,	// STAGE_MP_CARPARK
+	0x25,	// STAGE_MP_TEMPLE
+	0x1f,	// STAGE_MP_COMPLEX
+	0x43,	// STAGE_MP_FELICITY
+	0x01	// STAGE_MP_RANDOM
+};
+
+const char* const teamNames[NUM_MP_TEAMS]
+{
+	"Red",
+	"Yellow",
+	"Blue",
+	"Magenta",
+	"Cyan",
+	"Orange",
+	"Pink",
+	"Brown"
+};
+
+const char* const titleNames[NUM_MP_TITLES]
+{
+	"Beginner",
+	"Trainee",
+	"Amateur",
+	"Rookie",
+	"Novice",
+	"Trooper",
+	"Agent",
+	"Star Agent",
+	"Special Agent",
+	"Expert",
+	"Veteran",
+	"Professional",
+	"Dangerous",
+	"Deadly",
+	"Killer",
+	"Assassin",
+	"Lethal",
+	"Elite",
+	"Invincible",
+	"Near Perfect",
+	"Perfect"
 };
 
 enum class MultiplayerTitles
@@ -739,77 +572,209 @@ enum class SimulantTypes
 	VENGE = 12
 };
 
-//enum class Weapons
-//{
-//	Nothing,
-//	Unarmed,
-//	Falcon_2,
-//	Falcon_2_Silencer,
-//	Falcon_2_Scope,
-//	MagSec_4,
-//	Mauler,
-//	Phoenix,
-//	DY357_Magnum,
-//	DY357_LX,
-//	CMP150,
-//	Cyclone,
-//	Callisto_NTG,
-//	RC_P120,
-//	Laptop_Gun,
-//	Dragon,
-//	K7_Avenger,
-//	AR34,
-//	SuperDragon,
-//	Shotgun,
-//	Reaper,
-//	Sniper_Rifle,
-//	FarSight_XR_20,
-//	Devastator,
-//	Rocket_Launcher,
-//	Slayer,
-//	Combat_Knife,
-//	Crossbow,
-//	Tranquilizer,
-//	Laser,
-//	Grenade,
-//	N_Bomb,
-//	Timed_Mine,
-//	Proximity_Mine,
-//	Remote_Mine,
-//	Combat_Boost
-//};
+#pragma endregion
 
-enum class FileTypes
+#pragma region Weapons
+
+#define NUM_WEAPONS 35
+#define NUM_FIRING_RANGE_WEAPONS 32
+#define NUM_MP_WEAPONS_N64 39
+#define NUM_MP_WEAPONS_PC 47
+
+const char* const weaponNames[]
 {
-	GAME,
-	MPSETUP,
-	MPPLAYER,
-	CAMERA
+	"Nothing",				// 0
+	"Unarmed",				// 1
+	"Falcon 2",				// 2
+	"Falcon 2 (silencer)",	// 3
+	"Falcon 2 (scope)",		// 4
+	"MagSec 4",				// 5
+	"Mauler",				// 6
+	"Phoenix",				// 7
+	"DY357 Magnum",			// 8
+	"DY357-LX",				// 9
+	"CMP150",				// 10
+	"Cyclone",				// 11
+	"Callisto NTG",			// 12
+	"RC-P120",				// 13
+	"Laptop Gun",			// 14
+	"Dragon",				// 15
+	"K7 Avenger",			// 16
+	"AR34",					// 17
+	"SuperDragon",			// 18
+	"Shotgun",				// 19
+	"Reaper",				// 20
+	"Sniper Rifle",			// 21
+	"FarSight XR-20",		// 22
+	"Devastator",			// 23
+	"Rocket Launcher",		// 24
+	"Slayer",				// 25
+	"Combat Knife",			// 26
+	"Crossbow",				// 27
+	"Tranquilizer",			// 28
+	"Laser",				// 29
+	"Grenade",				// 30
+	"N-Bomb",				// 31
+	"Timed Mine",			// 32
+	"Proximity Mine",		// 33
+	"Remote Mine",			// 34
+	"Combat Boost",			// 35
+	"PP9i",					// 36
+	"CC13",					// 37
+	"KLO1313",				// 38
+	"KF7 Special",			// 39
+	"ZZT (9mm)",			// 40
+	"DMC",					// 41
+	"AR53",					// 42
+	"RC-P45",				// 43
+	"Shield",				// 44
+	"X-Ray Scanner",		// 45
+	"Cloaking Device",		// 46
+	"Disabled"				// 47
 };
 
-enum class PakFileTypes
+const uint8_t frWeaponNameIndices[NUM_FIRING_RANGE_WEAPONS] // frGetWeaponIndexByWeapon(u32 weaponnum)
 {
-	UNUSED_001 = 0x001, // Unused
-	BLANK = 0x002,      // Blank space (ie. deleted file)
-	TERMINATOR = 0x004, // Marks the end of the device's filesystem
-	CAMERA = 0x008,     // PerfectHead File
-	BOSS = 0x010,       // EEPROM only, one per cart (stores language, MP team names, selected MP soundtracks)
-	MPPLAYER = 0x020,   // Combat Simulator Player File
-	MPSETUP = 0x040,    // Combat Simulator Settings File
-	GAME = 0x080,       // Single Player Agent File
-	ALL = 0x100         // Not really a file type
+	2,	// WEAPON_FALCON2
+	4,	// WEAPON_FALCON2_SCOPE
+	3,	// WEAPON_FALCON2_SILENCER
+	5,	// WEAPON_MAGSEC4
+	6,	// WEAPON_MAULER
+	7,	// WEAPON_PHOENIX
+	8,	// WEAPON_DY357MAGNUM
+	9,	// WEAPON_DY357LX
+	10,	// WEAPON_CMP150
+	11,	// WEAPON_CYCLONE
+	12,	// WEAPON_CALLISTO
+	13,	// WEAPON_RCP120
+	14,	// WEAPON_LAPTOPGUN
+	15,	// WEAPON_DRAGON
+	16,	// WEAPON_K7AVENGER
+	17,	// WEAPON_AR34
+	18,	// WEAPON_SUPERDRAGON
+	19,	// WEAPON_SHOTGUN
+	21,	// WEAPON_SNIPERRIFLE
+	22,	// WEAPON_FARSIGHT
+	27,	// WEAPON_CROSSBOW
+	28,	// WEAPON_TRANQUILIZER
+	20,	// WEAPON_REAPER
+	23,	// WEAPON_DEVASTATOR
+	24,	// WEAPON_ROCKETLAUNCHER
+	25,	// WEAPON_SLAYER
+	26,	// WEAPON_COMBATKNIFE
+	29,	// WEAPON_LASER
+	30,	// WEAPON_GRENADE
+	32,	// WEAPON_TIMEDMINE
+	33,	// WEAPON_PROXIMITYMINE
+	34	// WEAPON_REMOTEMINE
 };
+
+const uint8_t mpWeaponNameIndicesN64[NUM_MP_WEAPONS_N64] // struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
+{
+	0,	// WEAPON_NONE
+	2,	// WEAPON_FALCON2
+	3,	// WEAPON_FALCON2_SILENCER
+	4,	// WEAPON_FALCON2_SCOPE
+	5,	// WEAPON_MAGSEC4
+	6,	// WEAPON_MAULER
+	7,	// WEAPON_PHOENIX
+	8,	// WEAPON_DY357MAGNUM
+	9,	// WEAPON_DY357LX
+	10,	// WEAPON_CMP150
+	11,	// WEAPON_CYCLONE
+	12,	// WEAPON_CALLISTO
+	13,	// WEAPON_RCP120
+	14,	// WEAPON_LAPTOPGUN
+	15,	// WEAPON_DRAGON
+	16,	// WEAPON_K7AVENGER
+	17,	// WEAPON_AR34
+	18,	// WEAPON_SUPERDRAGON
+	19,	// WEAPON_SHOTGUN
+	20,	// WEAPON_REAPER
+	21,	// WEAPON_SNIPERRIFLE
+	22,	// WEAPON_FARSIGHT
+	23,	// WEAPON_DEVASTATOR
+	24,	// WEAPON_ROCKETLAUNCHER
+	25,	// WEAPON_SLAYER
+	26,	// WEAPON_COMBATKNIFE
+	27,	// WEAPON_CROSSBOW
+	28,	// WEAPON_TRANQUILIZER
+	30,	// WEAPON_GRENADE
+	31,	// WEAPON_NBOMB
+	32,	// WEAPON_TIMEDMINE
+	33,	// WEAPON_PROXIMITYMINE
+	34,	// WEAPON_REMOTEMINE
+	29,	// WEAPON_LASER
+	45,	// WEAPON_XRAYSCANNER
+	46,	// WEAPON_CLOAKINGDEVICE
+	35,	// WEAPON_COMBATBOOST
+	44,	// WEAPON_MPSHIELD
+	47	// WEAPON_DISABLED
+};
+
+const uint8_t mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC] // struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
+{
+	0,	// WEAPON_NONE
+	2,	// WEAPON_FALCON2
+	3,	// WEAPON_FALCON2_SILENCER
+	4,	// WEAPON_FALCON2_SCOPE
+	5,	// WEAPON_MAGSEC4
+	6,	// WEAPON_MAULER
+	7,	// WEAPON_PHOENIX
+	8,	// WEAPON_DY357MAGNUM
+	9,	// WEAPON_DY357LX
+	10,	// WEAPON_CMP150
+	11,	// WEAPON_CYCLONE
+	12,	// WEAPON_CALLISTO
+	13,	// WEAPON_RCP120
+	14,	// WEAPON_LAPTOPGUN
+	15,	// WEAPON_DRAGON
+	16,	// WEAPON_K7AVENGER
+	17,	// WEAPON_AR34
+	18,	// WEAPON_SUPERDRAGON
+	19,	// WEAPON_SHOTGUN
+	20,	// WEAPON_REAPER
+	21,	// WEAPON_SNIPERRIFLE
+	22,	// WEAPON_FARSIGHT
+	23,	// WEAPON_DEVASTATOR
+	24,	// WEAPON_ROCKETLAUNCHER
+	25,	// WEAPON_SLAYER
+	26,	// WEAPON_COMBATKNIFE
+	27,	// WEAPON_CROSSBOW
+	28,	// WEAPON_TRANQUILIZER
+	30,	// WEAPON_GRENADE
+	31,	// WEAPON_NBOMB
+	32,	// WEAPON_TIMEDMINE
+	33,	// WEAPON_PROXIMITYMINE
+	34,	// WEAPON_REMOTEMINE
+	29,	// WEAPON_LASER
+	45,	// WEAPON_XRAYSCANNER
+	46,	// WEAPON_CLOAKINGDEVICE
+	35,	// WEAPON_COMBATBOOST
+	36,	// WEAPON_PP9I
+	37,	// WEAPON_CC13
+	38,	// WEAPON_KL01313
+	39,	// WEAPON_KF7SPECIAL
+	40,	// WEAPON_ZZT
+	41,	// WEAPON_DMC
+	42,	// WEAPON_AR53
+	43,	// WEAPON_RCP45
+	44,	// WEAPON_MPSHIELD
+	47	// WEAPON_DISABLED
+};
+
+#pragma endregion
 
 struct FileGuid
 {
-	int32_t fileid;
-	uint16_t deviceserial;
+	int32_t id;
+	uint16_t deviceSerial;
 };
 
 struct SaveBuffer
 {
 private:
-	uint32_t bitpos;
+	uint32_t bitPosition;
 	uint8_t bytes[SAVE_BUFFER_SIZE];
 
 public:
@@ -818,22 +783,22 @@ public:
 
 	uint8_t* GetBytes();
 
-	uint32_t ReadBits(const int32_t numbits);
+	uint32_t ReadBits(const int32_t numBits);
+	void Or(const uint32_t value, const int32_t numBits);
 	void ReadGuid(FileGuid* guid);
 	void WriteGuid(FileGuid* guid);
 	void ReadString(char* dst);
 	void WriteString(char* src);
-	void Or(const uint32_t value, const int32_t numbits);
 	void Clear();
 };
 
-struct BotData
+struct SimulantData
 {
 public:
 	uint8_t type = 0;
 	uint8_t difficulty = 0;
-	uint8_t mpheadnum = 0;
-	uint8_t mpbodynum = 0;
+	uint8_t headIndex = 0;
+	uint8_t bodyIndex = 0;
 	uint8_t team = 0;
 };
 
@@ -845,8 +810,8 @@ public:
 	uint32_t filetype : 9;       // PAKFILETYPE constant
 	uint32_t bodylen : 11;       // not aligned
 	uint32_t filelen : 12;       // aligned to 0x10
-	uint32_t deviceserial : 13;
-	uint32_t fileid : 7;
+	uint32_t deviceSerial : 13;
+	uint32_t id : 7;
 	uint32_t generation : 9;     // increments by 1 each time the same file is saved
 	uint32_t occupied : 1;
 	uint32_t writecompleted : 1; // 0 while writing data, then updated to 1 afterwards
@@ -875,9 +840,9 @@ public:
 	FileGuid guid = {};
 	uint8_t unk1 = 0;
 	uint8_t language = 0;
-	char teamNames[TEAM_NAMES_COUNT][MAX_NAME_LENGTH + 1] = {};
+	char teamNames[NUM_MP_TEAMS][MAX_NAME_LENGTH + 1] = {};
 	uint8_t tracknum = 255;
-	uint8_t multipletracknums[MULTIPLE_TRACKS_SIZE] = {};
+	uint8_t multipletracknums[6] = {};
 	bool usingmultipletunes = false;
 	bool altTitleUnlocked = false;
 	bool altTitleEnabled = false;
@@ -927,8 +892,8 @@ struct MultiplayerProfile : public PakFile
 public:
 	char name[MAX_NAME_LENGTH + 1] = {};
 	uint32_t time = 0;
-	uint8_t mpheadnum = 0;
-	uint8_t mpbodynum = 0;
+	uint8_t headIndex = 0;
+	uint8_t bodyIndex = 0;
 	FileGuid guid = {};
 	uint8_t displayoptions = 0;
 	uint32_t kills = 0;
@@ -973,8 +938,8 @@ public:
 	uint8_t scenario = 0;
 	uint8_t scenarioParams = 0; // Changes depending on scenario (KoH: Hill time)
 	uint32_t options = 0;
-	BotData botsData[MAX_SIMULANTS] = {};
-	uint8_t weaponSlots[NUM_MPWEAPONSLOTS] = {};
+	SimulantData botsData[MAX_SIMULANTS] = {};
+	uint8_t weaponSlots[NUM_MP_WEAPONSLOTS] = {};
 	uint8_t timelimit = 0;
 	uint8_t scorelimit = 0;
 	uint16_t teamscorelimit = 0;
