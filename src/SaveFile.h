@@ -930,7 +930,7 @@ public:
 	MultiplayerTitles GetPlayerTitle(const bool newMethod) const;
 };
 
-struct MultiplayerSettings : public PakFile
+struct MultiplayerSetup : public PakFile
 {
 public:
 	char name[MAX_NAME_LENGTH + 1] = {};
@@ -971,7 +971,7 @@ private:
 	BossFile bossFiles[ACTUAL_NUM_BOSS_FILE_SLOTS] = {};
 	GameFile gameFiles[ACTUAL_NUM_FILE_SLOTS] = {};
 	MultiplayerProfile mpProfiles[ACTUAL_NUM_FILE_SLOTS] = {};
-	MultiplayerSettings mpSettings[ACTUAL_NUM_FILE_SLOTS] = {};
+	MultiplayerSetup mpSetups[ACTUAL_NUM_FILE_SLOTS] = {};
 	Terminator terminator = {};
 
 public:
@@ -981,7 +981,7 @@ public:
 	BossFile* GetBossFile(const uint8_t index) { return &bossFiles[index]; }
 	GameFile* GetGameFile(const uint8_t index) { return &gameFiles[index]; }
 	MultiplayerProfile* GetMultiplayerProfile(const uint8_t index) { return &mpProfiles[index]; }
-	MultiplayerSettings* GetMultiplayerSettings(const uint8_t index) { return &mpSettings[index]; }
+	MultiplayerSetup* GetMultiplayerSetup(const uint8_t index) { return &mpSetups[index]; }
 
 	static void CalculateChecksum(uint8_t* start, uint8_t* end, uint16_t* checksum);
 

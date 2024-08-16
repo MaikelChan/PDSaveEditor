@@ -685,9 +685,9 @@ MultiplayerTitles MultiplayerProfile::GetPlayerTitle(const bool newMethod) const
 
 #pragma endregion
 
-#pragma region MultiplayerSettings
+#pragma region MultiplayerSetup
 
-void MultiplayerSettings::Load(uint8_t* fileBuffer)
+void MultiplayerSetup::Load(uint8_t* fileBuffer)
 {
 	PakFile::Load(fileBuffer);
 
@@ -728,7 +728,7 @@ void MultiplayerSettings::Load(uint8_t* fileBuffer)
 	}
 }
 
-uint8_t MultiplayerSettings::GetArena() const
+uint8_t MultiplayerSetup::GetArena() const
 {
 	for (uint8_t s = 0; s < NUM_MP_STAGES_AND_RANDOM; s++)
 	{
@@ -738,30 +738,30 @@ uint8_t MultiplayerSettings::GetArena() const
 	return 1; // Random
 }
 
-void MultiplayerSettings::SetArena(const uint8_t arena)
+void MultiplayerSetup::SetArena(const uint8_t arena)
 {
 	stagenum = mpStageIndices[arena];
 }
 
-bool MultiplayerSettings::GetOptionsFlag(const MultiplayerSetupFlags flag) const
+bool MultiplayerSetup::GetOptionsFlag(const MultiplayerSetupFlags flag) const
 {
 	return (options & (uint32_t)flag) != 0;
 }
 
-void MultiplayerSettings::SetOptionsFlag(const MultiplayerSetupFlags flag, const bool set)
+void MultiplayerSetup::SetOptionsFlag(const MultiplayerSetupFlags flag, const bool set)
 {
 	if (set) options |= (uint32_t)flag;
 	else options &= ~(uint32_t)flag;
 }
 
-uint8_t MultiplayerSettings::GetSlowMotionMode() const
+uint8_t MultiplayerSetup::GetSlowMotionMode() const
 {
 	if (GetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_SMART)) return 2;
 	else if (GetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_ON)) return 1;
 	return 0;
 }
 
-void MultiplayerSettings::SetSlowMotionMode(const uint8_t mode)
+void MultiplayerSetup::SetSlowMotionMode(const uint8_t mode)
 {
 	SetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_SMART, false);
 	SetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_ON, false);
@@ -770,12 +770,12 @@ void MultiplayerSettings::SetSlowMotionMode(const uint8_t mode)
 	else if (mode == 2) SetOptionsFlag(MultiplayerSetupFlags::SLOWMOTION_SMART, true);
 }
 
-uint8_t MultiplayerSettings::GetHillTime() const
+uint8_t MultiplayerSetup::GetHillTime() const
 {
 	return scenarioParams + 10;
 }
 
-void MultiplayerSettings::SetHillTime(const uint8_t time)
+void MultiplayerSetup::SetHillTime(const uint8_t time)
 {
 	scenarioParams = time - 10;
 }
@@ -837,7 +837,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 			}
 			case PakFileTypes::MPSETUP:
 			{
-				mpSettings[mpSettingsCount++].Load(&fileBuffer[p]);
+				mpSetups[mpSettingsCount++].Load(&fileBuffer[p]);
 				break;
 			}
 			case PakFileTypes::GAME:
@@ -945,8 +945,8 @@ void SaveFile::Save(uint8_t* fileBuffer)
 
 	for (uint8_t mps = 0; mps < ACTUAL_NUM_FILE_SLOTS; mps++)
 	{
-		mpSettings[mps].Save(&fileBuffer[p]);
-		p += mpSettings[mps].pakFileHeader.filelen;
+		mpSetups[mps].Save(&fileBuffer[p]);
+		p += mpSetups[mps].pakFileHeader.filelen;
 	}
 
 	for (uint8_t gf = 0; gf < ACTUAL_NUM_FILE_SLOTS; gf++)

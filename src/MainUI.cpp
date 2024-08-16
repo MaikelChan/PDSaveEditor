@@ -267,10 +267,10 @@ void MainUI::LoadingProcess() const
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{
-		MultiplayerSettings* mpSettings = saveData.GetSaveFile()->GetMultiplayerSettings(f);
-		if (!mpSettings->IsUsed()) continue;
+		MultiplayerSetup* mpSetup = saveData.GetSaveFile()->GetMultiplayerSetup(f);
+		if (!mpSetup->IsUsed()) continue;
 
-		if (!mpSettings->IsValid())
+		if (!mpSetup->IsValid())
 		{
 			message += std::string("Multiplayer settings ") + std::to_string(slot++) + " is corrupted. Data might be completely wrong.\n";
 		}

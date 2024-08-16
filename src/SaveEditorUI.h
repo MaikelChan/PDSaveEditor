@@ -32,12 +32,12 @@ private:
 	void RenderGlobalDataSection(SaveFile* saveFile);
 	void RenderSinglePlayerSection(SaveFile* saveFile);
 	void RenderMultiplayerProfilesSection(SaveFile* saveFile);
-	void RenderMultiplayerSettingsSection(SaveFile* saveFile);
+	void RenderMultiplayerSetupsSection(SaveFile* saveFile);
 
 	bool CheckboxProgressFlags(GameFile* gameFile, const char* label, const SinglePlayerFlags flag, const bool reverse = false) const;
 	bool CheckboxMpProfileOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerOptionsFlags flag, const bool reverse = false) const;
 	bool CheckboxMpProfileDisplayOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerDisplayOptionsFlags flag, const bool reverse = false) const;
-	bool CheckboxMpSettingsOptionsFlags(MultiplayerSettings* mpSettings, const char* label, const MultiplayerSetupFlags flag, const bool reverse = false) const;
+	bool CheckboxMpSetupOptionsFlags(MultiplayerSetup* mpSetup, const char* label, const MultiplayerSetupFlags flag, const bool reverse = false) const;
 	void NameInputField(const char* label, char* name) const;
 	void InputScalarU16(const char* label, uint16_t* value, const uint8_t bits) const;
 	void InputScalarU32(const char* label, uint32_t* value, const uint8_t bits) const;
