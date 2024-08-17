@@ -934,9 +934,10 @@ struct MultiplayerSetup : public PakFile
 {
 public:
 	char name[MAX_NAME_LENGTH + 1] = {};
+	uint8_t numsims = 0; // This is apparently never loaded by the game?
 	uint8_t stagenum = 0;
 	uint8_t scenario = 0;
-	uint8_t scenarioParams = 0; // Changes depending on scenario (KoH: Hill time)
+	uint8_t hillTime = 0;
 	uint32_t options = 0;
 	SimulantData botsData[MAX_SIMULANTS] = {};
 	uint8_t weaponSlots[NUM_MP_WEAPONSLOTS] = {};
@@ -947,6 +948,7 @@ public:
 
 public:
 	void Load(uint8_t* fileBuffer) override;
+	void Save(uint8_t* fileBuffer) override;
 
 	uint8_t GetArena() const;
 	void SetArena(const uint8_t arena);

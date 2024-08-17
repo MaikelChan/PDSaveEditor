@@ -697,35 +697,77 @@ void MultiplayerSetup::Load(uint8_t* fileBuffer)
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
 	buffer.ReadString(name);
-	buffer.ReadBits(4);
-
+	numsims = buffer.ReadBits(4);
 	stagenum = buffer.ReadBits(7);
 	scenario = buffer.ReadBits(3);
-	scenarioParams = buffer.ReadBits(8);
+	hillTime = buffer.ReadBits(8);
 	options = buffer.ReadBits(21);
 
-	for (uint8_t i = 0; i < MAX_SIMULANTS; i++)
+	for (uint8_t s = 0; s < MAX_SIMULANTS; s++)
 	{
-		botsData[i].type = buffer.ReadBits(5);
-		botsData[i].difficulty = buffer.ReadBits(3);
-		botsData[i].headIndex = buffer.ReadBits(7);
-		botsData[i].bodyIndex = buffer.ReadBits(7);
-		botsData[i].team = buffer.ReadBits(3);
+		botsData[s].type = buffer.ReadBits(5);
+		botsData[s].difficulty = buffer.ReadBits(3);
+		botsData[s].headIndex = buffer.ReadBits(7);
+		botsData[s].bodyIndex = buffer.ReadBits(7);
+		botsData[s].team = buffer.ReadBits(3);
 	}
 
-	for (uint8_t i = 0; i < NUM_MP_WEAPONSLOTS; i++)
+	for (uint8_t ws = 0; ws < NUM_MP_WEAPONSLOTS; ws++)
 	{
-		weaponSlots[i] = buffer.ReadBits(7);
+		weaponSlots[ws] = buffer.ReadBits(7);
 	}
 
 	timelimit = buffer.ReadBits(6);
 	scorelimit = buffer.ReadBits(7);
 	teamscorelimit = buffer.ReadBits(9);
 
-	for (uint8_t i = 0; i < MAX_PLAYERS; i++)
+	for (uint8_t p = 0; p < MAX_PLAYERS; p++)
 	{
-		teams[i] = buffer.ReadBits(3);
+		teams[p] = buffer.ReadBits(3);
 	}
+}
+
+void MultiplayerSetup::Save(uint8_t* fileBuffer)
+{
+	SaveBuffer buffer;
+
+	buffer.WriteString(name);
+	buffer.Or(numsims, 4);
+	buffer.Or(stagenum, 7);
+	buffer.Or(scenario, 3);
+	buffer.Or(hillTime, 8);
+	buffer.Or(options, 21);
+
+	for (uint8_t s = 0; s < MAX_SIMULANTS; s++)
+	{
+		buffer.Or(botsData[s].type, 5);
+		buffer.Or(botsData[s].difficulty, 3);
+		buffer.Or(botsData[s].headIndex, 7);
+		buffer.Or(botsData[s].bodyIndex, 7);
+		buffer.Or(botsData[s].team, 3);
+	}
+
+	for (uint8_t ws = 0; ws < NUM_MP_WEAPONSLOTS; ws++)
+	{
+		buffer.Or(weaponSlots[ws], 7);
+	}
+
+	buffer.Or(timelimit, 6);
+	buffer.Or(scorelimit, 7);
+	buffer.Or(teamscorelimit, 9);
+
+	for (uint8_t p = 0; p < MAX_PLAYERS; p++)
+	{
+		buffer.Or(teams[p], 3);
+	}
+
+	uint8_t* bytes = buffer.GetBytes();
+	for (uint8_t i = 0; i < pakFileHeader.filelen - PACK_HEADER_SIZE; i++)
+	{
+		fileBuffer[PACK_HEADER_SIZE + i] = bytes[i % pakFileHeader.bodylen];
+	}
+
+	PakFile::Save(fileBuffer);
 }
 
 uint8_t MultiplayerSetup::GetArena() const
@@ -772,12 +814,12 @@ void MultiplayerSetup::SetSlowMotionMode(const uint8_t mode)
 
 uint8_t MultiplayerSetup::GetHillTime() const
 {
-	return scenarioParams + 10;
+	return hillTime + 10;
 }
 
 void MultiplayerSetup::SetHillTime(const uint8_t time)
 {
-	scenarioParams = time - 10;
+	hillTime = time - 10;
 }
 
 #pragma endregion
@@ -820,7 +862,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 		PakFileHeader pakFileHeader = {};
 		memcpy(&pakFileHeader, &fileBuffer[p], PACK_HEADER_SIZE);
 
-		// Read actual data
+		// Read data
 
 		switch ((PakFileTypes)pakFileHeader.filetype)
 		{
