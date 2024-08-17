@@ -9,10 +9,10 @@ class MainUI;
 
 const char* const tabNames[]
 {
-	"Global Data",
-	"Single Player",
-	"Multiplayer Profiles",
-	"Multiplayer Settings"
+	"Single Player Files",
+	"Combat Simulator Settings",
+	"Combat Simulator Players",
+	"Global Data"
 };
 
 class SaveEditorUI : public BaseUI

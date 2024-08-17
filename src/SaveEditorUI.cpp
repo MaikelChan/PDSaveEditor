@@ -41,11 +41,11 @@ void SaveEditorUI::DoRender()
 					switch (s)
 					{
 						case 0:
-							RenderGlobalDataSection(saveFile);
+							RenderSinglePlayerSection(saveFile);
 							break;
 
 						case 1:
-							RenderSinglePlayerSection(saveFile);
+							RenderMultiplayerSetupsSection(saveFile);
 							break;
 
 						case 2:
@@ -53,7 +53,7 @@ void SaveEditorUI::DoRender()
 							break;
 
 						case 3:
-							RenderMultiplayerSetupsSection(saveFile);
+							RenderGlobalDataSection(saveFile);
 							break;
 					}
 
@@ -1139,50 +1139,6 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 				}
 
 				PrintHeader("Simulants");
-
-				/*if (ImGui::BeginTabBar("Multiplayer Simulants Settings", ImGuiTabBarFlags_None))
-				{
-					for (uint8_t s = 0; s < MAX_SIMULANTS; s++)
-					{
-						char tabName[32];
-						snprintf(tabName, 32, "Simulant %u", s + 1);
-
-						if (ImGui::BeginTabItem(tabName))
-						{
-							int difficulty = mpSetup->botsData[s].difficulty;
-							if (ImGui::Combo("Difficulty", &difficulty, mpSimulantDifficultyNames, NUM_MP_SIMULANT_DIFFICULTIES + 1))
-							{
-								mpSetup->botsData[s].difficulty = difficulty;
-							}
-
-							if ((SimulantDifficulties)difficulty == SimulantDifficulties::DISABLED) ImGui::BeginDisabled();
-
-							int type = mpSetup->botsData[s].type;
-							if (ImGui::Combo("Type", &type, mpSimulantTypeNames, NUM_MP_SIMULANT_TYPES))
-							{
-								mpSetup->botsData[s].type = type;
-							}
-
-							int team = mpSetup->botsData[s].team;
-							if (ImGui::Combo("Team", &team, teamNames, NUM_MP_TEAMS))
-							{
-								mpSetup->botsData[s].team = team;
-							}
-
-							const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS;
-							ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpSetup->botsData[s].headIndex, &headsMin, &headsMax, "%u");
-
-							const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES;
-							ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpSetup->botsData[s].bodyIndex, &bodyMin, &bodyMax, "%u");
-
-							if ((SimulantDifficulties)difficulty == SimulantDifficulties::DISABLED) ImGui::EndDisabled();
-
-							ImGui::EndTabItem();
-						}
-					}
-
-					ImGui::EndTabBar();
-				}*/
 
 				ImGuiTableFlags flags = ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuter;
 
