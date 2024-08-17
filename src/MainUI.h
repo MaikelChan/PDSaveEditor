@@ -45,6 +45,11 @@ private:
 	void LoadingProcess() const;
 	void Save();
 
-	void CopySlot(const uint8_t originSlotIndex, const uint8_t destinationSlotIndex) const;
-	void DeleteSlot(const uint8_t slotIndex) const;
+	void CopyGameFile(const GameFile* srcGameFile) const;
+	void CopyMultiplayerProfile(const MultiplayerProfile* srcMpProfile) const;
+	void CopyMultiplayerSetup(const MultiplayerSetup* srcMpSetup) const;
+
+	void DeleteGameFile(GameFile* gameFile) const;
+	void DeleteMultiplayerProfile(MultiplayerProfile* mpProfile) const;
+	void DeleteMultiplayerSetup(MultiplayerSetup* mpSetup) const;
 };

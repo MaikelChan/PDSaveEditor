@@ -196,15 +196,15 @@ void SaveEditorUI::RenderGlobalDataSection(SaveFile* saveFile)
 void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 {
 	GameFile* gameFiles[NUM_FILE_SLOTS] = {};
-	uint8_t slot = 0;
+	uint8_t file = 0;
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{
 		GameFile* gameFile = saveFile->GetGameFile(f);
 		if (gameFile->IsUsed())
 		{
-			gameFiles[slot] = gameFile;
-			slot++;
+			gameFiles[file] = gameFile;
+			file++;
 		}
 	}
 
@@ -215,10 +215,10 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 			GameFile* gameFile = gameFiles[f];
 
 			// "###Slot%u is used as tab id, to prevent regenerating
-			// the whole window when updating the name of the slot
+			// the whole window when updating the name of the file
 
 			char tabName[32];
-			snprintf(tabName, 32, "Slot %u (%s)###Slot%u", f + 1, gameFile != nullptr ? gameFile->name : "Empty", f + 1);
+			snprintf(tabName, 32, "File %u (%s)###Slot%u", f + 1, gameFile != nullptr ? gameFile->name : "Empty", f + 1);
 
 			if (ImGui::BeginTabItem(tabName))
 			{
@@ -231,7 +231,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 
 				ImGui::BeginChild("Single Player Frame", ImVec2(0, 0), false, 0);
 
-				PrintHeader("Slot Info");
+				PrintHeader("File Info");
 
 				NameInputField("Name", gameFile->name);
 
@@ -240,7 +240,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 					ImGui::SetTooltip("%s", Utils::GetTimeString(gameFile->totaltime).c_str());
 
 				int thumbnail = gameFile->thumbnail;
-				if (ImGui::Combo("Slot Thumbnail", &thumbnail, thumbnailNames, NUM_SOLOSTAGES + 1))
+				if (ImGui::Combo("File Thumbnail", &thumbnail, thumbnailNames, NUM_SOLOSTAGES + 1))
 				{
 					gameFile->thumbnail = thumbnail;
 				}
@@ -682,15 +682,15 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 {
 	MultiplayerProfile* mpProfiles[NUM_FILE_SLOTS] = {};
-	uint8_t slot = 0;
+	uint8_t file = 0;
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{
 		MultiplayerProfile* mpProfile = saveFile->GetMultiplayerProfile(f);
 		if (mpProfile->IsUsed())
 		{
-			mpProfiles[slot] = mpProfile;
-			slot++;
+			mpProfiles[file] = mpProfile;
+			file++;
 		}
 	}
 
@@ -701,10 +701,10 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 			MultiplayerProfile* mpProfile = mpProfiles[f];
 
 			// "###Slot%u is used as tab id, to prevent regenerating
-			// the whole window when updating the name of the slot
+			// the whole window when updating the name of the file
 
 			char tabName[32];
-			snprintf(tabName, 32, "Slot %u (%s)###Slot%u", f + 1, mpProfile != nullptr ? mpProfile->name : "Empty", f + 1);
+			snprintf(tabName, 32, "File %u (%s)###Slot%u", f + 1, mpProfile != nullptr ? mpProfile->name : "Empty", f + 1);
 
 			if (ImGui::BeginTabItem(tabName))
 			{
@@ -725,7 +725,7 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 					ImGui::TableNextRow();
 					ImGui::TableSetColumnIndex(0);
 
-					PrintHeader("Slot Info");
+					PrintHeader("File Info");
 
 					NameInputField("Name", mpProfile->name);
 
@@ -928,15 +928,15 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 {
 	MultiplayerSetup* mpSetups[NUM_FILE_SLOTS] = {};
-	uint8_t slot = 0;
+	uint8_t file = 0;
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{
 		MultiplayerSetup* mpSetup = saveFile->GetMultiplayerSetup(f);
 		if (mpSetup->IsUsed())
 		{
-			mpSetups[slot] = mpSetup;
-			slot++;
+			mpSetups[file] = mpSetup;
+			file++;
 		}
 	}
 
@@ -946,11 +946,11 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 		{
 			MultiplayerSetup* mpSetup = mpSetups[f];
 
-			// "###Slot%u is used as tab id, to prevent regenerating
-			// the whole window when updating the name of the slot
+			// "###File%u is used as tab id, to prevent regenerating
+			// the whole window when updating the name of the file
 
 			char tabName[32];
-			snprintf(tabName, 32, "Slot %u (%s)###Slot%u", f + 1, mpSetup != nullptr ? mpSetup->name : "Empty", f + 1);
+			snprintf(tabName, 32, "File %u (%s)###Slot%u", f + 1, mpSetup != nullptr ? mpSetup->name : "Empty", f + 1);
 
 			if (ImGui::BeginTabItem(tabName))
 			{
@@ -1276,7 +1276,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 
 					PrintHeader("Weapons");
 
-					const char* wNames[NUM_MP_WEAPONS_PC];
+					const char* wNames[NUM_MP_WEAPONS_PC] = {};
 					for (uint8_t w = 0; w < NUM_MP_WEAPONS_PC; w++) wNames[w] = weaponNames[mpWeaponNameIndicesPC[w]];
 
 					for (uint8_t ws = 0; ws < NUM_MP_WEAPONSLOTS; ws++)
@@ -1424,7 +1424,11 @@ void SaveEditorUI::NameInputField(const char* label, char* name) const
 		bool valid = true;
 		for (uint8_t c = 0; c < MAX_NAME_LENGTH + 1; c++)
 		{
-			if (cleanedName[c] == '\0') break;
+			if (cleanedName[c] == '\0')
+			{
+				if (c == 0) valid = false; // Name is empty
+				break;
+			}
 
 			uint8_t val = (uint8_t)cleanedName[c];
 

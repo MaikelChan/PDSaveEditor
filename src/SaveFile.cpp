@@ -149,7 +149,7 @@ void PakFile::Load(uint8_t* fileBuffer)
 	uint16_t bodyChecksum[2];
 	SaveFile::CalculateChecksum(&fileBuffer[PACK_HEADER_SIZE], &fileBuffer[PACK_HEADER_SIZE + pakFileHeader.bodylen], bodyChecksum);
 
-	isValid = pakFileHeader.headersum[0] == headerChecksum[0] && pakFileHeader.headersum[1] == headerChecksum[1] &&
+	isChecksumValid = pakFileHeader.headersum[0] == headerChecksum[0] && pakFileHeader.headersum[1] == headerChecksum[1] &&
 		pakFileHeader.bodysum[0] == bodyChecksum[0] && pakFileHeader.bodysum[1] == bodyChecksum[1];
 }
 
@@ -166,13 +166,13 @@ void PakFile::Save(uint8_t* fileBuffer)
 		uint16_t bodyChecksum[2];
 		SaveFile::CalculateChecksum(&fileBuffer[PACK_HEADER_SIZE], &fileBuffer[PACK_HEADER_SIZE + pakFileHeader.bodylen], bodyChecksum);
 		memcpy(&fileBuffer[4], bodyChecksum, 4);
+		isChecksumValid = true;
 	}
 	else
 	{
 		for (uint8_t i = 0; i < 4; i++) fileBuffer[4 + i] = 0xff;
+		isChecksumValid = false;
 	}
-
-	isValid = true;
 }
 
 #pragma endregion
@@ -935,6 +935,81 @@ void SaveFile::Save(uint8_t* fileBuffer)
 		throw std::runtime_error(std::string("Unexpected position of \"TERMINATOR\" file: ") + std::to_string(p) + ".");
 
 	terminator.Save(&fileBuffer[p]);
+}
+
+uint8_t SaveFile::GetGameFileCount() const
+{
+	uint8_t count = 0;
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		if (gameFiles[f].IsUsed()) count++;
+	}
+
+	return count;
+}
+
+uint8_t SaveFile::GetMultiplayerProfileCount() const
+{
+	uint8_t count = 0;
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		if (mpProfiles[f].IsUsed()) count++;
+	}
+
+	return count;
+}
+
+uint8_t SaveFile::GetMultiplayerSetupCount() const
+{
+	uint8_t count = 0;
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		if (mpSetups[f].IsUsed()) count++;
+	}
+
+	return count;
+}
+
+GameFile* SaveFile::GetFirstUnusedGameFile(uint8_t* outFileIndex)
+{
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		if (!gameFiles[f].IsUsed())
+		{
+			*outFileIndex = f;
+			return &gameFiles[f];
+		}
+	}
+
+	return nullptr;
+}
+
+MultiplayerProfile* SaveFile::GetFirstUnusedMultiplayerProfile(uint8_t* outFileIndex)
+{
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		if (!mpProfiles[f].IsUsed())
+		{
+			*outFileIndex = f;
+			return &mpProfiles[f];
+		}
+	}
+
+	return nullptr;
+}
+
+MultiplayerSetup* SaveFile::GetFirstUnusedMultiplayerSetup(uint8_t* outFileIndex)
+{
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		if (!mpSetups[f].IsUsed())
+		{
+			*outFileIndex = f;
+			return &mpSetups[f];
+		}
+	}
+
+	return nullptr;
 }
 
 void SaveFile::CalculateChecksum(uint8_t* start, uint8_t* end, uint16_t* checksum)

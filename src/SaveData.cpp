@@ -42,7 +42,7 @@ void SaveData::Load(const std::string filePath)
 
 	// Read the whole file
 
-	uint8_t fileBuffer[SAVE_FILE_SIZE];
+	uint8_t fileBuffer[SAVE_FILE_SIZE] = {};
 
 	stream.seekg(0, std::ios_base::beg);
 	stream.read((char*)&fileBuffer, SAVE_FILE_SIZE);

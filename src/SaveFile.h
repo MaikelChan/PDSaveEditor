@@ -889,14 +889,14 @@ public:
 	PakFileHeader pakFileHeader = {};
 
 private:
-	bool isValid = false;
+	bool isChecksumValid = false;
 
 public:
 	virtual void Load(uint8_t* fileBuffer);
 	virtual void Save(uint8_t* fileBuffer);
 
 	bool IsUsed() const { return pakFileHeader.occupied; }
-	bool IsValid() const { return isValid; }
+	bool IsChecksumValid() const { return isChecksumValid; }
 };
 
 struct BossFile : public PakFile
@@ -1049,6 +1049,14 @@ public:
 	GameFile* GetGameFile(const uint8_t index) { return &gameFiles[index]; }
 	MultiplayerProfile* GetMultiplayerProfile(const uint8_t index) { return &mpProfiles[index]; }
 	MultiplayerSetup* GetMultiplayerSetup(const uint8_t index) { return &mpSetups[index]; }
+
+	uint8_t GetGameFileCount() const;
+	uint8_t GetMultiplayerProfileCount() const;
+	uint8_t GetMultiplayerSetupCount() const;
+
+	GameFile* GetFirstUnusedGameFile(uint8_t* outFileIndex);
+	MultiplayerProfile* GetFirstUnusedMultiplayerProfile(uint8_t* outFileIndex);
+	MultiplayerSetup* GetFirstUnusedMultiplayerSetup(uint8_t* outFileIndex);
 
 	static void CalculateChecksum(uint8_t* start, uint8_t* end, uint16_t* checksum);
 
