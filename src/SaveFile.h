@@ -334,6 +334,71 @@ enum class SinglePlayerFlags
 #define NUM_MP_TITLES 21
 #define NUM_MP_WEAPONSLOTS 6
 
+const char* const mpBodyNames[NUM_MP_BODIES]
+{
+	"Joanna Combat",
+	"Joanna Trench Coat",
+	"Joanna Part Frock",
+	"Joanna Frock (Ripped)",
+	"Joanna Stewardess",
+	"Joanna Leather",
+	"Joanna Negotiator",
+	"Joanna Wet Suit",
+	"Joanna Aqualung",
+	"Joanna Arctic",
+	"Joanna Lab Tech.",
+	"Elvis",
+	"Maian",
+	"Elvis (Waistcoat)",
+	"Daniel Carrington",
+	"Carrington Evening Wear",
+	"Mr. Blonde",
+	"Cassandra de Vries",
+	"Trent Easton",
+	"Jonathan",
+	"CI Male Lab Technician",
+	"CI Female Lab Technician",
+	"CI Soldier",
+	"dataDyne Shock Trooper",
+	"dataDyne Female Guard",
+	"dataDyne Security",
+	"dataDyne Infantry",
+	"dataDyne Trooper",
+	"Secretary",
+	"Office Suit",
+	"Office Casual",
+	"Negotiator",
+	"dataDyne Sniper",
+	"G5 Guard",
+	"G5 SWAT Guard",
+	"CIA Agent",
+	"FBI Agent",
+	"Area 51 Guard",
+	"Area 51 Trooper",
+	"Pilot",
+	"Overalls",
+	"NSA Bodyguard",
+	"Male Lab Technician",
+	"Female Lab Technician",
+	"dataDyne Lab Technician",
+	"Biotechnician",
+	"Alaskan Guard",
+	"Air Force One Pilot",
+	"Steward",
+	"Stewardess",
+	"Head Stewardess",
+	"The President",
+	"NSA Lackey",
+	"Presidential Security",
+	"President's Clone",
+	"Pelagic II Guard",
+	"Maian Soldier",
+	"Dinner Jacket",
+	"Dinner Jacket",
+	"Dinner Jacket",
+	"Dinner Jacket"
+};
+
 const char* const mpScenarioNames[NUM_MP_SCENARIOS]
 {
 	"Combat",
@@ -460,27 +525,27 @@ const char* const titleNames[NUM_MP_TITLES]
 
 enum class MultiplayerTitles
 {
-	BEGINNER,
-	TRAINEE,
-	AMATEUR,
-	ROOKIE,
-	NOVICE,
-	TROOPER,
-	AGENT,
-	STARAGENT,
-	SPECIALAGENT,
-	EXPERT,
-	VETERAN,
-	PROFESSIONAL,
-	DANGEROUS,
-	DEADLY,
-	KILLER,
-	ASSASSIN,
-	LETHAL,
-	ELITE,
-	INVINCIBLE,
-	NEARPERFECT,
-	PERFECT
+	Beginner,
+	Trainee,
+	Amateur,
+	Rookie,
+	Novice,
+	Trooper,
+	Agent,
+	StarAgent,
+	SpecialAgent,
+	Expert,
+	Veteran,
+	Professional,
+	Dangerous,
+	Deadly,
+	Killer,
+	Assassin,
+	Lethal,
+	Elite,
+	Invincible,
+	NearPerfect,
+	Perfect
 };
 
 enum class MultiplayerOptionsFlags
@@ -536,40 +601,40 @@ enum class MultiplayerDisplayOptionsFlags
 
 enum class MultiplayerScenarios
 {
-	COMBAT = 0,
-	HOLDTHEBRIEFCASE = 1,
-	HACKERCENTRAL = 2,
-	POPACAP = 3,
-	KINGOFTHEHILL = 4,
-	CAPTURETHECASE = 5
+	Combat = 0,
+	HoldTheBriefcase = 1,
+	HackerCentral = 2,
+	PopACap = 3,
+	KingOfTheHill = 4,
+	CaptureTheCase = 5
 };
 
 enum class SimulantDifficulties
 {
-	MEAT = 0,
-	EASY = 1,
-	NORMAL = 2,
-	HARD = 3,
-	PERFECT = 4,
-	DARK = 5,
-	DISABLED = 6
+	Meat = 0,
+	Easy = 1,
+	Normal = 2,
+	Hard = 3,
+	Perfect = 4,
+	Dark = 5,
+	Disabled = 6
 };
 
 enum class SimulantTypes
 {
-	GENERAL = 0,
-	PEACE = 1,
-	SHIELD = 2,
-	ROCKET = 3,
-	KAZE = 4,
-	FIST = 5,
-	PREY = 6,
-	COWARD = 7,
-	JUDGE = 8,
-	FEUD = 9,
-	SPEED = 10,
-	TURTLE = 11,
-	VENGE = 12
+	General = 0,
+	Peace = 1,
+	Shield = 2,
+	Rocket = 3,
+	Kaze = 4,
+	Fist = 5,
+	Prey = 6,
+	Coward = 7,
+	Judge = 8,
+	Feud = 9,
+	Speed = 10,
+	Turtle = 11,
+	Venge = 12
 };
 
 #pragma endregion

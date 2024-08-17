@@ -733,31 +733,44 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 					if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
 						ImGui::SetTooltip("%s", Utils::GetTimeString(mpProfile->time).c_str());
 
-					const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS;
+					const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS - 1;
 					ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpProfile->headIndex, &headsMin, &headsMax, "%u");
 
-					const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES;
-					ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpProfile->bodyIndex, &bodyMin, &bodyMax, "%u");
+					const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES - 1;
+					char bodyName[64];
+					snprintf(bodyName, 64, "%u (%s)", mpProfile->bodyIndex, mpBodyNames[mpProfile->bodyIndex]);
+					ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpProfile->bodyIndex, &bodyMin, &bodyMax, bodyName);
 
 					ImGui::TableSetColumnIndex(1);
 					PrintHeader("Statistics");
 
 					InputScalarU32("Kills", &mpProfile->kills, 20);
 					InputScalarU32("Deaths", &mpProfile->deaths, 20);
+					InputScalarU16("Accuracy", &mpProfile->accuracy, 10);
+					InputScalarU32("Head Shots", &mpProfile->headshots, 20);
+					ImGui::Separator();
+					InputScalarU32("Ammo Used", &mpProfile->ammoused, 30);
+					InputScalarU32("Damage Dealt", &mpProfile->damagedealt, 26);
+					InputScalarU32("Pain Received", &mpProfile->painreceived, 26);
+					ImGui::Separator();
 					InputScalarU32("Games Played", &mpProfile->gamesplayed, 19);
 					InputScalarU32("Games Won", &mpProfile->gameswon, 19);
 					InputScalarU32("Games Lost", &mpProfile->gameslost, 19);
 					InputScalarU32("Distance", &mpProfile->distance, 25);
-					InputScalarU16("Accuracy", &mpProfile->accuracy, 10);
-					InputScalarU32("Damage Dealt", &mpProfile->damagedealt, 26);
-					InputScalarU32("Pain Received", &mpProfile->painreceived, 26);
-					InputScalarU32("Head Shots", &mpProfile->headshots, 20);
-					InputScalarU32("Ammo Used", &mpProfile->ammoused, 30);
+					ImGui::Separator();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0, 1.0, 0.1, 1.0));
 					InputScalarU32("Accuracy Medals", &mpProfile->accuracymedals, 18);
+					ImGui::PopStyleColor();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9, 0.9, 0.0, 1.0));
 					InputScalarU32("Head Shot Medals", &mpProfile->headshotmedals, 18);
-					InputScalarU32("Kill Master Medals", &mpProfile->killmastermedals, 18);
+					ImGui::PopStyleColor();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0, 0.5, 0.5, 1.0));
+					InputScalarU32("KillMaster Medals", &mpProfile->killmastermedals, 18);
+					ImGui::PopStyleColor();
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0, 0.9, 0.9, 1.0));
 					InputScalarU16("Survivor Medals", &mpProfile->survivormedals, 16);
-
+					ImGui::PopStyleColor();
+					ImGui::Separator();
 					uint8_t title = (uint8_t)mpProfile->GetPlayerTitle(true);
 					ImGui::Text("%s: %u", titleNames[title], NUM_MP_TITLES - title);
 
@@ -798,8 +811,6 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 					CheckboxMpProfileOptionsFlags(mpProfile, "Gun Function", MultiplayerOptionsFlags::SHOWGUNFUNCTION);
 					CheckboxMpProfileOptionsFlags(mpProfile, "Paintball", MultiplayerOptionsFlags::PAINTBALL);
 
-					// TODO: Missing options?
-
 					ImGui::TableSetColumnIndex(1);
 
 					PrintHeader("Player Options");
@@ -808,6 +819,11 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 					CheckboxMpProfileDisplayOptionsFlags(mpProfile, "Highlight Players", MultiplayerDisplayOptionsFlags::HIGHLIGHTPLAYERS);
 					CheckboxMpProfileDisplayOptionsFlags(mpProfile, "Highlight Teams", MultiplayerDisplayOptionsFlags::HIGHLIGHTTEAMS);
 					CheckboxMpProfileDisplayOptionsFlags(mpProfile, "Radar", MultiplayerDisplayOptionsFlags::RADAR);
+
+					PrintHeader("Hidden Flags");
+
+					CheckboxMpProfileOptionsFlags(mpProfile, "\"Save Player\" Window Shown", MultiplayerOptionsFlags::ASKEDSAVEPLAYER);
+					CheckboxMpProfileOptionsFlags(mpProfile, "Show Mission Time", MultiplayerOptionsFlags::SHOWMISSIONTIME);
 
 					ImGui::EndTable();
 				}
@@ -975,7 +991,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 
 					switch ((MultiplayerScenarios)scenario)
 					{
-						case MultiplayerScenarios::COMBAT:
+						case MultiplayerScenarios::Combat:
 						{
 							PrintHeader("Combat Options");
 
@@ -997,7 +1013,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							break;
 						}
 
-						case MultiplayerScenarios::HOLDTHEBRIEFCASE:
+						case MultiplayerScenarios::HoldTheBriefcase:
 						{
 							PrintHeader("Briefcase Options");
 
@@ -1020,7 +1036,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							break;
 						}
 
-						case MultiplayerScenarios::HACKERCENTRAL:
+						case MultiplayerScenarios::HackerCentral:
 						{
 							PrintHeader("Hacker Options");
 
@@ -1043,7 +1059,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							break;
 						}
 
-						case MultiplayerScenarios::POPACAP:
+						case MultiplayerScenarios::PopACap:
 						{
 							PrintHeader("Pop a Cap Options");
 
@@ -1066,7 +1082,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							break;
 						}
 
-						case MultiplayerScenarios::KINGOFTHEHILL:
+						case MultiplayerScenarios::KingOfTheHill:
 						{
 							PrintHeader("Hill Options");
 
@@ -1096,7 +1112,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							break;
 						}
 
-						case MultiplayerScenarios::CAPTURETHECASE:
+						case MultiplayerScenarios::CaptureTheCase:
 						{
 							PrintHeader("Capture Options");
 
@@ -1204,7 +1220,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 
 						ImGui::TableSetColumnIndex(2);
 
-						if ((SimulantDifficulties)difficulty == SimulantDifficulties::DISABLED) ImGui::BeginDisabled();
+						if ((SimulantDifficulties)difficulty == SimulantDifficulties::Disabled) ImGui::BeginDisabled();
 
 						ImGui::PushItemWidth(columnWidth);
 						int type = mpSetup->botsData[s].type;
@@ -1227,20 +1243,20 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 						ImGui::TableSetColumnIndex(4);
 
 						ImGui::PushItemWidth(columnWidth);
-						const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS;
+						const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS - 1;
 						ImGui::SliderScalar("##Character Head", ImGuiDataType_U8, &mpSetup->botsData[s].headIndex, &headsMin, &headsMax, "%u");
 						ImGui::PopItemWidth();
 
 						ImGui::TableSetColumnIndex(5);
 
-						ImGui::PushItemWidth(columnWidth);
-						const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES;
-						ImGui::SliderScalar("##Character Body", ImGuiDataType_U8, &mpSetup->botsData[s].bodyIndex, &bodyMin, &bodyMax, "%u");
+						ImGui::PushItemWidth(columnWidth + 95);
+						const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES - 1;
+						char bodyName[64];
+						snprintf(bodyName, 64, "%u (%s)", mpSetup->botsData[s].bodyIndex, mpBodyNames[mpSetup->botsData[s].bodyIndex]);
+						ImGui::SliderScalar("##Character Body", ImGuiDataType_U8, &mpSetup->botsData[s].bodyIndex, &bodyMin, &bodyMax, bodyName);
 						ImGui::PopItemWidth();
 
-						if ((SimulantDifficulties)difficulty == SimulantDifficulties::DISABLED) ImGui::EndDisabled();
-
-						//ImGui::PopItemWidth();
+						if ((SimulantDifficulties)difficulty == SimulantDifficulties::Disabled) ImGui::EndDisabled();
 
 						ImGui::PopID();
 					}

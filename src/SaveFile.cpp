@@ -679,7 +679,7 @@ MultiplayerTitles MultiplayerProfile::GetPlayerTitle(const bool newMethod) const
 	if (sum > 100) sum = 100;
 	MultiplayerTitles title = (MultiplayerTitles)(sum / 5);
 
-	if (title > MultiplayerTitles::PERFECT) return MultiplayerTitles::PERFECT;
+	if (title > MultiplayerTitles::Perfect) return MultiplayerTitles::Perfect;
 	return title;
 }
 
