@@ -24,11 +24,12 @@ private:
 	AboutWindow* aboutWindow;
 
 	ImGui::FileBrowser fileDialog;
+	bool fileDialogIsSave;
 
 	SaveData saveData;
 
-	std::string currentFilePath;
-	std::string currentFileName;
+	std::filesystem::path currentPath;
+	std::filesystem::path currentFilePath;
 
 	float windowOpacity;
 
@@ -47,9 +48,9 @@ private:
 	void LoadConfig();
 	void SaveConfig() const;
 
-	void Load();
+	void Load(std::filesystem::path filePath);
 	void LoadingProcess() const;
-	void Save();
+	void Save(std::filesystem::path filePath);
 
 	void CopyGameFile(const GameFile* srcGameFile) const;
 	void CopyMultiplayerProfile(const MultiplayerProfile* srcMpProfile) const;

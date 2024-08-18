@@ -11,16 +11,15 @@ using json = nlohmann::json;
 MainUI::MainUI() : BaseUI(nullptr)
 {
 	saveEditor = new SaveEditorUI(this);
-	aboutWindow = new AboutWindow(this);
 	popupDialog = new PopupDialog(this);
+	aboutWindow = new AboutWindow(this);
 
+	fileDialogIsSave = false;
+
+	currentPath.clear();
 	currentFilePath.clear();
-	currentFileName.clear();
 
 	windowOpacity = 0.9f;
-
-	fileDialog.SetTitle("Open a Perfect Dark save file");
-	fileDialog.SetTypeFilters({ ".bin", ".eep", ".*" });
 
 	LoadConfig();
 }
@@ -54,12 +53,27 @@ void MainUI::DoRender()
 		{
 			if (ImGui::MenuItem("Open..."))
 			{
+				fileDialogIsSave = false;
+				fileDialog = ImGui::FileBrowser(0);
+				if (std::filesystem::exists(currentPath)) fileDialog.SetPwd(currentPath);
+				fileDialog.SetTitle("Open a Perfect Dark save file");
+				fileDialog.SetTypeFilters({ ".bin", ".eep", ".*" });
 				fileDialog.Open();
 			}
 
 			if (ImGui::MenuItem("Save", NULL, false, saveData.IsSaveFileLoaded()))
 			{
-				Save();
+				Save(currentFilePath);
+			}
+
+			if (ImGui::MenuItem("Save As...", NULL, false, saveData.IsSaveFileLoaded()))
+			{
+				fileDialogIsSave = true;
+				fileDialog = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename);
+				if (std::filesystem::exists(currentPath)) fileDialog.SetPwd(currentPath);
+				fileDialog.SetTitle("Save the Perfect Dark save file");
+				fileDialog.SetTypeFilters({ saveData.GetType() == SaveData::Types::PC ? ".bin" : ".eep", ".*" });
+				fileDialog.Open();
 			}
 
 			ImGui::Separator();
@@ -260,7 +274,7 @@ void MainUI::DoRender()
 
 		if (saveData.IsSaveFileLoaded())
 		{
-			std::string fileText = std::string("Current file: ") + currentFileName;
+			std::string fileText = std::string("Current file: ") + currentFilePath.filename().u8string();
 
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::CalcTextSize(fileText.c_str()).x - 32);
 			ImGui::Text("%s", fileText.c_str());
@@ -279,9 +293,13 @@ void MainUI::DoRender()
 
 	if (fileDialog.HasSelected())
 	{
-		Load();
-		SaveConfig();
+		currentFilePath = fileDialog.GetSelected();
+		currentPath = fileDialog.GetPwd();
 
+		if (fileDialogIsSave) Save(currentFilePath);
+		else Load(currentFilePath);
+
+		SaveConfig();
 		fileDialog.ClearSelected();
 	}
 }
@@ -301,7 +319,7 @@ void MainUI::LoadConfig()
 		stream >> config;
 		stream.close();
 
-		if (config["lastPath"].is_string()) fileDialog.SetPwd(std::filesystem::u8path(config["lastPath"].template get<std::string>()));
+		if (config["lastPath"].is_string()) currentPath = std::filesystem::u8path(config["lastPath"].template get<std::string>());
 		if (config["windowOpacity"].is_number_float()) windowOpacity = config["windowOpacity"].template get<float>();
 	}
 	catch (const json::parse_error& error)
@@ -315,7 +333,7 @@ void MainUI::SaveConfig() const
 	try
 	{
 		json config;
-		config["lastPath"] = fileDialog.GetPwd().u8string();
+		config["lastPath"] = currentPath.u8string();
 		config["windowOpacity"] = windowOpacity;
 
 		// The setw manipulator was overloaded to set the indentation for pretty printing.
@@ -330,14 +348,11 @@ void MainUI::SaveConfig() const
 	}
 }
 
-void MainUI::Load()
+void MainUI::Load(std::filesystem::path filePath)
 {
 	try
 	{
-		saveData.Load(fileDialog.GetSelected().string());
-
-		currentFilePath = fileDialog.GetSelected().string();
-		currentFileName = fileDialog.GetSelected().filename().string();
+		saveData.Load(filePath.string());
 
 		LoadingProcess();
 
@@ -416,13 +431,13 @@ void MainUI::LoadingProcess() const
 	}
 }
 
-void MainUI::Save()
+void MainUI::Save(std::filesystem::path filePath)
 {
 	if (!saveData.IsSaveFileLoaded()) return;
 
 	try
 	{
-		saveData.Save(currentFilePath);
+		saveData.Save(filePath.string());
 	}
 	catch (const std::runtime_error& error)
 	{
