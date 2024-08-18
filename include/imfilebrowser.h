@@ -662,7 +662,7 @@ inline void ImGui::FileBrowser::Display()
         PushItemWidth(-1);
         if(InputText("", inputNameBuf_->data(), inputNameBuf_->size()) && inputNameBuf_->at(0) != '\0')
         {
-            selectedFilenames_ = { inputNameBuf_->data() };
+            selectedFilenames_ = { std::filesystem::u8path(inputNameBuf_->data()) };
         }
         focusOnInputText |= IsItemFocused();
         PopItemWidth();
