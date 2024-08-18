@@ -36,7 +36,7 @@ void AboutWindow::DoRender()
 		ImGui::Separator();
 		ImGui::Text("By PacoChan.");
 		TextURL("https://pacochan.net/software/pd-save-editor/");
-		ImGui::Text("\nThis is a save editor for Perfect Dark.");
+		ImGui::Text("\nThis is a save editor for Perfect Dark, both the N64 and the PC version.");
 
 		ImGui::EndPopup();
 	}
