@@ -149,12 +149,13 @@ void PakFileHeader::Load(uint8_t* fileBuffer, const bool isBigEndian)
 		headersum[1] = (fileBuffer[2] << 8) | fileBuffer[3];
 		bodysum[0] = (fileBuffer[4] << 8) | fileBuffer[5];
 		bodysum[1] = (fileBuffer[6] << 8) | fileBuffer[7];
-		filetype = (fileBuffer[8] << 1) | (fileBuffer[9] >> 7);
-		bodylen = (fileBuffer[9] << 4) | (fileBuffer[10] >> 4);
-		filelen = (fileBuffer[10] << 8) | (fileBuffer[11] >> 0);
-		deviceSerial = (fileBuffer[12] << 5) | (fileBuffer[13] >> 3); // This doesn't seem correct? Should be 0xbaa
-		id = (fileBuffer[13] << 4) | (fileBuffer[14] >> 4);
-		generation = (fileBuffer[14] << 5) | (fileBuffer[15] >> 3);
+
+		filetype = ((fileBuffer[8] & 0xFF) << 1) | (fileBuffer[9] >> 7);
+		bodylen = ((fileBuffer[9] & 0x7F) << 4) | (fileBuffer[10] >> 4);
+		filelen = ((fileBuffer[10] & 0xF) << 8) | (fileBuffer[11] >> 0);
+		deviceSerial = ((fileBuffer[12] & 0xFF) << 5) | (fileBuffer[13] >> 3); // Shouldn't this always be 0xbaa?
+		id = ((fileBuffer[13] & 0x7) << 4) | (fileBuffer[14] >> 4);
+		generation = ((fileBuffer[14] & 0xF) << 5) | (fileBuffer[15] >> 3);
 		occupied = (fileBuffer[15] >> 2) & 1;
 		writecompleted = (fileBuffer[15] >> 1) & 1;
 		version = (fileBuffer[15] >> 0) & 1;
@@ -165,6 +166,7 @@ void PakFileHeader::Load(uint8_t* fileBuffer, const bool isBigEndian)
 		headersum[1] = (fileBuffer[3] << 8) | fileBuffer[2];
 		bodysum[0] = (fileBuffer[5] << 8) | fileBuffer[4];
 		bodysum[1] = (fileBuffer[7] << 8) | fileBuffer[6];
+
 		filetype = (fileBuffer[8] >> 0) | ((fileBuffer[9] & 0x1) << 8);
 		bodylen = (fileBuffer[9] >> 1) | ((fileBuffer[10] & 0xF) << 7);
 		filelen = (fileBuffer[10] >> 4) | ((fileBuffer[11] & 0xFF) << 4);
