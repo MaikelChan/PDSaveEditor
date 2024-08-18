@@ -881,6 +881,10 @@ public:
 	uint32_t occupied : 1;
 	uint32_t writecompleted : 1; // 0 while writing data, then updated to 1 afterwards
 	uint32_t version : 1;        // 0, but can be set to 1 using -forceversion argument
+
+public:
+	void Load(uint8_t* fileBuffer, const bool isBigEndian); // TODO: Maybe should be static?
+	void Save(uint8_t* fileBuffer, const bool isBigEndian);
 };
 
 struct PakFile
@@ -892,8 +896,8 @@ private:
 	bool isChecksumValid = false;
 
 public:
-	virtual void Load(uint8_t* fileBuffer);
-	virtual void Save(uint8_t* fileBuffer);
+	virtual void Load(uint8_t* fileBuffer, const bool isBigEndian);
+	virtual void Save(uint8_t* fileBuffer, const bool isBigEndian);
 
 	bool IsUsed() const { return pakFileHeader.occupied; }
 	bool IsChecksumValid() const { return isChecksumValid; }
@@ -913,8 +917,8 @@ public:
 	bool altTitleEnabled = false;
 
 public:
-	void Load(uint8_t* fileBuffer) override;
-	void Save(uint8_t* fileBuffer) override;
+	void Load(uint8_t* fileBuffer, const bool isBigEndian) override;
+	void Save(uint8_t* fileBuffer, const bool isBigEndian) override;
 
 	bool IsMultiTrackSlotEnabled(const uint8_t slot) const;
 	void SetMultiTrackSlotEnabled(const uint8_t slot, const bool enable);
@@ -941,8 +945,8 @@ public:
 	uint8_t weaponsfound[6] = {};
 
 public:
-	void Load(uint8_t* fileBuffer) override;
-	void Save(uint8_t* fileBuffer) override;
+	void Load(uint8_t* fileBuffer, const bool isBigEndian) override;
+	void Save(uint8_t* fileBuffer, const bool isBigEndian) override;
 
 	bool GetFlag(const SinglePlayerFlags flag) const;
 	void SetFlag(const SinglePlayerFlags flag, const bool set);
@@ -982,8 +986,8 @@ public:
 	uint8_t gunfuncs[6] = {};
 
 public:
-	void Load(uint8_t* fileBuffer) override;
-	void Save(uint8_t* fileBuffer) override;
+	void Load(uint8_t* fileBuffer, const bool isBigEndian) override;
+	void Save(uint8_t* fileBuffer, const bool isBigEndian) override;
 
 	bool GetOptionsFlag(const MultiplayerOptionsFlags flag) const;
 	void SetOptionsFlag(const MultiplayerOptionsFlags flag, const bool set);
@@ -1012,8 +1016,8 @@ public:
 	uint8_t teams[MAX_PLAYERS] = {};
 
 public:
-	void Load(uint8_t* fileBuffer) override;
-	void Save(uint8_t* fileBuffer) override;
+	void Load(uint8_t* fileBuffer, const bool isBigEndian) override;
+	void Save(uint8_t* fileBuffer, const bool isBigEndian) override;
 
 	uint8_t GetArena() const;
 	void SetArena(const uint8_t arena);
@@ -1028,8 +1032,8 @@ public:
 struct Terminator : public PakFile
 {
 public:
-	void Load(uint8_t* fileBuffer) override;
-	void Save(uint8_t* fileBuffer) override;
+	void Load(uint8_t* fileBuffer, const bool isBigEndian) override;
+	void Save(uint8_t* fileBuffer, const bool isBigEndian) override;
 };
 
 struct SaveFile
@@ -1042,8 +1046,8 @@ private:
 	Terminator terminator = {};
 
 public:
-	void Load(uint8_t* fileBuffer);
-	void Save(uint8_t* fileBuffer);
+	void Load(uint8_t* fileBuffer, const bool isBigEndian);
+	void Save(uint8_t* fileBuffer, const bool isBigEndian);
 
 	BossFile* GetBossFile(const uint8_t index) { return &bossFiles[index]; }
 	GameFile* GetGameFile(const uint8_t index) { return &gameFiles[index]; }
@@ -1061,7 +1065,7 @@ public:
 	static void CalculateChecksum(uint8_t* start, uint8_t* end, uint16_t* checksum);
 
 private:
-	void PrintFileInfo(uint8_t* fileBuffer) const;
+	void PrintFileInfo(uint8_t* fileBuffer, const bool isBigEndian) const;
 
 	static uint32_t TransformSeed(uint64_t* seed);
 };

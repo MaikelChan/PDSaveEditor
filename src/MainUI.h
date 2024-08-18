@@ -10,6 +10,12 @@ class AboutWindow;
 
 #define CONFIG_FILE_NAME "config.json"
 
+const char* const saveFormatNames[]
+{
+	"Nintendo 64",
+	"PC"
+};
+
 class MainUI : public BaseUI
 {
 private:

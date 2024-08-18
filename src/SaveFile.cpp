@@ -25,6 +25,8 @@ uint8_t* SaveBuffer::GetBytes()
 
 uint32_t SaveBuffer::ReadBits(const int32_t numBits)
 {
+	if (numBits == 0) return 0;
+
 	uint32_t bit = 1 << (numBits - 1);
 	uint32_t value = 0;
 
@@ -137,11 +139,140 @@ void SaveBuffer::Clear()
 
 #pragma endregion
 
+#pragma region PakFileHeader
+
+void PakFileHeader::Load(uint8_t* fileBuffer, const bool isBigEndian)
+{
+	if (isBigEndian)
+	{
+		headersum[0] = (fileBuffer[0] << 8) | fileBuffer[1];
+		headersum[1] = (fileBuffer[2] << 8) | fileBuffer[3];
+		bodysum[0] = (fileBuffer[4] << 8) | fileBuffer[5];
+		bodysum[1] = (fileBuffer[6] << 8) | fileBuffer[7];
+		filetype = (fileBuffer[8] << 1) | (fileBuffer[9] >> 7);
+		bodylen = (fileBuffer[9] << 4) | (fileBuffer[10] >> 4);
+		filelen = (fileBuffer[10] << 8) | (fileBuffer[11] >> 0);
+		deviceSerial = (fileBuffer[12] << 5) | (fileBuffer[13] >> 3); // This doesn't seem correct? Should be 0xbaa
+		id = (fileBuffer[13] << 4) | (fileBuffer[14] >> 4);
+		generation = (fileBuffer[14] << 5) | (fileBuffer[15] >> 3);
+		occupied = (fileBuffer[15] >> 2) & 1;
+		writecompleted = (fileBuffer[15] >> 1) & 1;
+		version = (fileBuffer[15] >> 0) & 1;
+	}
+	else
+	{
+		headersum[0] = (fileBuffer[1] << 8) | fileBuffer[0];
+		headersum[1] = (fileBuffer[3] << 8) | fileBuffer[2];
+		bodysum[0] = (fileBuffer[5] << 8) | fileBuffer[4];
+		bodysum[1] = (fileBuffer[7] << 8) | fileBuffer[6];
+		filetype = (fileBuffer[8] >> 0) | ((fileBuffer[9] & 0x1) << 8);
+		bodylen = (fileBuffer[9] >> 1) | ((fileBuffer[10] & 0xF) << 7);
+		filelen = (fileBuffer[10] >> 4) | ((fileBuffer[11] & 0xFF) << 4);
+		deviceSerial = (fileBuffer[12] >> 0) | ((fileBuffer[13] & 0x1F) << 8);
+		id = (fileBuffer[13] >> 5) | ((fileBuffer[14] & 0xF) << 3);
+		generation = (fileBuffer[14] >> 4) | ((fileBuffer[15] & 0x1F) << 4);
+		occupied = (fileBuffer[15] >> 5) & 1;
+		writecompleted = (fileBuffer[15] >> 6) & 1;
+		version = (fileBuffer[15] >> 7) & 1;
+	}
+}
+
+void PakFileHeader::Save(uint8_t* fileBuffer, const bool isBigEndian)
+{
+	if (occupied)
+	{
+		SaveFile::CalculateChecksum(&fileBuffer[PACK_HEADER_SIZE], &fileBuffer[PACK_HEADER_SIZE + bodylen], bodysum);
+	}
+	else
+	{
+		bodysum[0] = 0xFFFF;
+		bodysum[1] = 0xFFFF;
+	}
+
+	if (isBigEndian)
+	{
+		fileBuffer[4] = bodysum[0] >> 8;
+		fileBuffer[5] = bodysum[0] & 0xFF;
+		fileBuffer[6] = bodysum[1] >> 8;
+		fileBuffer[7] = bodysum[1] & 0xFF;
+
+		fileBuffer[8] = filetype >> 1;
+		fileBuffer[9] = (filetype & 0x1) << 7;
+
+		fileBuffer[9] |= bodylen >> 4;
+		fileBuffer[10] = (bodylen & 0xF) << 4;
+
+		fileBuffer[10] |= filelen >> 8;
+		fileBuffer[11] = (filelen & 0xFF) << 0;
+
+		fileBuffer[12] = deviceSerial >> 5;
+		fileBuffer[13] = (deviceSerial & 0x1F) << 3;
+
+		fileBuffer[13] |= id >> 4;
+		fileBuffer[14] = (id & 0xF) << 4;
+
+		fileBuffer[14] |= generation >> 5;
+		fileBuffer[15] = (generation & 0x1F) << 3;
+
+		fileBuffer[15] |= occupied << 2;
+		fileBuffer[15] |= writecompleted << 1;
+		fileBuffer[15] |= version << 0;
+	}
+	else
+	{
+		fileBuffer[4] = bodysum[0] & 0xFF;
+		fileBuffer[5] = bodysum[0] >> 8;
+		fileBuffer[6] = bodysum[1] & 0xFF;
+		fileBuffer[7] = bodysum[1] >> 8;
+
+		fileBuffer[8] = filetype & 0xFF;
+		fileBuffer[9] = filetype >> 8;
+
+		fileBuffer[9] |= (bodylen & 0x7F) << 1;
+		fileBuffer[10] = bodylen >> 7;
+
+		fileBuffer[10] |= (filelen & 0xF) << 4;
+		fileBuffer[11] = filelen >> 4;
+
+		fileBuffer[12] = (deviceSerial & 0xFF) << 0;
+		fileBuffer[13] = deviceSerial >> 8;
+
+		fileBuffer[13] |= (id & 0x7) << 5;
+		fileBuffer[14] = id >> 3;
+
+		fileBuffer[14] |= (generation & 0xF) << 4;
+		fileBuffer[15] = generation >> 4;
+
+		fileBuffer[15] |= (occupied & 0x1) << 5;
+		fileBuffer[15] |= (writecompleted & 0x1) << 6;
+		fileBuffer[15] |= (version & 0x1) << 7;
+	}
+
+	SaveFile::CalculateChecksum(&fileBuffer[8], &fileBuffer[PACK_HEADER_SIZE], headersum);
+
+	if (isBigEndian)
+	{
+		fileBuffer[0] = headersum[0] >> 8;
+		fileBuffer[1] = headersum[0] & 0xFF;
+		fileBuffer[2] = headersum[1] >> 8;
+		fileBuffer[3] = headersum[1] & 0xFF;
+	}
+	else
+	{
+		fileBuffer[0] = headersum[0] & 0xFF;
+		fileBuffer[1] = headersum[0] >> 8;
+		fileBuffer[2] = headersum[1] & 0xFF;
+		fileBuffer[3] = headersum[1] >> 8;
+	}
+}
+
+#pragma endregion
+
 #pragma region PakFile
 
-void PakFile::Load(uint8_t* fileBuffer)
+void PakFile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 {
-	memcpy(&pakFileHeader, &fileBuffer[0], PACK_HEADER_SIZE);
+	pakFileHeader.Load(&fileBuffer[0], isBigEndian);
 
 	uint16_t headerChecksum[2];
 	SaveFile::CalculateChecksum(&fileBuffer[8], &fileBuffer[PACK_HEADER_SIZE], headerChecksum);
@@ -153,35 +284,19 @@ void PakFile::Load(uint8_t* fileBuffer)
 		pakFileHeader.bodysum[0] == bodyChecksum[0] && pakFileHeader.bodysum[1] == bodyChecksum[1];
 }
 
-void PakFile::Save(uint8_t* fileBuffer)
+void PakFile::Save(uint8_t* fileBuffer, const bool isBigEndian)
 {
-	memcpy(&fileBuffer[0], &pakFileHeader, PACK_HEADER_SIZE);
-
-	uint16_t headerChecksum[2];
-	SaveFile::CalculateChecksum(&fileBuffer[8], &fileBuffer[PACK_HEADER_SIZE], headerChecksum);
-	memcpy(&fileBuffer[0], headerChecksum, 4);
-
-	if (pakFileHeader.occupied)
-	{
-		uint16_t bodyChecksum[2];
-		SaveFile::CalculateChecksum(&fileBuffer[PACK_HEADER_SIZE], &fileBuffer[PACK_HEADER_SIZE + pakFileHeader.bodylen], bodyChecksum);
-		memcpy(&fileBuffer[4], bodyChecksum, 4);
-		isChecksumValid = true;
-	}
-	else
-	{
-		for (uint8_t i = 0; i < 4; i++) fileBuffer[4 + i] = 0xff;
-		isChecksumValid = false;
-	}
+	pakFileHeader.Save(&fileBuffer[0], isBigEndian);
+	isChecksumValid = pakFileHeader.occupied;
 }
 
 #pragma endregion
 
 #pragma region BossFile
 
-void BossFile::Load(uint8_t* fileBuffer)
+void BossFile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 {
-	PakFile::Load(fileBuffer);
+	PakFile::Load(fileBuffer, isBigEndian);
 
 	if (pakFileHeader.filelen != PACK_BOSS_SIZE + PACK_HEADER_SIZE)
 		throw std::runtime_error(std::string("Unexpected size of \"BOSS\" file: ") + std::to_string(pakFileHeader.filelen) + ".");
@@ -210,7 +325,7 @@ void BossFile::Load(uint8_t* fileBuffer)
 	altTitleEnabled = buffer.ReadBits(1);
 }
 
-void BossFile::Save(uint8_t* fileBuffer)
+void BossFile::Save(uint8_t* fileBuffer, const bool isBigEndian)
 {
 	SaveBuffer buffer;
 
@@ -242,7 +357,7 @@ void BossFile::Save(uint8_t* fileBuffer)
 		fileBuffer[PACK_HEADER_SIZE + i] = bytes[i % pakFileHeader.bodylen];
 	}
 
-	PakFile::Save(fileBuffer);
+	PakFile::Save(fileBuffer, isBigEndian);
 }
 
 bool BossFile::IsMultiTrackSlotEnabled(const uint8_t slot) const
@@ -266,9 +381,9 @@ void BossFile::SetMultiTrackSlotEnabled(const uint8_t slot, const bool enable)
 
 #pragma region GameFile
 
-void GameFile::Load(uint8_t* fileBuffer)
+void GameFile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 {
-	PakFile::Load(fileBuffer);
+	PakFile::Load(fileBuffer, isBigEndian);
 
 	if (pakFileHeader.filelen != PACK_GAME_SIZE + PACK_HEADER_SIZE)
 		throw std::runtime_error(std::string("Unexpected size of \"GAME\" file: ") + std::to_string(pakFileHeader.filelen) + ".");
@@ -329,7 +444,7 @@ void GameFile::Load(uint8_t* fileBuffer)
 	}
 }
 
-void GameFile::Save(uint8_t* fileBuffer)
+void GameFile::Save(uint8_t* fileBuffer, const bool isBigEndian)
 {
 	SaveBuffer buffer;
 
@@ -389,7 +504,7 @@ void GameFile::Save(uint8_t* fileBuffer)
 		fileBuffer[PACK_HEADER_SIZE + i] = bytes[i % pakFileHeader.bodylen];
 	}
 
-	PakFile::Save(fileBuffer);
+	PakFile::Save(fileBuffer, isBigEndian);
 }
 
 bool GameFile::GetFlag(const SinglePlayerFlags flag) const
@@ -448,9 +563,9 @@ void GameFile::SetWeaponFound(const uint8_t weaponIndex, const bool found)
 
 #pragma region MultiplayerProfile
 
-void MultiplayerProfile::Load(uint8_t* fileBuffer)
+void MultiplayerProfile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 {
-	PakFile::Load(fileBuffer);
+	PakFile::Load(fileBuffer, isBigEndian);
 
 	if (pakFileHeader.filelen != PACK_MPPLAYER_SIZE + PACK_HEADER_SIZE)
 		throw std::runtime_error(std::string("Unexpected size of \"MPPLAYER\" file: ") + std::to_string(pakFileHeader.filelen) + ".");
@@ -506,7 +621,7 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer)
 	}
 }
 
-void MultiplayerProfile::Save(uint8_t* fileBuffer)
+void MultiplayerProfile::Save(uint8_t* fileBuffer, const bool isBigEndian)
 {
 	SaveBuffer buffer;
 
@@ -562,7 +677,7 @@ void MultiplayerProfile::Save(uint8_t* fileBuffer)
 		fileBuffer[PACK_HEADER_SIZE + i] = bytes[i % pakFileHeader.bodylen];
 	}
 
-	PakFile::Save(fileBuffer);
+	PakFile::Save(fileBuffer, isBigEndian);
 }
 
 bool MultiplayerProfile::GetOptionsFlag(const MultiplayerOptionsFlags flag) const
@@ -687,9 +802,9 @@ MultiplayerTitles MultiplayerProfile::GetPlayerTitle(const bool newMethod) const
 
 #pragma region MultiplayerSetup
 
-void MultiplayerSetup::Load(uint8_t* fileBuffer)
+void MultiplayerSetup::Load(uint8_t* fileBuffer, const bool isBigEndian)
 {
-	PakFile::Load(fileBuffer);
+	PakFile::Load(fileBuffer, isBigEndian);
 
 	if (pakFileHeader.filelen != PACK_MPSETUP_SIZE + PACK_HEADER_SIZE)
 		throw std::runtime_error(std::string("Unexpected size of \"MPSETUP\" file: ") + std::to_string(pakFileHeader.filelen) + ".");
@@ -727,7 +842,7 @@ void MultiplayerSetup::Load(uint8_t* fileBuffer)
 	}
 }
 
-void MultiplayerSetup::Save(uint8_t* fileBuffer)
+void MultiplayerSetup::Save(uint8_t* fileBuffer, const bool isBigEndian)
 {
 	SaveBuffer buffer;
 
@@ -767,7 +882,7 @@ void MultiplayerSetup::Save(uint8_t* fileBuffer)
 		fileBuffer[PACK_HEADER_SIZE + i] = bytes[i % pakFileHeader.bodylen];
 	}
 
-	PakFile::Save(fileBuffer);
+	PakFile::Save(fileBuffer, isBigEndian);
 }
 
 uint8_t MultiplayerSetup::GetArena() const
@@ -826,27 +941,26 @@ void MultiplayerSetup::SetHillTime(const uint8_t time)
 
 #pragma region Terminator
 
-void Terminator::Load(uint8_t* fileBuffer)
+void Terminator::Load(uint8_t* fileBuffer, const bool isBigEndian)
 {
-	PakFile::Load(fileBuffer);
+	PakFile::Load(fileBuffer, isBigEndian);
 
 	if (pakFileHeader.filelen != PACK_TERMINATOR_SIZE + PACK_HEADER_SIZE)
 		throw std::runtime_error(std::string("Unexpected size of \"TERMINATOR\" file: ") + std::to_string(pakFileHeader.filelen) + ".");
 }
 
-void Terminator::Save(uint8_t* fileBuffer)
+void Terminator::Save(uint8_t* fileBuffer, const bool isBigEndian)
 {
-	// This never changes, so just copy the header and don't recalculate checksums
-	memcpy(&fileBuffer[0], &pakFileHeader, PACK_HEADER_SIZE);
+	PakFile::Save(fileBuffer, isBigEndian);
 }
 
 #pragma endregion
 
 #pragma region SaveFile
 
-void SaveFile::Load(uint8_t* fileBuffer)
+void SaveFile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 {
-	PrintFileInfo(fileBuffer);
+	PrintFileInfo(fileBuffer, isBigEndian);
 
 	// Read headers
 
@@ -860,7 +974,7 @@ void SaveFile::Load(uint8_t* fileBuffer)
 	while (p < SAVE_FILE_SIZE)
 	{
 		PakFileHeader pakFileHeader = {};
-		memcpy(&pakFileHeader, &fileBuffer[p], PACK_HEADER_SIZE);
+		pakFileHeader.Load(&fileBuffer[p], isBigEndian);
 
 		// Read data
 
@@ -868,27 +982,27 @@ void SaveFile::Load(uint8_t* fileBuffer)
 		{
 			case PakFileTypes::BOSS:
 			{
-				bossFiles[bossFilesCount++].Load(&fileBuffer[p]);
+				bossFiles[bossFilesCount++].Load(&fileBuffer[p], isBigEndian);
 				break;
 			}
 			case PakFileTypes::MPPLAYER:
 			{
-				mpProfiles[mpProfilesCount++].Load(&fileBuffer[p]);
+				mpProfiles[mpProfilesCount++].Load(&fileBuffer[p], isBigEndian);
 				break;
 			}
 			case PakFileTypes::MPSETUP:
 			{
-				mpSetups[mpSetupsCount++].Load(&fileBuffer[p]);
+				mpSetups[mpSetupsCount++].Load(&fileBuffer[p], isBigEndian);
 				break;
 			}
 			case PakFileTypes::GAME:
 			{
-				gameFiles[gameFilesCount++].Load(&fileBuffer[p]);
+				gameFiles[gameFilesCount++].Load(&fileBuffer[p], isBigEndian);
 				break;
 			}
 			case PakFileTypes::TERMINATOR:
 			{
-				terminator.Load(&fileBuffer[p]);
+				terminator.Load(&fileBuffer[p], isBigEndian);
 				break;
 			}
 			default:
@@ -903,38 +1017,38 @@ void SaveFile::Load(uint8_t* fileBuffer)
 	}
 }
 
-void SaveFile::Save(uint8_t* fileBuffer)
+void SaveFile::Save(uint8_t* fileBuffer, const bool isBigEndian)
 {
 	int32_t p = 0;
 
 	for (uint8_t bf = 0; bf < ACTUAL_NUM_BOSS_FILE_SLOTS; bf++)
 	{
-		bossFiles[bf].Save(&fileBuffer[p]);
+		bossFiles[bf].Save(&fileBuffer[p], isBigEndian);
 		p += bossFiles[bf].pakFileHeader.filelen;
 	}
 
 	for (uint8_t mpp = 0; mpp < ACTUAL_NUM_FILE_SLOTS; mpp++)
 	{
-		mpProfiles[mpp].Save(&fileBuffer[p]);
+		mpProfiles[mpp].Save(&fileBuffer[p], isBigEndian);
 		p += mpProfiles[mpp].pakFileHeader.filelen;
 	}
 
 	for (uint8_t mps = 0; mps < ACTUAL_NUM_FILE_SLOTS; mps++)
 	{
-		mpSetups[mps].Save(&fileBuffer[p]);
+		mpSetups[mps].Save(&fileBuffer[p], isBigEndian);
 		p += mpSetups[mps].pakFileHeader.filelen;
 	}
 
 	for (uint8_t gf = 0; gf < ACTUAL_NUM_FILE_SLOTS; gf++)
 	{
-		gameFiles[gf].Save(&fileBuffer[p]);
+		gameFiles[gf].Save(&fileBuffer[p], isBigEndian);
 		p += gameFiles[gf].pakFileHeader.filelen;
 	}
 
 	if (p != SAVE_FILE_SIZE - PACK_TERMINATOR_ACTUAL_SIZE - PACK_HEADER_SIZE)
 		throw std::runtime_error(std::string("Unexpected position of \"TERMINATOR\" file: ") + std::to_string(p) + ".");
 
-	terminator.Save(&fileBuffer[p]);
+	terminator.Save(&fileBuffer[p], isBigEndian);
 }
 
 uint8_t SaveFile::GetGameFileCount() const
@@ -1034,7 +1148,7 @@ void SaveFile::CalculateChecksum(uint8_t* start, uint8_t* end, uint16_t* checksu
 	checksum[1] = sum2 & 0xffff;
 }
 
-void SaveFile::PrintFileInfo(uint8_t* fileBuffer) const
+void SaveFile::PrintFileInfo(uint8_t* fileBuffer, const bool isBigEndian) const
 {
 	printf("Position  Header CRC       Body CRC         Type (Name)            Size  ID  Used  Device  Generation  Written  Version\n");
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
@@ -1049,7 +1163,7 @@ void SaveFile::PrintFileInfo(uint8_t* fileBuffer) const
 	while (p < SAVE_FILE_SIZE)
 	{
 		PakFileHeader pakFileHeader = {};
-		memcpy(&pakFileHeader, &fileBuffer[p], PACK_HEADER_SIZE);
+		pakFileHeader.Load(&fileBuffer[p], isBigEndian);
 
 		// Print debug data
 

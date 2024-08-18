@@ -20,7 +20,7 @@ MainUI::MainUI() : BaseUI(nullptr)
 	windowOpacity = 0.9f;
 
 	fileDialog.SetTitle("Open a Perfect Dark save file");
-	fileDialog.SetTypeFilters({ ".bin", ".*" });
+	fileDialog.SetTypeFilters({ ".bin", ".eep", ".*" });
 
 	LoadConfig();
 }
@@ -74,13 +74,19 @@ void MainUI::DoRender()
 
 		if (saveData.IsSaveFileLoaded() && ImGui::BeginMenu("Tools"))
 		{
+			int format = (int)saveData.GetType() - 1;
+			if (ImGui::Combo("Save Format", &format, saveFormatNames, NUM_SAVE_FORMATS))
+			{
+				saveData.SetType((SaveData::Types)(format + 1));
+			}
+
 			uint8_t gameFileCount = saveData.GetSaveFile()->GetGameFileCount();
 			uint8_t mpSetupCount = saveData.GetSaveFile()->GetMultiplayerSetupCount();
 			uint8_t mpProfileCount = saveData.GetSaveFile()->GetMultiplayerProfileCount();
 
 			ImGui::SeparatorText("Copy");
 
-			if (gameFileCount == 0 ||gameFileCount >= NUM_FILE_SLOTS) ImGui::BeginDisabled();
+			if (gameFileCount == 0 || gameFileCount >= NUM_FILE_SLOTS) ImGui::BeginDisabled();
 			if (ImGui::BeginMenu("Single Player Agent File##CopyGameFile"))
 			{
 				uint8_t file = 0;

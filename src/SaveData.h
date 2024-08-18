@@ -3,10 +3,12 @@
 #include <string>
 #include "SaveFile.h"
 
+#define NUM_SAVE_FORMATS 2
+
 class SaveData
 {
 public:
-	enum class Types { NotValid, PC, Nintendo64 };
+	enum class Types { NotValid, Nintendo64, PC };
 
 private:
 	SaveFile* saveFile;
@@ -22,6 +24,7 @@ public:
 	inline bool IsSaveFileLoaded() const { return saveFile != nullptr; }
 	inline SaveFile* GetSaveFile() const { return saveFile; }
 	inline Types GetType() const { return type; }
+	inline void SetType(const Types newType) { type = newType; }
 	inline bool NeedsEndianSwap() const { return type == SaveData::Types::Nintendo64; }
 
 private:

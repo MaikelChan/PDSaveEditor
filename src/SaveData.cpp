@@ -48,19 +48,20 @@ void SaveData::Load(const std::string filePath)
 	stream.read((char*)&fileBuffer, SAVE_FILE_SIZE);
 	stream.close();
 
-	// Create and load the SaveFile struct
-
-	SaveFile* saveFile = new SaveFile();
-	saveFile->Load(fileBuffer);
+	// Check if it's a valid file and its format
 
 	SaveData::Types type = CalculateType(fileBuffer);
 
 	if (type == SaveData::Types::NotValid)
 	{
-		delete saveFile;
 		throw std::runtime_error("The selected file is not a valid Perfect Dark save file.");
 		return;
 	}
+
+	// Create and load the SaveFile struct
+
+	SaveFile* saveFile = new SaveFile();
+	saveFile->Load(fileBuffer, type == SaveData::Types::Nintendo64);
 
 	ClearSaveFile();
 
@@ -75,7 +76,7 @@ void SaveData::Save(const std::string filePath)
 	uint8_t fileBuffer[SAVE_FILE_SIZE];
 	memset(fileBuffer, 0, SAVE_FILE_SIZE);
 
-	saveFile->Save(fileBuffer);
+	saveFile->Save(fileBuffer, type == SaveData::Types::Nintendo64);
 
 	std::ofstream stream = std::ofstream(filePath, std::ios::binary);
 
@@ -100,21 +101,14 @@ void SaveData::ClearSaveFile()
 
 SaveData::Types SaveData::CalculateType(uint8_t* fileBuffer)
 {
-	int32_t p = 0;
+	uint16_t headersum[2];
+	headersum[0] = (fileBuffer[1] << 8) | fileBuffer[0];
+	headersum[1] = (fileBuffer[3] << 8) | fileBuffer[2];
 
-	while (p < SAVE_FILE_SIZE)
-	{
-		PakFileHeader header = {};
-		memcpy(&header, &fileBuffer[p], PACK_HEADER_SIZE);
+	uint16_t checksum[2];
+	SaveFile::CalculateChecksum(&fileBuffer[8], &fileBuffer[16], checksum);
 
-		uint16_t checksum[2];
-		SaveFile::CalculateChecksum(&fileBuffer[p + 8], &fileBuffer[p + 16], checksum);
-
-		if (header.headersum[0] == checksum[0] && header.headersum[1] == checksum[1]) return SaveData::Types::PC;
-		if (Utils::Swap16(header.headersum[0]) == checksum[0] && Utils::Swap16(header.headersum[1]) == checksum[1]) return SaveData::Types::Nintendo64;
-
-		p += header.filelen;
-	}
-
+	if (headersum[0] == checksum[0] && headersum[1] == checksum[1]) return SaveData::Types::PC;
+	if (Utils::Swap16(headersum[0]) == checksum[0] && Utils::Swap16(headersum[1]) == checksum[1]) return SaveData::Types::Nintendo64;
 	return SaveData::Types::NotValid;
 }
