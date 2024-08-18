@@ -1,15 +1,10 @@
 #include "SaveData.h"
 #include <fstream>
-//#include <exception>
 #include <cassert>
 #include "Utils.h"
 
 SaveData::SaveData()
 {
-	assert(sizeof(PakFileHeader) == PACK_HEADER_SIZE);
-	/*assert(sizeof(GlobalData) == GLOBAL_DATA_SIZE);
-	assert(sizeof(SaveFile) == SAVE_FILE_SIZE);*/
-
 	saveFile = nullptr;
 
 	type = SaveData::Types::NotValid;

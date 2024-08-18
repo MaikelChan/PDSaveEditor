@@ -870,20 +870,20 @@ public:
 struct PakFileHeader
 {
 public:
-	uint16_t headersum[2];       // checksum from filetype to end of header
+	uint16_t headersum[2];   // checksum from filetype to end of header
 	uint16_t bodysum[2];
-	uint32_t filetype : 9;       // PAKFILETYPE constant
-	uint32_t bodylen : 11;       // not aligned
-	uint32_t filelen : 12;       // aligned to 0x10
-	uint32_t deviceSerial : 13;
-	uint32_t id : 7;
-	uint32_t generation : 9;     // increments by 1 each time the same file is saved
-	uint32_t occupied : 1;
-	uint32_t writecompleted : 1; // 0 while writing data, then updated to 1 afterwards
-	uint32_t version : 1;        // 0, but can be set to 1 using -forceversion argument
+	uint16_t filetype;       //  9 bits - PAKFILETYPE constant
+	uint16_t bodylen;        // 11 bits - not aligned
+	uint16_t filelen;        // 12 bits - aligned to 0x10
+	uint16_t deviceSerial;   // 13 bits
+	uint8_t id;              //  7 bits
+	uint16_t generation;     //  9 bits - increments by 1 each time the same file is saved
+	uint8_t occupied;        //  1 bits
+	uint8_t writecompleted;  //  1 bits - 0 while writing data, then updated to 1 afterwards
+	uint8_t version;         //  1 bits - 0, but can be set to 1 using -forceversion argument
 
 public:
-	void Load(uint8_t* fileBuffer, const bool isBigEndian); // TODO: Maybe should be static?
+	void Load(uint8_t* fileBuffer, const bool isBigEndian);
 	void Save(uint8_t* fileBuffer, const bool isBigEndian);
 };
 
