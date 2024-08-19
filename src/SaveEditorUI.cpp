@@ -1232,18 +1232,29 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 
 					PrintHeader("Weapons");
 
-					const char* wNames[NUM_MP_WEAPONS_PC] = {};
-					for (uint8_t w = 0; w < NUM_MP_WEAPONS_PC; w++) wNames[w] = weaponNames[mpWeaponNameIndicesPC[w]];
+					const bool isN64 = mainUI->GetSaveData().GetFormat() == SaveFormats::Nintendo64;
+					const uint8_t numWeapons = isN64 ? NUM_MP_WEAPONS_N64 : NUM_MP_WEAPONS_PC;
+					const uint8_t* mpWeaponNameIndices = isN64 ? mpWeaponNameIndicesN64 : mpWeaponNameIndicesPC;
 
 					for (uint8_t ws = 0; ws < NUM_MP_WEAPONSLOTS; ws++)
 					{
 						char weaponSlotLabel[16];
 						snprintf(weaponSlotLabel, 16, "Weapon %u", ws + 1);
 
-						int weapon = mpSetup->weaponSlots[ws];
-						if (ImGui::Combo(weaponSlotLabel, &weapon, wNames, NUM_MP_WEAPONS_PC))
+						if (ImGui::BeginCombo(weaponSlotLabel, weaponNames[mpWeaponNameIndices[mpSetup->weaponSlots[ws]]]))
 						{
-							mpSetup->weaponSlots[ws] = weapon;
+							for (uint8_t w = 0; w < numWeapons; w++)
+							{
+								const bool isSelected = (mpSetup->weaponSlots[ws] == w);
+								if (ImGui::Selectable(weaponNames[mpWeaponNameIndices[w]], isSelected))
+								{
+									mpSetup->weaponSlots[ws] = w;
+								}
+
+								if (isSelected) ImGui::SetItemDefaultFocus();
+							}
+
+							ImGui::EndCombo();
 						}
 					}
 
