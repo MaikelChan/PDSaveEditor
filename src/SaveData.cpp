@@ -57,7 +57,7 @@ void SaveData::Load(const std::string filePath)
 	// Create and load the SaveFile struct
 
 	SaveFile* saveFile = new SaveFile();
-	saveFile->Load(fileBuffer, NeedsEndianSwap());
+	saveFile->Load(fileBuffer, format == SaveFormats::Nintendo64);
 
 	ClearSaveFile();
 
@@ -72,7 +72,7 @@ void SaveData::Save(const std::string filePath)
 	uint8_t fileBuffer[SAVE_FILE_SIZE];
 	memset(fileBuffer, 0, SAVE_FILE_SIZE);
 
-	saveFile->Save(fileBuffer, NeedsEndianSwap());
+	saveFile->Save(fileBuffer, format == SaveFormats::Nintendo64);
 
 	std::ofstream stream = std::ofstream(filePath, std::ios::binary);
 
@@ -83,6 +83,52 @@ void SaveData::Save(const std::string filePath)
 
 	stream.write((char*)fileBuffer, SAVE_FILE_SIZE);
 	stream.close();
+}
+
+void SaveData::SetFormat(const SaveFormats format)
+{
+	if (SaveData::format == format) return;
+
+	SaveFormats previousFormat = SaveData::format;
+	SaveData::format = format;
+
+	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+	{
+		MultiplayerSetup* mpSetup = saveFile->GetMultiplayerSetup(f);
+		if (!mpSetup->IsUsed()) continue;
+
+		if (previousFormat == SaveFormats::PC && format == SaveFormats::Nintendo64)
+		{
+			for (uint8_t ws = 0; ws < NUM_MP_WEAPONSLOTS; ws++)
+			{
+				// Classic weapons not available on N64
+
+				if (mpSetup->weaponSlots[ws] >= 37 && mpSetup->weaponSlots[ws] <= 44)
+				{
+					mpSetup->weaponSlots[ws] = 0;
+				}
+
+				// Offset weapons that were after the classic weapons
+
+				if (mpSetup->weaponSlots[ws] > 44)
+				{
+					mpSetup->weaponSlots[ws] -= 8;
+				}
+			}
+		}
+		else if (previousFormat == SaveFormats::Nintendo64 && format == SaveFormats::PC)
+		{
+			for (uint8_t ws = 0; ws < NUM_MP_WEAPONSLOTS; ws++)
+			{
+				// Offset latest weapons to make room for the classic weapons
+
+				if (mpSetup->weaponSlots[ws] > 36)
+				{
+					mpSetup->weaponSlots[ws] += 8;
+				}
+			}
+		}
+	}
 }
 
 void SaveData::ClearSaveFile()

@@ -22,8 +22,7 @@ public:
 	inline bool IsSaveFileLoaded() const { return saveFile != nullptr; }
 	inline SaveFile* GetSaveFile() const { return saveFile; }
 	inline SaveFormats GetFormat() const { return format; }
-	inline void SetFormat(const SaveFormats format) { SaveData::format = format; }
-	inline bool NeedsEndianSwap() const { return format == SaveFormats::Nintendo64; }
+	void SetFormat(const SaveFormats format);
 
 private:
 	void ClearSaveFile();
