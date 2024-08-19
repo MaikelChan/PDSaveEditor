@@ -57,7 +57,7 @@ void MainUI::DoRender()
 				fileDialog = ImGui::FileBrowser(0);
 				if (std::filesystem::exists(currentPath)) fileDialog.SetPwd(currentPath);
 				fileDialog.SetTitle("Open a Perfect Dark save file");
-				fileDialog.SetTypeFilters({ ".bin", ".eep", ".*" });
+				fileDialog.SetTypeFilters({ ".eep", ".bin", ".*" });
 				fileDialog.Open();
 			}
 
