@@ -4,15 +4,13 @@
 #include "SaveFile.h"
 
 #define NUM_SAVE_FORMATS 2
+enum class SaveFormats { NotValid, Nintendo64, PC };
 
 class SaveData
 {
-public:
-	enum class Types { NotValid, Nintendo64, PC };
-
 private:
 	SaveFile* saveFile;
-	Types type;
+	SaveFormats format;
 
 public:
 	SaveData();
@@ -23,12 +21,12 @@ public:
 
 	inline bool IsSaveFileLoaded() const { return saveFile != nullptr; }
 	inline SaveFile* GetSaveFile() const { return saveFile; }
-	inline Types GetType() const { return type; }
-	inline void SetType(const Types newType) { type = newType; }
-	inline bool NeedsEndianSwap() const { return type == SaveData::Types::Nintendo64; }
+	inline SaveFormats GetFormat() const { return format; }
+	inline void SetFormat(const SaveFormats format) { SaveData::format = format; }
+	inline bool NeedsEndianSwap() const { return format == SaveFormats::Nintendo64; }
 
 private:
 	void ClearSaveFile();
 
-	static Types CalculateType(uint8_t* fileBuffer);
+	static SaveFormats CalculateFormat(uint8_t* fileBuffer);
 };

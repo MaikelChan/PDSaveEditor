@@ -8,7 +8,7 @@ SaveData::SaveData()
 {
 	saveFile = nullptr;
 
-	type = SaveData::Types::NotValid;
+	format = SaveFormats::NotValid;
 }
 
 SaveData::~SaveData()
@@ -46,9 +46,9 @@ void SaveData::Load(const std::string filePath)
 
 	// Check if it's a valid file and its format
 
-	SaveData::Types type = CalculateType(fileBuffer);
+	SaveFormats format = CalculateFormat(fileBuffer);
 
-	if (type == SaveData::Types::NotValid)
+	if (format == SaveFormats::NotValid)
 	{
 		throw std::runtime_error("The selected file is not a valid Perfect Dark save file.");
 		return;
@@ -57,12 +57,12 @@ void SaveData::Load(const std::string filePath)
 	// Create and load the SaveFile struct
 
 	SaveFile* saveFile = new SaveFile();
-	saveFile->Load(fileBuffer, type == SaveData::Types::Nintendo64);
+	saveFile->Load(fileBuffer, NeedsEndianSwap());
 
 	ClearSaveFile();
 
 	SaveData::saveFile = saveFile;
-	SaveData::type = type;
+	SaveData::format = format;
 }
 
 void SaveData::Save(const std::string filePath)
@@ -72,7 +72,7 @@ void SaveData::Save(const std::string filePath)
 	uint8_t fileBuffer[SAVE_FILE_SIZE];
 	memset(fileBuffer, 0, SAVE_FILE_SIZE);
 
-	saveFile->Save(fileBuffer, type == SaveData::Types::Nintendo64);
+	saveFile->Save(fileBuffer, NeedsEndianSwap());
 
 	std::ofstream stream = std::ofstream(filePath, std::ios::binary);
 
@@ -92,10 +92,10 @@ void SaveData::ClearSaveFile()
 	delete saveFile;
 	saveFile = nullptr;
 
-	type = SaveData::Types::NotValid;
+	format = SaveFormats::NotValid;
 }
 
-SaveData::Types SaveData::CalculateType(uint8_t* fileBuffer)
+SaveFormats SaveData::CalculateFormat(uint8_t* fileBuffer)
 {
 	uint16_t headersum[2] = {};
 	headersum[0] = (fileBuffer[1] << 8) | fileBuffer[0];
@@ -104,7 +104,7 @@ SaveData::Types SaveData::CalculateType(uint8_t* fileBuffer)
 	uint16_t checksum[2];
 	SaveFile::CalculateChecksum(&fileBuffer[8], &fileBuffer[16], checksum);
 
-	if (headersum[0] == checksum[0] && headersum[1] == checksum[1]) return SaveData::Types::PC;
-	if (Utils::Swap16(headersum[0]) == checksum[0] && Utils::Swap16(headersum[1]) == checksum[1]) return SaveData::Types::Nintendo64;
-	return SaveData::Types::NotValid;
+	if (headersum[0] == checksum[0] && headersum[1] == checksum[1]) return SaveFormats::PC;
+	if (Utils::Swap16(headersum[0]) == checksum[0] && Utils::Swap16(headersum[1]) == checksum[1]) return SaveFormats::Nintendo64;
+	return SaveFormats::NotValid;
 }

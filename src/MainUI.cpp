@@ -72,7 +72,7 @@ void MainUI::DoRender()
 				fileDialog = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename);
 				if (std::filesystem::exists(currentPath)) fileDialog.SetPwd(currentPath);
 				fileDialog.SetTitle("Save the Perfect Dark save file");
-				fileDialog.SetTypeFilters({ saveData.GetType() == SaveData::Types::PC ? ".bin" : ".eep", ".*" });
+				fileDialog.SetTypeFilters({ saveData.GetFormat() == SaveFormats::PC ? ".bin" : ".eep", ".*" });
 				fileDialog.Open();
 			}
 
@@ -88,10 +88,10 @@ void MainUI::DoRender()
 
 		if (saveData.IsSaveFileLoaded() && ImGui::BeginMenu("Tools"))
 		{
-			int format = (int)saveData.GetType() - 1;
+			int format = (int)saveData.GetFormat() - 1;
 			if (ImGui::Combo("Save Format", &format, saveFormatNames, NUM_SAVE_FORMATS))
 			{
-				saveData.SetType((SaveData::Types)(format + 1));
+				saveData.SetFormat((SaveFormats)(format + 1));
 			}
 
 			uint8_t gameFileCount = saveData.GetSaveFile()->GetGameFileCount();
