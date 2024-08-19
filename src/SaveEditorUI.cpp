@@ -1438,7 +1438,7 @@ void SaveEditorUI::PrintEmptySlot() const
 
 void SaveEditorUI::PrintHeader(const char* label) const
 {
-	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.5f, 0.6f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 0.9f, 1.0f, 1.0f));
 	ImGui::SeparatorText(label);
 	ImGui::PopStyleColor();
 }
