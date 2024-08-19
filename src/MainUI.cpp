@@ -465,7 +465,7 @@ void MainUI::CopyGameFile(const GameFile* srcGameFile) const
 
 	dstGameFile->pakFileHeader.deviceSerial = deviceSerial;
 	dstGameFile->pakFileHeader.id = id;
-	snprintf(dstGameFile->name, MAX_NAME_LENGTH + 1, "New File %u", file);
+	snprintf(dstGameFile->name, MAX_NAME_LENGTH + 1, "New File %u", file & 0x7);
 }
 
 void MainUI::CopyMultiplayerProfile(const MultiplayerProfile* srcMpProfile) const
@@ -487,7 +487,7 @@ void MainUI::CopyMultiplayerProfile(const MultiplayerProfile* srcMpProfile) cons
 
 	dstMpProfile->pakFileHeader.deviceSerial = deviceSerial;
 	dstMpProfile->pakFileHeader.id = id;
-	snprintf(dstMpProfile->name, MAX_NAME_LENGTH + 1, "New File %u", file);
+	snprintf(dstMpProfile->name, MAX_NAME_LENGTH + 1, "New File %u", file & 0x7);
 }
 
 void MainUI::CopyMultiplayerSetup(const MultiplayerSetup* srcMpSetup) const
@@ -509,7 +509,7 @@ void MainUI::CopyMultiplayerSetup(const MultiplayerSetup* srcMpSetup) const
 
 	dstMpSetup->pakFileHeader.deviceSerial = deviceSerial;
 	dstMpSetup->pakFileHeader.id = id;
-	snprintf(dstMpSetup->name, MAX_NAME_LENGTH + 1, "New File %u", file);
+	snprintf(dstMpSetup->name, MAX_NAME_LENGTH + 1, "New File %u", file & 0x7);
 }
 
 void MainUI::DeleteGameFile(GameFile* gameFile) const
