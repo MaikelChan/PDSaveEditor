@@ -10,7 +10,7 @@ The program runs on Windows and Linux and requires a GPU compatible with OpenGL 
 
 - It can edit save files from both the Nintendo 64 and PC versions of the game.
 - It can copy and delete save slots.
-- It can convert a save file's format from Nintendo 64 to PC and viceversa.
+- It can convert a save file's format from Nintendo 64 to PC and vice versa.
 
 ## Changelog
 
