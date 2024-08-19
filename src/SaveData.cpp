@@ -1,6 +1,7 @@
 #include "SaveData.h"
 #include <fstream>
 #include <cassert>
+#include <cstring>
 #include "Utils.h"
 
 SaveData::SaveData()

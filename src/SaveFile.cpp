@@ -1,5 +1,6 @@
 #include "SaveFile.h"
 #include <stdexcept>
+#include <cstring>
 #include "Utils.h"
 
 #pragma region SaveBuffer
@@ -1171,38 +1172,38 @@ void SaveFile::PrintFileInfo(uint8_t* fileBuffer, const bool isBigEndian) const
 
 		uint16_t checksum[2];
 		CalculateChecksum(&fileBuffer[p + 8], &fileBuffer[p + PACK_HEADER_SIZE], checksum);
-		char* headerSumResult = (pakFileHeader.headersum[0] == checksum[0] && pakFileHeader.headersum[1] == checksum[1]) ? "OK " : "BAD";
+		const char* headerSumResult = (pakFileHeader.headersum[0] == checksum[0] && pakFileHeader.headersum[1] == checksum[1]) ? "OK " : "BAD";
 
 		CalculateChecksum(&fileBuffer[p + PACK_HEADER_SIZE], &fileBuffer[p + PACK_HEADER_SIZE + pakFileHeader.bodylen], checksum);
-		char* bodySumResult = (pakFileHeader.bodysum[0] == checksum[0] && pakFileHeader.bodysum[1] == checksum[1]) ? "OK " : "BAD";
+		const char* bodySumResult = (pakFileHeader.bodysum[0] == checksum[0] && pakFileHeader.bodysum[1] == checksum[1]) ? "OK " : "BAD";
 
-		char* type;
+		char type[32];
 
 		switch ((PakFileTypes)pakFileHeader.filetype)
 		{
 			case PakFileTypes::UNUSED_001:
 			{
-				type = "UNUSED_001           ";
+				snprintf(type, 32, "UNUSED_001           ");
 				break;
 			}
 			case PakFileTypes::BLANK:
 			{
-				type = "BLANK                ";
+				snprintf(type, 32, "BLANK                ");
 				break;
 			}
 			case PakFileTypes::TERMINATOR:
 			{
-				type = "TERMINATOR           ";
+				snprintf(type, 32, "TERMINATOR           ");
 				break;
 			}
 			case PakFileTypes::CAMERA:
 			{
-				type = "CAMERA               ";
+				snprintf(type, 32, "CAMERA               ");
 				break;
 			}
 			case PakFileTypes::BOSS:
 			{
-				type = "BOSS                 ";
+				snprintf(type, 32, "BOSS                 ");
 				break;
 			}
 			case PakFileTypes::MPPLAYER:
@@ -1210,9 +1211,7 @@ void SaveFile::PrintFileInfo(uint8_t* fileBuffer, const bool isBigEndian) const
 				char name[MAX_NAME_LENGTH + 1];
 				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
 				name[10] = '\0';
-				char gameName[32];
-				snprintf(gameName, 32, "MPPLAYER (%-10s)", name);
-				type = gameName;
+				snprintf(type, 32, "MPPLAYER (%-10s)", name);
 				break;
 			}
 			case PakFileTypes::MPSETUP:
@@ -1220,9 +1219,7 @@ void SaveFile::PrintFileInfo(uint8_t* fileBuffer, const bool isBigEndian) const
 				char name[MAX_NAME_LENGTH + 1];
 				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
 				name[10] = '\0';
-				char gameName[32];
-				snprintf(gameName, 32, "MPSETUP  (%-10s)", name);
-				type = gameName;
+				snprintf(type, 32, "MPSETUP  (%-10s)", name);
 				break;
 			}
 			case PakFileTypes::GAME:
@@ -1230,14 +1227,12 @@ void SaveFile::PrintFileInfo(uint8_t* fileBuffer, const bool isBigEndian) const
 				char name[MAX_NAME_LENGTH + 1];
 				memcpy(name, &fileBuffer[p + PACK_HEADER_SIZE], 10);
 				name[10] = '\0';
-				char gameName[32];
-				snprintf(gameName, 32, "GAME     (%-10s)", name);
-				type = gameName;
+				snprintf(type, 32, "GAME     (%-10s)", name);
 				break;
 			}
 			default:
 			{
-				type = "UNKNOWN              ";
+				snprintf(type, 32, "UNKNOWN              ");
 				break;
 			}
 		}

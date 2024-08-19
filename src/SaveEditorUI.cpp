@@ -600,7 +600,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 							ImGui::TableNextRow();
 
 							ImGui::TableSetColumnIndex(0);
-							ImGui::Text(weaponNames[frWeaponNameIndices[w]]);
+							ImGui::Text("%s", weaponNames[frWeaponNameIndices[w]]);
 
 							ImGui::TableSetColumnIndex(1);
 							bool found = gameFile->GetWeaponFound(w);
@@ -611,7 +611,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 
 							ImGui::TableSetColumnIndex(2);
 							int medal = gameFile->GetFiringRangeScore(w);
-							char* name = medal == 0 ? "None" : firingRangeMedalNames[medal - 1];
+							const char* name = medal == 0 ? "None" : firingRangeMedalNames[medal - 1];
 							if (ImGui::SliderInt("##Medal", &medal, 0, NUM_FIRING_RANGE_MEDALS, name, ImGuiSliderFlags_NoInput))
 							{
 								gameFile->SetFiringRangeScore(w, medal);
@@ -854,7 +854,7 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 							ImGui::TableNextRow();
 
 							ImGui::TableSetColumnIndex(0);
-							ImGui::Text(weaponNames[w]);
+							ImGui::Text("%s", weaponNames[w]);
 
 							ImGui::TableSetColumnIndex(1);
 							bool secondaryFunc = mpProfile->GetWeaponSecondaryFunction(w);
