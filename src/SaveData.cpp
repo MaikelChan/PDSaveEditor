@@ -96,7 +96,7 @@ void SaveData::ClearSaveFile()
 
 SaveData::Types SaveData::CalculateType(uint8_t* fileBuffer)
 {
-	uint16_t headersum[2];
+	uint16_t headersum[2] = {};
 	headersum[0] = (fileBuffer[1] << 8) | fileBuffer[0];
 	headersum[1] = (fileBuffer[3] << 8) | fileBuffer[2];
 
