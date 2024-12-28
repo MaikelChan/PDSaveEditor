@@ -11,7 +11,7 @@
 
 GLFWwindow* window = nullptr;
 
-void error_callback(int error, const char* description)
+static void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
 }
@@ -59,6 +59,7 @@ void SetImGuiStyle()
 	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.00f, 0.45f, 0.73f, 1.00f);
 	colors[ImGuiCol_PopupBg] = ImVec4(0.00f, 0.04f, 0.12f, 0.94f);
 	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.69f);
+	colors[ImGuiCol_TextLink] = ImVec4(0.00f, 1.00f, 1.00f, 1.00f);;
 }
 
 int main()

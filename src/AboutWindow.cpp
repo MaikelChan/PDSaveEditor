@@ -2,6 +2,10 @@
 #include "main.h"
 #include "Config.h"
 
+#include <imgui/imgui.h>
+#include <SimpleIni.h>
+#include <GLFW/glfw3.h>
+
 AboutWindow::AboutWindow(const BaseUI* parentUI) : BaseUI(parentUI)
 {
 	snprintf(windowTitle, 64, "About %s", WINDOW_TITLE);
@@ -32,60 +36,31 @@ void AboutWindow::DoRender()
 
 	if (ImGui::BeginPopupModal(windowTitle, &isVisible, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse))
 	{
-		ImGui::Text("%s", description);
-		ImGui::Separator();
+		ImGui::SeparatorText(description);
 		ImGui::Text("By PacoChan.");
-		TextURL("https://pacochan.net/software/pd-save-editor/");
-		ImGui::Text("\nThis is a save editor for Perfect Dark, both the N64 and the PC version.");
+		ImGui::SameLine();
+		ImGui::TextLinkOpenURL("https://pacochan.net/software/pd-save-editor/");
+		ImGui::Text("\nThis is a Perfect Dark cross-platform save editor.\nIt is able to edit everything of a save file from both the Nintendo 64 and PC\nversions of the game, and also convert between both formats.\n\n");
+
+		//ImGui::NewLine();
+		ImGui::SeparatorText("Libraries");
+
+		ImGui::BulletText("ImGui %s:", ImGui::GetVersion());
+		ImGui::SameLine();
+		ImGui::TextLinkOpenURL("https://github.com/ocornut/imgui");
+
+		ImGui::BulletText("GLFW %i.%i.%i:", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR, GLFW_VERSION_REVISION);
+		ImGui::SameLine();
+		ImGui::TextLinkOpenURL("https://www.glfw.org");
+
+		ImGui::BulletText("simpleini (Commit bfcc0d2):");
+		ImGui::SameLine();
+		ImGui::TextLinkOpenURL("https://github.com/brofield/simpleini");
+
+		ImGui::BulletText("imgui-filebrowser (Commit db5048c):");
+		ImGui::SameLine();
+		ImGui::TextLinkOpenURL("https://github.com/AirGuanZ/imgui-filebrowser");
 
 		ImGui::EndPopup();
-	}
-}
-
-void AboutWindow::AddUnderLine(ImColor color) const
-{
-	ImVec2 min = ImGui::GetItemRectMin();
-	ImVec2 max = ImGui::GetItemRectMax();
-	min.y = max.y;
-	ImGui::GetWindowDrawList()->AddLine(min, max, color, 1.0f);
-}
-
-void AboutWindow::TextURL(const char* url) const
-{
-	ImVec4 color = ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered];
-	color.x *= 1.5f;
-	color.y *= 1.5f;
-	color.z *= 1.5f;
-
-	ImGui::PushStyleColor(ImGuiCol_Text, color);
-	ImGui::Text("%s", url);
-	ImGui::PopStyleColor();
-
-	if (ImGui::IsItemHovered())
-	{
-		if (ImGui::IsMouseClicked(0))
-		{
-			std::string str;
-
-#if defined(_WIN32) || defined(_WIN64)
-			str = "explorer ";
-#elif defined(__linux__)
-			str = "xdg-open ";
-#elif defined(__APPLE__)
-			str = "open ";
-#endif
-
-			str.append(url);
-			int result = std::system(str.c_str());
-		}
-
-		color.x *= 1.5f;
-		color.y *= 1.5f;
-		color.z *= 1.5f;
-		AddUnderLine(color);
-	}
-	else
-	{
-		AddUnderLine(color);
 	}
 }
