@@ -53,7 +53,7 @@ void MainUI::DoRender()
 			{
 				fileDialogIsSave = false;
 				fileDialog = ImGui::FileBrowser(0);
-				if (std::filesystem::exists(currentPath)) fileDialog.SetPwd(currentPath);
+				if (std::filesystem::exists(currentPath)) fileDialog.SetDirectory(currentPath);
 				fileDialog.SetTitle("Open a Perfect Dark save file");
 				fileDialog.SetTypeFilters({ ".eep", ".bin", ".*" });
 				fileDialog.Open();
@@ -68,7 +68,7 @@ void MainUI::DoRender()
 			{
 				fileDialogIsSave = true;
 				fileDialog = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename);
-				if (std::filesystem::exists(currentPath)) fileDialog.SetPwd(currentPath);
+				if (std::filesystem::exists(currentPath)) fileDialog.SetDirectory(currentPath);
 				fileDialog.SetTitle("Save the Perfect Dark save file");
 				fileDialog.SetTypeFilters({ saveData.GetFormat() == SaveFormats::PC ? ".bin" : ".eep", ".*" });
 				fileDialog.Open();
@@ -292,7 +292,7 @@ void MainUI::DoRender()
 	if (fileDialog.HasSelected())
 	{
 		currentFilePath = fileDialog.GetSelected();
-		currentPath = fileDialog.GetPwd();
+		currentPath = fileDialog.GetDirectory();
 
 		if (fileDialogIsSave) Save(currentFilePath);
 		else Load(currentFilePath);
