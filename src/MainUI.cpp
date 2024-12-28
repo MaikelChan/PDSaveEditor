@@ -4,9 +4,7 @@
 #include "PopupDialog.h"
 #include "AboutWindow.h"
 #include <fstream>
-#define JSON_USE_IMPLICIT_CONVERSIONS 0
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
+#include <SimpleIni.h>
 
 MainUI::MainUI() : BaseUI(nullptr)
 {
@@ -306,46 +304,44 @@ void MainUI::DoRender()
 
 void MainUI::LoadConfig()
 {
-	try
+	CSimpleIniA ini;
+	ini.SetUnicode();
+
+	SI_Error errorCode = ini.LoadFile(CONFIG_FILE_NAME);
+	if (errorCode < 0)
 	{
-		std::ifstream stream(CONFIG_FILE_NAME);
+		printf("Error converting INI config data to string format. Error code: %i.\n", errorCode);
+		return;
+	};
 
-		if (!stream || !stream.is_open())
-		{
-			return;
-		}
-
-		json config;
-		stream >> config;
-		stream.close();
-
-		if (config["lastPath"].is_string()) currentPath = std::filesystem::u8path(config["lastPath"].template get<std::string>());
-		if (config["windowOpacity"].is_number_float()) windowOpacity = config["windowOpacity"].template get<float>();
-	}
-	catch (const json::parse_error& error)
-	{
-		printf("Json Error: %s\n", error.what());
-	}
+	currentPath = std::filesystem::u8path(ini.GetValue(CONFIG_INI_SECTION, "lastPath", currentPath.u8string().c_str()));
+	windowOpacity = (float)ini.GetDoubleValue(CONFIG_INI_SECTION, "windowOpacity", windowOpacity);
 }
 
 void MainUI::SaveConfig() const
 {
-	try
-	{
-		json config;
-		config["lastPath"] = currentPath.u8string();
-		config["windowOpacity"] = windowOpacity;
+	CSimpleIniA ini;
+	ini.SetUnicode();
 
-		// The setw manipulator was overloaded to set the indentation for pretty printing.
+	SI_Error errorCode;
 
-		std::ofstream stream(CONFIG_FILE_NAME);
-		stream << std::setw(4) << config << std::endl;
-		stream.close();
-	}
-	catch (const json::type_error& error)
+	errorCode = ini.SetValue(CONFIG_INI_SECTION, "lastPath", currentPath.u8string().c_str());
+	errorCode = ini.SetDoubleValue(CONFIG_INI_SECTION, "windowOpacity", windowOpacity);
+
+	std::string data;
+	errorCode = ini.Save(data);
+
+	if (errorCode < 0)
 	{
-		printf("Json Error: %s\n", error.what());
-	}
+		printf("Error getting INI data in string format. Error code: %i.\n", errorCode);
+		return;
+	};
+
+	errorCode = ini.SaveFile(CONFIG_FILE_NAME);
+	if (errorCode < 0)
+	{
+		printf("Error saving INI file to %s. Error code: %i.\n", CONFIG_FILE_NAME, errorCode);
+	};
 }
 
 void MainUI::Load(std::filesystem::path filePath)
