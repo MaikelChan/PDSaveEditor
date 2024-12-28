@@ -46,8 +46,8 @@ void SetImGuiStyle()
 	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
 	colors[ImGuiCol_Tab] = ImVec4(0.00f, 0.55f, 1.00f, 0.59f);
 	colors[ImGuiCol_TabHovered] = ImVec4(0.00f, 0.63f, 0.84f, 1.00f);
-	colors[ImGuiCol_TabActive] = ImVec4(0.00f, 0.58f, 0.94f, 1.00f);
-	colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.03f, 0.21f, 0.43f, 1.00f);
+	colors[ImGuiCol_TabSelected] = ImVec4(0.00f, 0.58f, 0.94f, 1.00f);
+	colors[ImGuiCol_TabDimmedSelected] = ImVec4(0.03f, 0.21f, 0.43f, 1.00f);
 	colors[ImGuiCol_TableHeaderBg] = ImVec4(0.00f, 0.55f, 1.00f, 0.59f);
 	colors[ImGuiCol_TableBorderStrong] = ImVec4(0.00f, 0.55f, 1.00f, 0.59f);
 	colors[ImGuiCol_TableBorderLight] = ImVec4(0.00f, 0.55f, 1.00f, 0.59f);
