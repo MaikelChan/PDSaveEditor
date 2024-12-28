@@ -28,4 +28,13 @@ struct Utils
 
 		return std::to_string(h) + "h " + std::to_string(m) + "m " + std::to_string(s) + "s";
 	}
+
+	inline static void StringCopy(char* destination, const char* source, const size_t size)
+	{
+#ifdef _WIN32
+		strcpy_s(destination, size, source);
+#else
+		strcpy(destination, source);
+#endif
+	}
 };

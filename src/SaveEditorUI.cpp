@@ -1377,19 +1377,21 @@ bool SaveEditorUI::CheckboxMpSetupOptionsFlags(MultiplayerSetup* mpSetup, const 
 
 void SaveEditorUI::NameInputField(const char* label, char* name) const
 {
-	char cleanedName[MAX_NAME_LENGTH + 1] = {};
-	char previousName[MAX_NAME_LENGTH + 1] = {};
+	constexpr uint8_t nameBufferLength = MAX_NAME_LENGTH + 1;
+
+	char cleanedName[nameBufferLength] = {};
+	char previousName[nameBufferLength] = {};
 
 	// Workaround for Spanish team name brown, the only name with special characters
-	if (strcmp("Marrón", name) == 0) snprintf(cleanedName, MAX_NAME_LENGTH + 1, "Marron");
-	else strcpy(cleanedName, name);
+	if (strcmp("Marrón", name) == 0) snprintf(cleanedName, nameBufferLength, "Marron");
+	else Utils::StringCopy(cleanedName, name, nameBufferLength);
 
-	strcpy(previousName, cleanedName);
+	Utils::StringCopy(previousName, cleanedName, nameBufferLength);
 
-	if (ImGui::InputText(label, cleanedName, MAX_NAME_LENGTH + 1))
+	if (ImGui::InputText(label, cleanedName, nameBufferLength))
 	{
 		bool valid = true;
-		for (uint8_t c = 0; c < MAX_NAME_LENGTH + 1; c++)
+		for (uint8_t c = 0; c < nameBufferLength; c++)
 		{
 			if (cleanedName[c] == '\0')
 			{
@@ -1409,8 +1411,8 @@ void SaveEditorUI::NameInputField(const char* label, char* name) const
 
 		if (valid)
 		{
-			memset(name, 0, MAX_NAME_LENGTH + 1);
-			strcpy(name, cleanedName);
+			memset(name, 0, nameBufferLength);
+			Utils::StringCopy(name, cleanedName, nameBufferLength);
 		}
 	}
 }
