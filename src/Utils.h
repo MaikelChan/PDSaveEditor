@@ -31,7 +31,7 @@ struct Utils
 
 	inline static void StringCopy(char* destination, const char* source, const size_t size)
 	{
-#ifdef _WIN32
+#if defined(_MSC_VER)
 		strcpy_s(destination, size, source);
 #else
 		strcpy(destination, source);
