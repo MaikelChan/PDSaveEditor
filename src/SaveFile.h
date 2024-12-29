@@ -893,7 +893,7 @@ public:
 	PakFileHeader pakFileHeader{};
 
 private:
-	bool isChecksumValid{ false };
+	bool isChecksumValid{};
 
 public:
 	virtual void Load(uint8_t* fileBuffer, const bool isBigEndian);
@@ -910,11 +910,11 @@ public:
 	uint8_t unk1{};
 	uint8_t language{};
 	char teamNames[NUM_MP_TEAMS][MAX_NAME_LENGTH + 1]{};
-	uint8_t tracknum = { 255 };
+	uint8_t tracknum{ 255 };
 	uint8_t multipletracknums[6]{};
-	bool usingmultipletunes{ false };
-	bool altTitleUnlocked{ false };
-	bool altTitleEnabled{ false };
+	bool usingmultipletunes{};
+	bool altTitleUnlocked{};
+	bool altTitleEnabled{};
 
 public:
 	void Load(uint8_t* fileBuffer, const bool isBigEndian) override;
