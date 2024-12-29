@@ -17,11 +17,7 @@ set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_LIST_DIR}/src/resources.rc")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
-if (MSVC)
-  find_package(glfw3 3.3 REQUIRED)
-else()
-  find_package(GLFW3 3.3 REQUIRED)
-endif()
+find_package(glfw3 3.3 REQUIRED)
 message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
 
 # Set OpenGL preference. On Linux there may be two gl libraries.
