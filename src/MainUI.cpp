@@ -457,7 +457,7 @@ void MainUI::CopyGameFile(const GameFile* srcGameFile) const
 	uint16_t deviceSerial = dstGameFile->pakFileHeader.deviceSerial;
 	uint8_t id = dstGameFile->pakFileHeader.id;
 
-	memcpy(dstGameFile, srcGameFile, sizeof(GameFile));
+	*dstGameFile = *srcGameFile;
 
 	dstGameFile->pakFileHeader.deviceSerial = deviceSerial;
 	dstGameFile->pakFileHeader.id = id;
@@ -479,7 +479,7 @@ void MainUI::CopyMultiplayerProfile(const MultiplayerProfile* srcMpProfile) cons
 	uint16_t deviceSerial = dstMpProfile->pakFileHeader.deviceSerial;
 	uint8_t id = dstMpProfile->pakFileHeader.id;
 
-	memcpy(dstMpProfile, srcMpProfile, sizeof(MultiplayerProfile));
+	*dstMpProfile = *srcMpProfile;
 
 	dstMpProfile->pakFileHeader.deviceSerial = deviceSerial;
 	dstMpProfile->pakFileHeader.id = id;
@@ -501,7 +501,7 @@ void MainUI::CopyMultiplayerSetup(const MultiplayerSetup* srcMpSetup) const
 	uint16_t deviceSerial = dstMpSetup->pakFileHeader.deviceSerial;
 	uint8_t id = dstMpSetup->pakFileHeader.id;
 
-	memcpy(dstMpSetup, srcMpSetup, sizeof(MultiplayerSetup));
+	*dstMpSetup = *srcMpSetup;
 
 	dstMpSetup->pakFileHeader.deviceSerial = deviceSerial;
 	dstMpSetup->pakFileHeader.id = id;
