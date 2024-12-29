@@ -21,7 +21,7 @@ endif()
 
 if(MSVC)
   set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/ENTRY:mainCRTStartup /SUBSYSTEM:CONSOLE")
-  target_compile_options(${PROJECT_NAME} PRIVATE /W3)
+  target_compile_options(${PROJECT_NAME} PRIVATE /W4 /wd4458 /wd4100)
   target_link_libraries(${PROJECT_NAME} ${GLFW_Lib} OpenGL::GL)
 else()
   target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Wno-unused-parameter)
