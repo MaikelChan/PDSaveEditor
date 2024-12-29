@@ -321,9 +321,9 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 								ImGui::PushID(p);
 								ImGui::TableSetColumnIndex(p);
 
-								char tabName[10];
-								snprintf(tabName, 10, "Player %u", p + 1);
-								PrintHeader(tabName);
+								char playerTabName[10];
+								snprintf(playerTabName, 10, "Player %u", p + 1);
+								PrintHeader(playerTabName);
 
 								int controlMode = gameFile->controlModes[p];
 								if (ImGui::Combo("Control Mode", &controlMode, controlModeNames, NUM_CONTROL_MODES))
@@ -384,9 +384,9 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 								ImGui::PushID(p);
 								ImGui::TableSetColumnIndex(p);
 
-								char tabName[10];
-								snprintf(tabName, 10, "Player %u", p + 1);
-								PrintHeader(tabName);
+								char playerTabName[10];
+								snprintf(playerTabName, 10, "Player %u", p + 1);
+								PrintHeader(playerTabName);
 
 								if (p == 0)
 								{
