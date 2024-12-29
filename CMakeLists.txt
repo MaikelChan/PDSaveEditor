@@ -17,7 +17,11 @@ set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_LIST_DIR}/src/resources.rc")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
-find_package(glfw3 3.3 REQUIRED)
+if (MSVC)
+  find_package(glfw3 3.3 REQUIRED)
+else()
+  find_package(GLFW3 3.3 REQUIRED)
+endif()
 message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
 
 # Set OpenGL preference. On Linux there may be two gl libraries.
@@ -26,7 +30,10 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 find_package(OpenGL REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
-link_directories(${CMAKE_SOURCE_DIR}/lib)
+
+if (MSVC)
+  link_directories(${CMAKE_SOURCE_DIR}/lib)
+endif()
 
 # Include sub-projects.
 add_subdirectory ("src")
