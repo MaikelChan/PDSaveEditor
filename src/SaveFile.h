@@ -832,15 +832,15 @@ const uint8_t mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC] // struct mpweapon g_MpWe
 
 struct FileGuid
 {
-	int32_t id;
-	uint16_t deviceSerial;
+	int32_t id{};
+	uint16_t deviceSerial{};
 };
 
 struct SaveBuffer
 {
 private:
-	uint32_t bitPosition;
-	uint8_t bytes[SAVE_BUFFER_SIZE];
+	uint32_t bitPosition{};
+	uint8_t bytes[SAVE_BUFFER_SIZE]{};
 
 public:
 	SaveBuffer();
@@ -860,27 +860,27 @@ public:
 struct SimulantData
 {
 public:
-	uint8_t type = 0;
-	uint8_t difficulty = 0;
-	uint8_t headIndex = 0;
-	uint8_t bodyIndex = 0;
-	uint8_t team = 0;
+	uint8_t type{};
+	uint8_t difficulty{};
+	uint8_t headIndex{};
+	uint8_t bodyIndex{};
+	uint8_t team{};
 };
 
 struct PakFileHeader
 {
 public:
-	uint16_t headersum[2];   // checksum from filetype to end of header
-	uint16_t bodysum[2];
-	uint16_t filetype;       //  9 bits - PAKFILETYPE constant
-	uint16_t bodylen;        // 11 bits - not aligned
-	uint16_t filelen;        // 12 bits - aligned to 0x10
-	uint16_t deviceSerial;   // 13 bits
-	uint8_t id;              //  7 bits
-	uint16_t generation;     //  9 bits - increments by 1 each time the same file is saved
-	uint8_t occupied;        //  1 bits
-	uint8_t writecompleted;  //  1 bits - 0 while writing data, then updated to 1 afterwards
-	uint8_t version;         //  1 bits - 0, but can be set to 1 using -forceversion argument
+	uint16_t headersum[2]{};   // checksum from filetype to end of header
+	uint16_t bodysum[2]{};
+	uint16_t filetype{};       //  9 bits - PAKFILETYPE constant
+	uint16_t bodylen{};        // 11 bits - not aligned
+	uint16_t filelen{};        // 12 bits - aligned to 0x10
+	uint16_t deviceSerial{};   // 13 bits
+	uint8_t id{};              //  7 bits
+	uint16_t generation{};     //  9 bits - increments by 1 each time the same file is saved
+	uint8_t occupied{};        //  1 bits
+	uint8_t writecompleted{};  //  1 bits - 0 while writing data, then updated to 1 afterwards
+	uint8_t version{};         //  1 bits - 0, but can be set to 1 using -forceversion argument
 
 public:
 	void Load(uint8_t* fileBuffer, const bool isBigEndian);
@@ -890,10 +890,10 @@ public:
 struct PakFile
 {
 public:
-	PakFileHeader pakFileHeader = {};
+	PakFileHeader pakFileHeader{};
 
 private:
-	bool isChecksumValid = false;
+	bool isChecksumValid{ false };
 
 public:
 	virtual void Load(uint8_t* fileBuffer, const bool isBigEndian);
@@ -906,15 +906,15 @@ public:
 struct BossFile : public PakFile
 {
 public:
-	FileGuid guid = {};
-	uint8_t unk1 = 0;
-	uint8_t language = 0;
-	char teamNames[NUM_MP_TEAMS][MAX_NAME_LENGTH + 1] = {};
-	uint8_t tracknum = 255;
-	uint8_t multipletracknums[6] = {};
-	bool usingmultipletunes = false;
-	bool altTitleUnlocked = false;
-	bool altTitleEnabled = false;
+	FileGuid guid{};
+	uint8_t unk1{};
+	uint8_t language{};
+	char teamNames[NUM_MP_TEAMS][MAX_NAME_LENGTH + 1]{};
+	uint8_t tracknum = { 255 };
+	uint8_t multipletracknums[6]{};
+	bool usingmultipletunes{ false };
+	bool altTitleUnlocked{ false };
+	bool altTitleEnabled{ false };
 
 public:
 	void Load(uint8_t* fileBuffer, const bool isBigEndian) override;
@@ -927,22 +927,22 @@ public:
 struct GameFile : public PakFile
 {
 public:
-	char name[MAX_NAME_LENGTH + 1] = {};
-	uint8_t thumbnail = 0;
-	uint32_t totaltime = 0;
-	uint8_t autodifficulty = 0;
-	uint8_t autostageindex = 0;
-	uint8_t sfxVolume = 0;
-	uint8_t musicVolume = 0;
-	uint8_t soundMode = 0;
-	uint8_t controlModes[2] = {};
-	uint8_t flags[GAMEFILE_FLAGS_SIZE] = {};
-	uint16_t unknown1 = 0;
-	uint16_t besttimes[NUM_SOLOSTAGES][NUM_DIFFICULTIES] = {};
-	uint8_t mpChallenges[NUM_MP_CHALLENGES] = {};
-	uint32_t coopcompletions[NUM_DIFFICULTIES] = {};
-	uint8_t firingrangescores[9] = {};
-	uint8_t weaponsfound[6] = {};
+	char name[MAX_NAME_LENGTH + 1]{};
+	uint8_t thumbnail{};
+	uint32_t totaltime{};
+	uint8_t autodifficulty{};
+	uint8_t autostageindex{};
+	uint8_t sfxVolume{};
+	uint8_t musicVolume{};
+	uint8_t soundMode{};
+	uint8_t controlModes[2]{};
+	uint8_t flags[GAMEFILE_FLAGS_SIZE]{};
+	uint16_t unknown1{};
+	uint16_t besttimes[NUM_SOLOSTAGES][NUM_DIFFICULTIES]{};
+	uint8_t mpChallenges[NUM_MP_CHALLENGES]{};
+	uint32_t coopcompletions[NUM_DIFFICULTIES]{};
+	uint8_t firingrangescores[9]{};
+	uint8_t weaponsfound[6]{};
 
 public:
 	void Load(uint8_t* fileBuffer, const bool isBigEndian) override;
@@ -959,31 +959,31 @@ public:
 struct MultiplayerProfile : public PakFile
 {
 public:
-	char name[MAX_NAME_LENGTH + 1] = {};
-	uint32_t time = 0;
-	uint8_t headIndex = 0;
-	uint8_t bodyIndex = 0;
-	FileGuid guid = {};
-	uint8_t displayoptions = 0;
-	uint32_t kills = 0;
-	uint32_t deaths = 0;
-	uint32_t gamesplayed = 0;
-	uint32_t gameswon = 0;
-	uint32_t gameslost = 0;
-	uint32_t distance = 0;
-	uint16_t accuracy = 0;
-	uint32_t damagedealt = 0;
-	uint32_t painreceived = 0;
-	uint32_t headshots = 0;
-	uint32_t ammoused = 0;
-	uint32_t accuracymedals = 0;
-	uint32_t headshotmedals = 0;
-	uint32_t killmastermedals = 0;
-	uint16_t survivormedals = 0;
-	uint8_t controlmode = 0;
-	uint16_t options = 0;
-	uint8_t mpChallenges[NUM_MP_CHALLENGES] = {};
-	uint8_t gunfuncs[6] = {};
+	char name[MAX_NAME_LENGTH + 1]{};
+	uint32_t time{};
+	uint8_t headIndex{};
+	uint8_t bodyIndex{};
+	FileGuid guid{};
+	uint8_t displayoptions{};
+	uint32_t kills{};
+	uint32_t deaths{};
+	uint32_t gamesplayed{};
+	uint32_t gameswon{};
+	uint32_t gameslost{};
+	uint32_t distance{};
+	uint16_t accuracy{};
+	uint32_t damagedealt{};
+	uint32_t painreceived{};
+	uint32_t headshots{};
+	uint32_t ammoused{};
+	uint32_t accuracymedals{};
+	uint32_t headshotmedals{};
+	uint32_t killmastermedals{};
+	uint16_t survivormedals{};
+	uint8_t controlmode{};
+	uint16_t options{};
+	uint8_t mpChallenges[NUM_MP_CHALLENGES]{};
+	uint8_t gunfuncs[6]{};
 
 public:
 	void Load(uint8_t* fileBuffer, const bool isBigEndian) override;
@@ -1002,18 +1002,18 @@ public:
 struct MultiplayerSetup : public PakFile
 {
 public:
-	char name[MAX_NAME_LENGTH + 1] = {};
-	uint8_t numsims = 0; // This is apparently never loaded by the game?
-	uint8_t stagenum = 0;
-	uint8_t scenario = 0;
-	uint8_t hillTime = 0;
-	uint32_t options = 0;
-	SimulantData botsData[MAX_SIMULANTS] = {};
-	uint8_t weaponSlots[NUM_MP_WEAPONSLOTS] = {};
-	uint8_t timelimit = 0;
-	uint8_t scorelimit = 0;
-	uint16_t teamscorelimit = 0;
-	uint8_t teams[MAX_PLAYERS] = {};
+	char name[MAX_NAME_LENGTH + 1]{};
+	uint8_t numsims{}; // This is apparently never loaded by the game?
+	uint8_t stagenum{};
+	uint8_t scenario{};
+	uint8_t hillTime{};
+	uint32_t options{};
+	SimulantData botsData[MAX_SIMULANTS]{};
+	uint8_t weaponSlots[NUM_MP_WEAPONSLOTS]{};
+	uint8_t timelimit{};
+	uint8_t scorelimit{};
+	uint16_t teamscorelimit{};
+	uint8_t teams[MAX_PLAYERS]{};
 
 public:
 	void Load(uint8_t* fileBuffer, const bool isBigEndian) override;
@@ -1039,11 +1039,11 @@ public:
 struct SaveFile
 {
 private:
-	BossFile bossFiles[ACTUAL_NUM_BOSS_FILE_SLOTS] = {};
-	GameFile gameFiles[ACTUAL_NUM_FILE_SLOTS] = {};
-	MultiplayerProfile mpProfiles[ACTUAL_NUM_FILE_SLOTS] = {};
-	MultiplayerSetup mpSetups[ACTUAL_NUM_FILE_SLOTS] = {};
-	Terminator terminator = {};
+	BossFile bossFiles[ACTUAL_NUM_BOSS_FILE_SLOTS]{};
+	GameFile gameFiles[ACTUAL_NUM_FILE_SLOTS]{};
+	MultiplayerProfile mpProfiles[ACTUAL_NUM_FILE_SLOTS]{};
+	MultiplayerSetup mpSetups[ACTUAL_NUM_FILE_SLOTS]{};
+	Terminator terminator{};
 
 public:
 	void Load(uint8_t* fileBuffer, const bool isBigEndian);
