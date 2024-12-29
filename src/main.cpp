@@ -121,8 +121,6 @@ int main()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-	bool show_demo_window = true;
-
 	MainUI* mainUI = new MainUI();
 	mainUI->SetIsVisible(true);
 

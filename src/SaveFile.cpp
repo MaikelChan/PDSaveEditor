@@ -556,7 +556,6 @@ bool GameFile::GetWeaponFound(const uint8_t weaponIndex) const
 void GameFile::SetWeaponFound(const uint8_t weaponIndex, const bool found)
 {
 	uint32_t byteindex = weaponIndex >> 3;
-	uint32_t value = weaponsfound[byteindex];
 
 	if (found) weaponsfound[byteindex] |= (1 << (weaponIndex % 8));
 	else weaponsfound[byteindex] &= ~(1 << (weaponIndex % 8));
@@ -1155,11 +1154,6 @@ void SaveFile::PrintFileInfo(uint8_t* fileBuffer, const bool isBigEndian) const
 {
 	printf("Position  Header CRC       Body CRC         Type (Name)            Size  ID  Used  Device  Generation  Written  Version\n");
 	printf("-----------------------------------------------------------------------------------------------------------------------\n");
-
-	uint8_t bossFilesCount = 0;
-	uint8_t gameFilesCount = 0;
-	uint8_t mpProfilesCount = 0;
-	uint8_t mpSetupsCount = 0;
 
 	int32_t p = 0;
 
