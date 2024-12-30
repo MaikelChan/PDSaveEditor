@@ -22,9 +22,9 @@ struct Utils
 
 	inline static std::string GetTimeString(const uint32_t value)
 	{
-		uint16_t h = value / 3600;
-		uint8_t m = (value % 3600) / 60;
-		uint8_t s = value % 60;
+		uint32_t h = value / 3600;
+		uint32_t m = (value % 3600) / 60;
+		uint32_t s = value % 60;
 
 		return std::to_string(h) + "h " + std::to_string(m) + "m " + std::to_string(s) + "s";
 	}
