@@ -2,8 +2,8 @@
 #include "main.h"
 #include "Config.h"
 
+#include <stdio.h>
 #include <imgui/imgui.h>
-#include <SimpleIni.h>
 #include <GLFW/glfw3.h>
 
 AboutWindow::AboutWindow(const BaseUI* parentUI) : BaseUI(parentUI)
@@ -42,7 +42,6 @@ void AboutWindow::DoRender()
 		ImGui::TextLinkOpenURL("https://pacochan.net/software/pd-save-editor/");
 		ImGui::Text("\nThis is a Perfect Dark cross-platform save editor.\nIt is able to edit everything of a save file from both the Nintendo 64 and PC\nversions of the game, and also convert between both formats.\n\n");
 
-		//ImGui::NewLine();
 		ImGui::SeparatorText("Libraries");
 
 		ImGui::BulletText("ImGui %s:", ImGui::GetVersion());
