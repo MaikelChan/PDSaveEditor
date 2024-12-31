@@ -588,7 +588,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 							const char* name = medal == 0 ? "None" : firingRangeMedalNames[medal - 1];
 							if (ImGui::SliderInt("##Medal", &medal, 0, NUM_FIRING_RANGE_MEDALS, name, ImGuiSliderFlags_NoInput))
 							{
-								gameFile->SetFiringRangeScore(w, medal);
+								gameFile->SetFiringRangeScore(w, static_cast<uint8_t>(medal));
 							}
 
 							ImGui::PopID();
@@ -948,7 +948,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 					int arena = mpSetup->GetArena();
 					if (ImGui::Combo("Arena", &arena, mpStageNames, NUM_MP_STAGES_AND_RANDOM))
 					{
-						mpSetup->SetArena(arena);
+						mpSetup->SetArena(static_cast<uint8_t>(arena));
 					}
 
 					ComboU8("Scenario", &mpSetup->scenario, mpScenarioNames, NUM_MP_SCENARIOS);
@@ -966,7 +966,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							int slowmo = mpSetup->GetSlowMotionMode();
 							if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
 							{
-								mpSetup->SetSlowMotionMode(slowmo);
+								mpSetup->SetSlowMotionMode(static_cast<uint8_t>(slowmo));
 							}
 
 							CheckboxMpSetupOptionsFlags(mpSetup, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
@@ -988,7 +988,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							int slowmo = mpSetup->GetSlowMotionMode();
 							if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
 							{
-								mpSetup->SetSlowMotionMode(slowmo);
+								mpSetup->SetSlowMotionMode(static_cast<uint8_t>(slowmo));
 							}
 
 							CheckboxMpSetupOptionsFlags(mpSetup, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
@@ -1011,7 +1011,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							int slowmo = mpSetup->GetSlowMotionMode();
 							if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
 							{
-								mpSetup->SetSlowMotionMode(slowmo);
+								mpSetup->SetSlowMotionMode(static_cast<uint8_t>(slowmo));
 							}
 
 							CheckboxMpSetupOptionsFlags(mpSetup, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
@@ -1034,7 +1034,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							int slowmo = mpSetup->GetSlowMotionMode();
 							if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
 							{
-								mpSetup->SetSlowMotionMode(slowmo);
+								mpSetup->SetSlowMotionMode(static_cast<uint8_t>(slowmo));
 							}
 
 							CheckboxMpSetupOptionsFlags(mpSetup, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
@@ -1057,7 +1057,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							int slowmo = mpSetup->GetSlowMotionMode();
 							if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
 							{
-								mpSetup->SetSlowMotionMode(slowmo);
+								mpSetup->SetSlowMotionMode(static_cast<uint8_t>(slowmo));
 							}
 
 							CheckboxMpSetupOptionsFlags(mpSetup, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);
@@ -1087,7 +1087,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 							int slowmo = mpSetup->GetSlowMotionMode();
 							if (ImGui::Combo("Slow Motion", &slowmo, mpSlowMotionNames, NUM_MP_SLOWMOTION_MODES))
 							{
-								mpSetup->SetSlowMotionMode(slowmo);
+								mpSetup->SetSlowMotionMode(static_cast<uint8_t>(slowmo));
 							}
 
 							CheckboxMpSetupOptionsFlags(mpSetup, "Fast Movement", MultiplayerSetupFlags::FASTMOVEMENT);

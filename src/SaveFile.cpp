@@ -564,12 +564,11 @@ void GameFile::SetFiringRangeScore(const uint8_t weaponIndex, const uint8_t diff
 {
 	uint32_t byteindex = weaponIndex >> 2;
 	uint32_t shiftamount = (weaponIndex % 4) * 2;
-	uint32_t value = firingrangescores[byteindex];
 	uint32_t mask = (1 << shiftamount) + (1 << (shiftamount + 1));
 
+	uint8_t value = firingrangescores[byteindex];
 	value &= 255 - mask;
 	value += (difficulty << shiftamount) & mask;
-
 	firingrangescores[byteindex] = value;
 }
 
