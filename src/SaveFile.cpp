@@ -24,26 +24,28 @@ uint8_t* SaveBuffer::GetBytes()
 	return bytes;
 }
 
-uint32_t SaveBuffer::ReadBits(const int32_t numBits)
+uint8_t SaveBuffer::ReadBits8(const uint8_t numBits)
 {
-	if (numBits == 0) return 0;
+	if (numBits > 8)
+		throw std::runtime_error(std::string("Attempted to read ") + std::to_string(numBits) + " bits when the max is 8.");
 
-	uint32_t bit = 1 << (numBits - 1);
-	uint32_t value = 0;
+	return static_cast<uint8_t>(ReadBits(numBits));
+}
 
-	for (; bit; bit >>= 1) {
-		int32_t bitindex = bitPosition % 8;
-		uint8_t mask = 1 << (7 - bitindex);
-		int32_t byteindex = bitPosition / 8;
+uint16_t SaveBuffer::ReadBits16(const uint8_t numBits)
+{
+	if (numBits > 16)
+		throw std::runtime_error(std::string("Attempted to read ") + std::to_string(numBits) + " bits when the max is 16.");
 
-		if (bytes[byteindex] & mask) {
-			value |= bit;
-		}
+	return static_cast<uint16_t>(ReadBits(numBits));
+}
 
-		bitPosition++;
-	}
+uint32_t SaveBuffer::ReadBits32(const uint8_t numBits)
+{
+	if (numBits > 32)
+		throw std::runtime_error(std::string("Attempted to read ") + std::to_string(numBits) + " bits when the max is 32.");
 
-	return value;
+	return ReadBits(numBits);
 }
 
 void SaveBuffer::Or(const uint32_t value, const int32_t numBits)
@@ -68,7 +70,7 @@ void SaveBuffer::Or(const uint32_t value, const int32_t numBits)
 void SaveBuffer::ReadGuid(FileGuid* guid)
 {
 	guid->id = ReadBits(7);
-	guid->deviceSerial = ReadBits(13);
+	guid->deviceSerial = ReadBits16(13);
 }
 
 void SaveBuffer::WriteGuid(FileGuid* guid)
@@ -84,7 +86,7 @@ void SaveBuffer::ReadString(char* dst)
 
 	for (int32_t i = 0; i < MAX_NAME_LENGTH; i++)
 	{
-		uint32_t byte = ReadBits(8);
+		uint8_t byte = ReadBits8(8);
 
 		if (foundnull) continue;
 
@@ -136,6 +138,30 @@ void SaveBuffer::Clear()
 {
 	bitPosition = 0;
 	memset(bytes, 0, SAVE_BUFFER_SIZE);
+}
+
+uint32_t SaveBuffer::ReadBits(const uint8_t numBits)
+{
+	if (numBits == 0) return 0;
+
+	uint32_t bit = 1 << (numBits - 1);
+	uint32_t value = 0;
+
+	for (; bit; bit >>= 1)
+	{
+		int32_t bitindex = bitPosition % 8;
+		uint8_t mask = 1 << (7 - bitindex);
+		int32_t byteindex = bitPosition / 8;
+
+		if (bytes[byteindex] & mask)
+		{
+			value |= bit;
+		}
+
+		bitPosition++;
+	}
+
+	return value;
 }
 
 #pragma endregion
@@ -308,24 +334,24 @@ void BossFile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 
 	buffer.ReadGuid(&guid);
 
-	unk1 = buffer.ReadBits(1);
-	language = buffer.ReadBits(4);
+	unk1 = buffer.ReadBits8(1);
+	language = buffer.ReadBits8(4);
 
 	for (int32_t tn = 0; tn < NUM_MP_TEAMS; tn++)
 	{
 		buffer.ReadString(teamNames[tn]);
 	}
 
-	tracknum = buffer.ReadBits(8);
+	tracknum = buffer.ReadBits8(8);
 
 	for (int32_t i = 0; i < 6; i++)
 	{
-		multipletracknums[i] = buffer.ReadBits(8);
+		multipletracknums[i] = buffer.ReadBits8(8);
 	}
 
-	usingmultipletunes = buffer.ReadBits(1);
-	altTitleUnlocked = buffer.ReadBits(1);
-	altTitleEnabled = buffer.ReadBits(1);
+	usingmultipletunes = buffer.ReadBits8(1);
+	altTitleUnlocked = buffer.ReadBits8(1);
+	altTitleEnabled = buffer.ReadBits8(1);
 }
 
 void BossFile::Save(uint8_t* fileBuffer, const bool isBigEndian)
@@ -394,28 +420,28 @@ void GameFile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
 	buffer.ReadString(name);
-	thumbnail = buffer.ReadBits(5);
-	totaltime = buffer.ReadBits(32);
-	autodifficulty = buffer.ReadBits(2);
-	autostageindex = buffer.ReadBits(5);
-	sfxVolume = buffer.ReadBits(6);
-	musicVolume = buffer.ReadBits(6);
-	soundMode = buffer.ReadBits(2);
-	controlModes[0] = buffer.ReadBits(3);
-	controlModes[1] = buffer.ReadBits(3);
+	thumbnail = buffer.ReadBits8(5);
+	totaltime = buffer.ReadBits32(32);
+	autodifficulty = buffer.ReadBits8(2);
+	autostageindex = buffer.ReadBits8(5);
+	sfxVolume = buffer.ReadBits8(6);
+	musicVolume = buffer.ReadBits8(6);
+	soundMode = buffer.ReadBits8(2);
+	controlModes[0] = buffer.ReadBits8(3);
+	controlModes[1] = buffer.ReadBits8(3);
 
 	for (uint8_t i = 0; i < GAMEFILE_FLAGS_SIZE; i++)
 	{
-		flags[i] = buffer.ReadBits(8);
+		flags[i] = buffer.ReadBits8(8);
 	}
 
-	unknown1 = buffer.ReadBits(16);
+	unknown1 = buffer.ReadBits16(16);
 
 	for (uint8_t i = 0; i < NUM_SOLOSTAGES; i++)
 	{
 		for (uint8_t j = 0; j < NUM_DIFFICULTIES; j++)
 		{
-			besttimes[i][j] = buffer.ReadBits(12);
+			besttimes[i][j] = buffer.ReadBits16(12);
 		}
 	}
 
@@ -425,25 +451,25 @@ void GameFile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 
 		for (uint8_t j = 0; j < MAX_PLAYERS; j++)
 		{
-			uint8_t completed = buffer.ReadBits(1);
+			uint8_t completed = buffer.ReadBits8(1);
 			mpChallenges[i] |= completed << j;
 		}
 	}
 
 	for (uint8_t i = 0; i < NUM_DIFFICULTIES; i++)
 	{
-		coopcompletions[i] = buffer.ReadBits(NUM_SOLOSTAGES);
+		coopcompletions[i] = buffer.ReadBits32(NUM_SOLOSTAGES);
 	}
 
 	for (uint8_t i = 0; i < 9; i++)
 	{
-		int32_t numBits = i == 8 ? 2 : 8;
-		firingrangescores[i] = buffer.ReadBits(numBits);
+		uint8_t numBits = i == 8 ? 2 : 8;
+		firingrangescores[i] = buffer.ReadBits8(numBits);
 	}
 
 	for (uint8_t i = 0; i < 4; i++)
 	{
-		weaponsfound[i] = buffer.ReadBits(8);
+		weaponsfound[i] = buffer.ReadBits8(8);
 	}
 }
 
@@ -575,28 +601,28 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
 	buffer.ReadString(name);
-	time = buffer.ReadBits(28);
-	headIndex = buffer.ReadBits(7);
-	bodyIndex = buffer.ReadBits(7);
+	time = buffer.ReadBits32(28);
+	headIndex = buffer.ReadBits8(7);
+	bodyIndex = buffer.ReadBits8(7);
 	buffer.ReadGuid(&guid);
-	displayoptions = buffer.ReadBits(8);
-	kills = buffer.ReadBits(20);
-	deaths = buffer.ReadBits(20);
-	gamesplayed = buffer.ReadBits(19);
-	gameswon = buffer.ReadBits(19);
-	gameslost = buffer.ReadBits(19);
-	distance = buffer.ReadBits(25);
-	accuracy = buffer.ReadBits(10);
-	damagedealt = buffer.ReadBits(26);
-	painreceived = buffer.ReadBits(26);
-	headshots = buffer.ReadBits(20);
-	ammoused = buffer.ReadBits(30);
-	accuracymedals = buffer.ReadBits(18);
-	headshotmedals = buffer.ReadBits(18);
-	killmastermedals = buffer.ReadBits(18);
-	survivormedals = buffer.ReadBits(16);
-	controlmode = buffer.ReadBits(2);
-	options = buffer.ReadBits(12);
+	displayoptions = buffer.ReadBits8(8);
+	kills = buffer.ReadBits32(20);
+	deaths = buffer.ReadBits32(20);
+	gamesplayed = buffer.ReadBits32(19);
+	gameswon = buffer.ReadBits32(19);
+	gameslost = buffer.ReadBits32(19);
+	distance = buffer.ReadBits32(25);
+	accuracy = buffer.ReadBits16(10);
+	damagedealt = buffer.ReadBits32(26);
+	painreceived = buffer.ReadBits32(26);
+	headshots = buffer.ReadBits32(20);
+	ammoused = buffer.ReadBits32(30);
+	accuracymedals = buffer.ReadBits32(18);
+	headshotmedals = buffer.ReadBits32(18);
+	killmastermedals = buffer.ReadBits32(18);
+	survivormedals = buffer.ReadBits16(16);
+	controlmode = buffer.ReadBits8(2);
+	options = buffer.ReadBits16(12);
 
 	for (uint8_t i = 0; i < NUM_MP_CHALLENGES; i++)
 	{
@@ -604,7 +630,7 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 
 		for (uint8_t j = 0; j < MAX_PLAYERS; j++)
 		{
-			uint8_t completed = buffer.ReadBits(1);
+			uint8_t completed = buffer.ReadBits8(1);
 			mpChallenges[i] |= completed << j;
 		}
 	}
@@ -613,10 +639,10 @@ void MultiplayerProfile::Load(uint8_t* fileBuffer, const bool isBigEndian)
 	uint8_t w = 0;
 	while (bitsremaining > 0)
 	{
-		int32_t numBits = bitsremaining;
+		uint8_t numBits = static_cast<uint8_t>(bitsremaining);
 		if (numBits > 8) numBits = 8;
 
-		gunfuncs[w] = buffer.ReadBits(numBits);
+		gunfuncs[w] = buffer.ReadBits8(numBits);
 
 		bitsremaining -= 8;
 		w++;
@@ -814,33 +840,33 @@ void MultiplayerSetup::Load(uint8_t* fileBuffer, const bool isBigEndian)
 	SaveBuffer buffer(&fileBuffer[PACK_HEADER_SIZE], SAVE_BUFFER_SIZE);
 
 	buffer.ReadString(name);
-	numsims = buffer.ReadBits(4);
-	stagenum = buffer.ReadBits(7);
-	scenario = buffer.ReadBits(3);
-	hillTime = buffer.ReadBits(8);
-	options = buffer.ReadBits(21);
+	numsims = buffer.ReadBits8(4);
+	stagenum = buffer.ReadBits8(7);
+	scenario = buffer.ReadBits8(3);
+	hillTime = buffer.ReadBits8(8);
+	options = buffer.ReadBits32(21);
 
 	for (uint8_t s = 0; s < MAX_SIMULANTS; s++)
 	{
-		botsData[s].type = buffer.ReadBits(5);
-		botsData[s].difficulty = buffer.ReadBits(3);
-		botsData[s].headIndex = buffer.ReadBits(7);
-		botsData[s].bodyIndex = buffer.ReadBits(7);
-		botsData[s].team = buffer.ReadBits(3);
+		botsData[s].type = buffer.ReadBits8(5);
+		botsData[s].difficulty = buffer.ReadBits8(3);
+		botsData[s].headIndex = buffer.ReadBits8(7);
+		botsData[s].bodyIndex = buffer.ReadBits8(7);
+		botsData[s].team = buffer.ReadBits8(3);
 	}
 
 	for (uint8_t ws = 0; ws < NUM_MP_WEAPONSLOTS; ws++)
 	{
-		weaponSlots[ws] = buffer.ReadBits(7);
+		weaponSlots[ws] = buffer.ReadBits8(7);
 	}
 
-	timelimit = buffer.ReadBits(6);
-	scorelimit = buffer.ReadBits(7);
-	teamscorelimit = buffer.ReadBits(9);
+	timelimit = buffer.ReadBits8(6);
+	scorelimit = buffer.ReadBits8(7);
+	teamscorelimit = buffer.ReadBits16(9);
 
 	for (uint8_t p = 0; p < MAX_PLAYERS; p++)
 	{
-		teams[p] = buffer.ReadBits(3);
+		teams[p] = buffer.ReadBits8(3);
 	}
 }
 

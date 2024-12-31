@@ -848,13 +848,18 @@ public:
 
 	uint8_t* GetBytes();
 
-	uint32_t ReadBits(const int32_t numBits);
+	uint8_t ReadBits8(const uint8_t numBits);
+	uint16_t ReadBits16(const uint8_t numBits);
+	uint32_t ReadBits32(const uint8_t numBits);
 	void Or(const uint32_t value, const int32_t numBits);
 	void ReadGuid(FileGuid* guid);
 	void WriteGuid(FileGuid* guid);
 	void ReadString(char* dst);
 	void WriteString(char* src);
 	void Clear();
+
+private:
+	uint32_t ReadBits(const uint8_t numBits);
 };
 
 struct SimulantData
