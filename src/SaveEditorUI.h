@@ -36,6 +36,7 @@ private:
 	bool CheckboxMpProfileOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerOptionsFlags flag, const bool reverse = false) const;
 	bool CheckboxMpProfileDisplayOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerDisplayOptionsFlags flag, const bool reverse = false) const;
 	bool CheckboxMpSetupOptionsFlags(MultiplayerSetup* mpSetup, const char* label, const MultiplayerSetupFlags flag, const bool reverse = false) const;
+	void ComboU8(const char* label, uint8_t* currentItem, const char* const items[], int itemsCount) const;
 	void NameInputField(const char* label, char* name) const;
 	void InputScalarU16(const char* label, uint16_t* value, const uint8_t bits) const;
 	void InputScalarU32(const char* label, uint32_t* value, const uint8_t bits) const;

@@ -93,11 +93,7 @@ void SaveEditorUI::RenderGlobalDataSection(SaveFile* saveFile)
 
 		PrintHeader("Settings");
 
-		int language = bossFile->language;
-		if (ImGui::Combo("##Language", &language, languageNames, NUM_LANGUAGES))
-		{
-			bossFile->language = language;
-		}
+		ComboU8("##Language", &bossFile->language, languageNames, NUM_LANGUAGES);
 
 		ImGui::Checkbox("Alt. title screen unlocked", &bossFile->altTitleUnlocked);
 		ImGui::Checkbox("Alt. title screen enabled", &bossFile->altTitleEnabled);
@@ -239,23 +235,9 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 				if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
 					ImGui::SetTooltip("%s", Utils::GetTimeString(gameFile->totaltime).c_str());
 
-				int thumbnail = gameFile->thumbnail;
-				if (ImGui::Combo("File Thumbnail", &thumbnail, thumbnailNames, NUM_SOLOSTAGES + 1))
-				{
-					gameFile->thumbnail = thumbnail;
-				}
-
-				int autostageindex = gameFile->autostageindex;
-				if (ImGui::Combo("Last Played Stage", &autostageindex, stageNames, NUM_SOLOSTAGES))
-				{
-					gameFile->autostageindex = autostageindex;
-				}
-
-				int autodifficulty = gameFile->autodifficulty;
-				if (ImGui::Combo("Last Played Difficulty", &autodifficulty, difficultyNames, NUM_DIFFICULTIES))
-				{
-					gameFile->autodifficulty = autodifficulty;
-				}
+				ComboU8("File Thumbnail", &gameFile->thumbnail, thumbnailNames, NUM_SOLOSTAGES + 1);
+				ComboU8("Last Played Stage", &gameFile->autostageindex, stageNames, NUM_SOLOSTAGES);
+				ComboU8("Last Played Difficulty", &gameFile->autodifficulty, difficultyNames, NUM_DIFFICULTIES);
 
 				PrintHeader("Settings");
 
@@ -267,11 +249,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 						ImGui::SliderScalar("Sound Volume", ImGuiDataType_U8, &gameFile->sfxVolume, &volumeMin, &volumeMax, "%u");
 						ImGui::SliderScalar("Music Volume", ImGuiDataType_U8, &gameFile->musicVolume, &volumeMin, &volumeMax, "%u");
 
-						int soundMode = gameFile->soundMode;
-						if (ImGui::Combo("Sound Mode", &soundMode, soundModeNames, NUM_SOUND_MODES))
-						{
-							gameFile->soundMode = soundMode;
-						}
+						ComboU8("Sound Mode", &gameFile->soundMode, soundModeNames, NUM_SOUND_MODES);
 
 						CheckboxProgressFlags(gameFile, "Language Filter", SinglePlayerFlags::LANGFILTERON);
 
@@ -325,11 +303,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 								snprintf(playerTabName, 10, "Player %u", p + 1);
 								PrintHeader(playerTabName);
 
-								int controlMode = gameFile->controlModes[p];
-								if (ImGui::Combo("Control Mode", &controlMode, controlModeNames, NUM_CONTROL_MODES))
-								{
-									gameFile->controlModes[p] = controlMode;
-								}
+								ComboU8("Control Mode", &gameFile->controlModes[p], controlModeNames, NUM_CONTROL_MODES);
 
 								if (p == 0)
 								{
@@ -787,11 +761,7 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 
 					PrintHeader("Control");
 
-					int controlMode = mpProfile->controlmode;
-					if (ImGui::Combo("Control Mode", &controlMode, controlModeNames, NUM_CONTROL_MODES - 4))
-					{
-						mpProfile->controlmode = controlMode;
-					}
+					ComboU8("Control Mode", &mpProfile->controlmode, controlModeNames, NUM_CONTROL_MODES - 4);
 
 					CheckboxMpProfileOptionsFlags(mpProfile, "Reverse Pitch", MultiplayerOptionsFlags::FORWARDPITCH, true);
 					CheckboxMpProfileOptionsFlags(mpProfile, "Look Ahead", MultiplayerOptionsFlags::LOOKAHEAD);
@@ -981,15 +951,11 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 						mpSetup->SetArena(arena);
 					}
 
-					int scenario = mpSetup->scenario;
-					if (ImGui::Combo("Scenario", &scenario, mpScenarioNames, NUM_MP_SCENARIOS))
-					{
-						mpSetup->scenario = scenario;
-					}
+					ComboU8("Scenario", &mpSetup->scenario, mpScenarioNames, NUM_MP_SCENARIOS);
 
 					ImGui::TableSetColumnIndex(1);
 
-					switch ((MultiplayerScenarios)scenario)
+					switch ((MultiplayerScenarios)mpSetup->scenario)
 					{
 						case MultiplayerScenarios::Combat:
 						{
@@ -1167,33 +1133,21 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 						ImGui::TableSetColumnIndex(1);
 
 						ImGui::PushItemWidth(columnWidth);
-						int difficulty = mpSetup->botsData[s].difficulty;
-						if (ImGui::Combo("##Difficulty", &difficulty, mpSimulantDifficultyNames, NUM_MP_SIMULANT_DIFFICULTIES + 1))
-						{
-							mpSetup->botsData[s].difficulty = difficulty;
-						}
+						ComboU8("##Difficulty", &mpSetup->botsData[s].difficulty, mpSimulantDifficultyNames, NUM_MP_SIMULANT_DIFFICULTIES + 1);
 						ImGui::PopItemWidth();
 
 						ImGui::TableSetColumnIndex(2);
 
-						if ((SimulantDifficulties)difficulty == SimulantDifficulties::Disabled) ImGui::BeginDisabled();
+						if ((SimulantDifficulties)mpSetup->botsData[s].difficulty == SimulantDifficulties::Disabled) ImGui::BeginDisabled();
 
 						ImGui::PushItemWidth(columnWidth);
-						int type = mpSetup->botsData[s].type;
-						if (ImGui::Combo("##Type", &type, mpSimulantTypeNames, NUM_MP_SIMULANT_TYPES))
-						{
-							mpSetup->botsData[s].type = type;
-						}
+						ComboU8("##Type", &mpSetup->botsData[s].type, mpSimulantTypeNames, NUM_MP_SIMULANT_TYPES);
 						ImGui::PopItemWidth();
 
 						ImGui::TableSetColumnIndex(3);
 
 						ImGui::PushItemWidth(columnWidth);
-						int team = mpSetup->botsData[s].team;
-						if (ImGui::Combo("##Team", &team, teamNames, NUM_MP_TEAMS))
-						{
-							mpSetup->botsData[s].team = team;
-						}
+						ComboU8("##Team", &mpSetup->botsData[s].team, teamNames, NUM_MP_TEAMS);
 						ImGui::PopItemWidth();
 
 						ImGui::TableSetColumnIndex(4);
@@ -1212,7 +1166,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 						ImGui::SliderScalar("##Character Body", ImGuiDataType_U8, &mpSetup->botsData[s].bodyIndex, &bodyMin, &bodyMax, bodyName);
 						ImGui::PopItemWidth();
 
-						if ((SimulantDifficulties)difficulty == SimulantDifficulties::Disabled) ImGui::EndDisabled();
+						if ((SimulantDifficulties)mpSetup->botsData[s].difficulty == SimulantDifficulties::Disabled) ImGui::EndDisabled();
 
 						ImGui::PopID();
 					}
@@ -1295,12 +1249,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 
 						char playerName[16];
 						snprintf(playerName, 16, "Player %u", p + 1);
-
-						int team = mpSetup->teams[p];
-						if (ImGui::Combo(playerName, &team, teamNames, NUM_MP_TEAMS))
-						{
-							mpSetup->teams[p] = team;
-						}
+						ComboU8(playerName, &mpSetup->teams[p], teamNames, NUM_MP_TEAMS);
 
 						ImGui::PopID();
 					}
@@ -1373,6 +1322,15 @@ bool SaveEditorUI::CheckboxMpSetupOptionsFlags(MultiplayerSetup* mpSetup, const 
 	}
 
 	return value;
+}
+
+void SaveEditorUI::ComboU8(const char* label, uint8_t* currentItem, const char* const items[], int itemsCount) const
+{
+	int value = *currentItem;
+	if (ImGui::Combo(label, &value, items, itemsCount))
+	{
+		*currentItem = static_cast<uint8_t>(value);
+	}
 }
 
 void SaveEditorUI::NameInputField(const char* label, char* name) const
