@@ -64,6 +64,16 @@ void SetImGuiStyle()
 
 int main()
 {
+	int major, minor, revision;
+	glfwGetVersion(&major, &minor, &revision);
+
+	if (major != GLFW_VERSION_MAJOR || minor != GLFW_VERSION_MINOR || revision != GLFW_VERSION_REVISION)
+	{
+		printf("GLFW Lib: %i.%i.%i\n", major, minor, revision);
+		printf("GLFW Header: %i.%i.%i\n", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR, GLFW_VERSION_REVISION);
+		throw std::runtime_error("GLFW versions mismatch!");
+	}
+
 	glfwSetErrorCallback(error_callback);
 
 	if (!glfwInit())
