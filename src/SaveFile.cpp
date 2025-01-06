@@ -225,7 +225,7 @@ void PakFileHeader::Save(uint8_t* fileBuffer, const bool isBigEndian)
 		fileBuffer[6] = bodysum[1] >> 8;
 		fileBuffer[7] = bodysum[1] & 0xFF;
 
-		fileBuffer[8] = filetype >> 1;
+		fileBuffer[8] = (filetype >> 1) & 0xFF;
 		fileBuffer[9] = (filetype & 0x1) << 7;
 
 		fileBuffer[9] |= bodylen >> 4;
@@ -234,7 +234,7 @@ void PakFileHeader::Save(uint8_t* fileBuffer, const bool isBigEndian)
 		fileBuffer[10] |= filelen >> 8;
 		fileBuffer[11] = (filelen & 0xFF) << 0;
 
-		fileBuffer[12] = deviceSerial >> 5;
+		fileBuffer[12] = (deviceSerial >> 5) & 0xFF;
 		fileBuffer[13] = (deviceSerial & 0x1F) << 3;
 
 		fileBuffer[13] |= id >> 4;
@@ -258,10 +258,10 @@ void PakFileHeader::Save(uint8_t* fileBuffer, const bool isBigEndian)
 		fileBuffer[9] = filetype >> 8;
 
 		fileBuffer[9] |= (bodylen & 0x7F) << 1;
-		fileBuffer[10] = bodylen >> 7;
+		fileBuffer[10] = (bodylen >> 7) & 0xF;
 
 		fileBuffer[10] |= (filelen & 0xF) << 4;
-		fileBuffer[11] = filelen >> 4;
+		fileBuffer[11] = (filelen >> 4) & 0xFF;
 
 		fileBuffer[12] = (deviceSerial & 0xFF) << 0;
 		fileBuffer[13] = deviceSerial >> 8;
@@ -270,7 +270,7 @@ void PakFileHeader::Save(uint8_t* fileBuffer, const bool isBigEndian)
 		fileBuffer[14] = id >> 3;
 
 		fileBuffer[14] |= (generation & 0xF) << 4;
-		fileBuffer[15] = generation >> 4;
+		fileBuffer[15] = (generation >> 4) & 0x1F;
 
 		fileBuffer[15] |= (occupied & 0x1) << 5;
 		fileBuffer[15] |= (writecompleted & 0x1) << 6;
