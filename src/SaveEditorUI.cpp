@@ -711,13 +711,8 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 					if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
 						ImGui::SetTooltip("%s", Utils::GetTimeString(mpProfile->time).c_str());
 
-					const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS - 1;
-					ImGui::SliderScalar("Character Head", ImGuiDataType_U8, &mpProfile->headIndex, &headsMin, &headsMax, "%u");
-
-					const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES - 1;
-					char bodyName[64];
-					snprintf(bodyName, 64, "%u (%s)", mpProfile->bodyIndex, mpBodyNames[mpProfile->bodyIndex]);
-					ImGui::SliderScalar("Character Body", ImGuiDataType_U8, &mpProfile->bodyIndex, &bodyMin, &bodyMax, bodyName);
+					CharacterHeadSlider("Character Head", &mpProfile->headIndex);
+					CharacterBodySlider("Character Body", &mpProfile->bodyIndex);
 
 					ImGui::TableSetColumnIndex(1);
 					PrintHeader("Statistics");
@@ -1123,8 +1118,6 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 
 					ImGui::TableHeadersRow();
 
-					constexpr float columnWidth = 110;
-
 					for (uint8_t s = 0; s < MAX_SIMULANTS; s++)
 					{
 						ImGui::PushID(s);
@@ -1136,7 +1129,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 
 						ImGui::TableSetColumnIndex(1);
 
-						ImGui::PushItemWidth(columnWidth);
+						ImGui::PushItemWidth(85);
 						ComboU8("##Difficulty", &mpSetup->botsData[s].difficulty, mpSimulantDifficultyNames, NUM_MP_SIMULANT_DIFFICULTIES + 1);
 						ImGui::PopItemWidth();
 
@@ -1144,30 +1137,26 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 
 						if ((SimulantDifficulties)mpSetup->botsData[s].difficulty == SimulantDifficulties::Disabled) ImGui::BeginDisabled();
 
-						ImGui::PushItemWidth(columnWidth);
+						ImGui::PushItemWidth(100);
 						ComboU8("##Type", &mpSetup->botsData[s].type, mpSimulantTypeNames, NUM_MP_SIMULANT_TYPES);
 						ImGui::PopItemWidth();
 
 						ImGui::TableSetColumnIndex(3);
 
-						ImGui::PushItemWidth(columnWidth);
+						ImGui::PushItemWidth(75);
 						ComboU8("##Team", &mpSetup->botsData[s].team, teamNames, NUM_MP_TEAMS);
 						ImGui::PopItemWidth();
 
 						ImGui::TableSetColumnIndex(4);
 
-						ImGui::PushItemWidth(columnWidth);
-						const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS - 1;
-						ImGui::SliderScalar("##Character Head", ImGuiDataType_U8, &mpSetup->botsData[s].headIndex, &headsMin, &headsMax, "%u");
+						ImGui::PushItemWidth(180);
+						CharacterHeadSlider("##Character Head", &mpSetup->botsData[s].headIndex);
 						ImGui::PopItemWidth();
 
 						ImGui::TableSetColumnIndex(5);
 
-						ImGui::PushItemWidth(columnWidth + 95);
-						const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES - 1;
-						char bodyName[64];
-						snprintf(bodyName, 64, "%u (%s)", mpSetup->botsData[s].bodyIndex, mpBodyNames[mpSetup->botsData[s].bodyIndex]);
-						ImGui::SliderScalar("##Character Body", ImGuiDataType_U8, &mpSetup->botsData[s].bodyIndex, &bodyMin, &bodyMax, bodyName);
+						ImGui::PushItemWidth(205);
+						CharacterBodySlider("##Character Body", &mpSetup->botsData[s].bodyIndex);
 						ImGui::PopItemWidth();
 
 						if ((SimulantDifficulties)mpSetup->botsData[s].difficulty == SimulantDifficulties::Disabled) ImGui::EndDisabled();
@@ -1399,6 +1388,22 @@ void SaveEditorUI::InputScalarU32(const char* label, uint32_t* value, const uint
 		if (value64 > mask) value64 = mask;
 		*value = (uint32_t)value64;
 	}
+}
+
+void SaveEditorUI::CharacterHeadSlider(const char* label, uint8_t* value) const
+{
+	const ImU8 headsMin = 0, headsMax = NUM_MP_HEADS - 1;
+	char headName[64];
+	snprintf(headName, 64, "%u: %s", *value, mpHeadNames[*value]);
+	ImGui::SliderScalar(label, ImGuiDataType_U8, value, &headsMin, &headsMax, headName);
+}
+
+void SaveEditorUI::CharacterBodySlider(const char* label, uint8_t* value) const
+{
+	const ImU8 bodyMin = 0, bodyMax = NUM_MP_BODIES - 1;
+	char bodyName[64];
+	snprintf(bodyName, 64, "%u: %s", *value, mpBodyNames[*value]);
+	ImGui::SliderScalar(label, ImGuiDataType_U8, value, &bodyMin, &bodyMax, bodyName);
 }
 
 void SaveEditorUI::PrintEmptySlot() const

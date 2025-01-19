@@ -42,6 +42,8 @@ private:
 	void NameInputField(const char* label, char* name) const;
 	void InputScalarU16(const char* label, uint16_t* value, const uint8_t bits) const;
 	void InputScalarU32(const char* label, uint32_t* value, const uint8_t bits) const;
+	void CharacterHeadSlider(const char* label, uint8_t* value) const;
+	void CharacterBodySlider(const char* label, uint8_t* value) const;
 
 	void PrintEmptySlot() const;
 	void PrintHeader(const char* label) const;
