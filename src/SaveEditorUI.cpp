@@ -5,6 +5,9 @@
 SaveEditorUI::SaveEditorUI(const MainUI* mainUI) : BaseUI(mainUI)
 {
 	SaveEditorUI::mainUI = mainUI;
+
+	std::random_device rd;
+	random.seed(rd());
 }
 
 SaveEditorUI::~SaveEditorUI()
@@ -144,10 +147,11 @@ void SaveEditorUI::RenderGlobalDataSection(SaveFile* saveFile)
 
 		if (ImGui::Button("Select Random"))
 		{
+			uint64_t bits = random();
+
 			for (uint8_t s = 0; s < NUM_SONGS; s++)
 			{
-				bool enabled = (bool)(rand() % 2);
-				bossFile->SetMultiTrackSlotEnabled(s, enabled);
+				bossFile->SetMultiTrackSlotEnabled(s, (bits >> s) & 1);
 			}
 		}
 

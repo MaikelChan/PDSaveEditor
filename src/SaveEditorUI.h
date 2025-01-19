@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <random>
 #include "BaseUI.h"
 #include "SaveData.h"
 class MainUI;
@@ -17,6 +18,7 @@ class SaveEditorUI : public BaseUI
 {
 private:
 	const MainUI* mainUI;
+	std::mt19937_64 random;
 
 public:
 	SaveEditorUI(const MainUI* mainUI);
