@@ -4,12 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.4] - 2025-01-19
+## [1.0.4] - 2025-01-20
 ### Added
 - Added names of the heads in the multiplayer character selector, at least the ones I recognized.
 ### Fixed
 - Fixed a typo in one of the character bodies: Joanna Part Frock -> Joanna Party Frock.
-- A bit of extra rendeing performance improvements.
+- A bit of extra rendering performance improvements.
 
 ## [1.0.3] - 2025-01-06
 ### Fixed
