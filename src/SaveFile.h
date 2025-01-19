@@ -336,6 +336,8 @@ enum class SinglePlayerFlags
 
 const char* const mpHeadNames[NUM_MP_HEADS]
 {
+
+
 	"Joanna Combat",
 	"Joanna Party Frock",
 	"Joanna Wet Suit",
@@ -361,7 +363,7 @@ const char* const mpHeadNames[NUM_MP_HEADS]
 	"Man 02",
 	"Man 03",
 	"Stanley Grimshaw",
-	"Man 04,"
+	"Man 04",
 	"Man 05",
 	"Man 06",
 	"Man 07",
