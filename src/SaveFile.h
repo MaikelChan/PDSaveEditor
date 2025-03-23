@@ -725,7 +725,7 @@ enum class SimulantTypes
 #define NUM_WEAPONS 35
 #define NUM_FIRING_RANGE_WEAPONS 32
 #define NUM_MP_WEAPONS_N64 39
-#define NUM_MP_WEAPONS_PC 47
+#define NUM_MP_WEAPONS_PC 49
 
 const char* const weaponNames[]
 {
@@ -775,8 +775,10 @@ const char* const weaponNames[]
 	"RC-P45",				// 43
 	"Shield",				// 44
 	"X-Ray Scanner",		// 45
-	"Cloaking Device",		// 46
-	"Disabled"				// 47
+	"Night Vision",		    // 46
+	"IR Scanner",	     	// 47
+	"Cloaking Device",		// 48
+	"Disabled"				// 49
 };
 
 const uint8_t frWeaponNameIndices[NUM_FIRING_RANGE_WEAPONS] // frGetWeaponIndexByWeapon(u32 weaponnum)
@@ -858,6 +860,7 @@ const uint8_t mpWeaponNameIndicesN64[NUM_MP_WEAPONS_N64] // struct mpweapon g_Mp
 	47	// WEAPON_DISABLED
 };
 
+// should be in the same order as the weapon names in MP
 const uint8_t mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC] // struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
 {
 	0,	// WEAPON_NONE
@@ -895,7 +898,9 @@ const uint8_t mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC] // struct mpweapon g_MpWe
 	34,	// WEAPON_REMOTEMINE
 	29,	// WEAPON_LASER
 	45,	// WEAPON_XRAYSCANNER
-	46,	// WEAPON_CLOAKINGDEVICE
+	46,	// WEAPON_NIGHTVISION
+	47,	// WEAPON_IRSCANNER
+	48,	// WEAPON_CLOAKINGDEVICE
 	35,	// WEAPON_COMBATBOOST
 	36,	// WEAPON_PP9I
 	37,	// WEAPON_CC13
@@ -906,7 +911,7 @@ const uint8_t mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC] // struct mpweapon g_MpWe
 	42,	// WEAPON_AR53
 	43,	// WEAPON_RCP45
 	44,	// WEAPON_MPSHIELD
-	47	// WEAPON_DISABLED
+	49	// WEAPON_DISABLED
 };
 
 #pragma endregion

@@ -112,7 +112,7 @@ void SaveData::SetFormat(const SaveFormats format)
 
 				if (mpSetup->weaponSlots[ws] > 44)
 				{
-					mpSetup->weaponSlots[ws] -= 8;
+					mpSetup->weaponSlots[ws] -= 10;
 				}
 			}
 		}
@@ -124,7 +124,7 @@ void SaveData::SetFormat(const SaveFormats format)
 
 				if (mpSetup->weaponSlots[ws] > 36)
 				{
-					mpSetup->weaponSlots[ws] += 8;
+					mpSetup->weaponSlots[ws] += 10;
 				}
 			}
 		}
