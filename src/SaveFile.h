@@ -727,6 +727,63 @@ enum class SimulantTypes
 #define NUM_MP_WEAPONS_N64 39
 #define NUM_MP_WEAPONS_PC 49
 
+// These are all the weapons that are relevant in this save editor.
+enum class Weapons : uint8_t
+{
+	NONE,
+	UNARMED,
+	FALCON2,
+	FALCON2_SILENCER,
+	FALCON2_SCOPE,
+	MAGSEC4,
+	MAULER,
+	PHOENIX,
+	DY357MAGNUM,
+	DY357LX,
+	CMP150,
+	CYCLONE,
+	CALLISTO,
+	RCP120,
+	LAPTOPGUN,
+	DRAGON,
+	K7AVENGER,
+	AR34,
+	SUPERDRAGON,
+	SHOTGUN,
+	REAPER,
+	SNIPERRIFLE,
+	FARSIGHT,
+	DEVASTATOR,
+	ROCKETLAUNCHER,
+	SLAYER,
+	COMBATKNIFE,
+	CROSSBOW,
+	TRANQUILIZER,
+	LASER,
+	GRENADE,
+	NBOMB,
+	TIMEDMINE,
+	PROXIMITYMINE,
+	REMOTEMINE,
+	COMBATBOOST,
+	PP9I,
+	CC13,
+	KL01313,
+	KF7SPECIAL,
+	ZZT,
+	DMC,
+	AR53,
+	RCP45,
+	MPSHIELD,
+	XRAYSCANNER,
+	NIGHTVISION,
+	IRSCANNER,
+	CLOAKINGDEVICE,
+	DISABLED
+};
+
+// These are the proper names of all the weapons.
+// This array should match the Weapons enum.
 const char* const weaponNames[]
 {
 	"Nothing",				// 0
@@ -775,143 +832,148 @@ const char* const weaponNames[]
 	"RC-P45",				// 43
 	"Shield",				// 44
 	"X-Ray Scanner",		// 45
-	"Night Vision",		    // 46
-	"IR Scanner",	     	// 47
+	"Night Vision",			// 46
+	"IR Scanner",			// 47
 	"Cloaking Device",		// 48
 	"Disabled"				// 49
 };
 
-const uint8_t frWeaponNameIndices[NUM_FIRING_RANGE_WEAPONS] // frGetWeaponIndexByWeapon(u32 weaponnum)
+// This should match the order of the Firing Range weapons in the game's source code:
+// training.c, frGetWeaponIndexByWeapon(u32 weaponnum)
+const Weapons frWeaponNameIndices[NUM_FIRING_RANGE_WEAPONS]
 {
-	2,	// WEAPON_FALCON2
-	4,	// WEAPON_FALCON2_SCOPE
-	3,	// WEAPON_FALCON2_SILENCER
-	5,	// WEAPON_MAGSEC4
-	6,	// WEAPON_MAULER
-	7,	// WEAPON_PHOENIX
-	8,	// WEAPON_DY357MAGNUM
-	9,	// WEAPON_DY357LX
-	10,	// WEAPON_CMP150
-	11,	// WEAPON_CYCLONE
-	12,	// WEAPON_CALLISTO
-	13,	// WEAPON_RCP120
-	14,	// WEAPON_LAPTOPGUN
-	15,	// WEAPON_DRAGON
-	16,	// WEAPON_K7AVENGER
-	17,	// WEAPON_AR34
-	18,	// WEAPON_SUPERDRAGON
-	19,	// WEAPON_SHOTGUN
-	21,	// WEAPON_SNIPERRIFLE
-	22,	// WEAPON_FARSIGHT
-	27,	// WEAPON_CROSSBOW
-	28,	// WEAPON_TRANQUILIZER
-	20,	// WEAPON_REAPER
-	23,	// WEAPON_DEVASTATOR
-	24,	// WEAPON_ROCKETLAUNCHER
-	25,	// WEAPON_SLAYER
-	26,	// WEAPON_COMBATKNIFE
-	29,	// WEAPON_LASER
-	30,	// WEAPON_GRENADE
-	32,	// WEAPON_TIMEDMINE
-	33,	// WEAPON_PROXIMITYMINE
-	34	// WEAPON_REMOTEMINE
+	Weapons::FALCON2,
+	Weapons::FALCON2_SCOPE,
+	Weapons::FALCON2_SILENCER,
+	Weapons::MAGSEC4,
+	Weapons::MAULER,
+	Weapons::PHOENIX,
+	Weapons::DY357MAGNUM,
+	Weapons::DY357LX,
+	Weapons::CMP150,
+	Weapons::CYCLONE,
+	Weapons::CALLISTO,
+	Weapons::RCP120,
+	Weapons::LAPTOPGUN,
+	Weapons::DRAGON,
+	Weapons::K7AVENGER,
+	Weapons::AR34,
+	Weapons::SUPERDRAGON,
+	Weapons::SHOTGUN,
+	Weapons::SNIPERRIFLE,
+	Weapons::FARSIGHT,
+	Weapons::CROSSBOW,
+	Weapons::TRANQUILIZER,
+	Weapons::REAPER,
+	Weapons::DEVASTATOR,
+	Weapons::ROCKETLAUNCHER,
+	Weapons::SLAYER,
+	Weapons::COMBATKNIFE,
+	Weapons::LASER,
+	Weapons::GRENADE,
+	Weapons::TIMEDMINE,
+	Weapons::PROXIMITYMINE,
+	Weapons::REMOTEMINE
 };
 
-const uint8_t mpWeaponNameIndicesN64[NUM_MP_WEAPONS_N64] // struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
+// This should match the MP weapons array in the game's source code:
+// mplayer.c, struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
+const Weapons mpWeaponNameIndicesN64[NUM_MP_WEAPONS_N64]
 {
-	0,	// WEAPON_NONE
-	2,	// WEAPON_FALCON2
-	3,	// WEAPON_FALCON2_SILENCER
-	4,	// WEAPON_FALCON2_SCOPE
-	5,	// WEAPON_MAGSEC4
-	6,	// WEAPON_MAULER
-	7,	// WEAPON_PHOENIX
-	8,	// WEAPON_DY357MAGNUM
-	9,	// WEAPON_DY357LX
-	10,	// WEAPON_CMP150
-	11,	// WEAPON_CYCLONE
-	12,	// WEAPON_CALLISTO
-	13,	// WEAPON_RCP120
-	14,	// WEAPON_LAPTOPGUN
-	15,	// WEAPON_DRAGON
-	16,	// WEAPON_K7AVENGER
-	17,	// WEAPON_AR34
-	18,	// WEAPON_SUPERDRAGON
-	19,	// WEAPON_SHOTGUN
-	20,	// WEAPON_REAPER
-	21,	// WEAPON_SNIPERRIFLE
-	22,	// WEAPON_FARSIGHT
-	23,	// WEAPON_DEVASTATOR
-	24,	// WEAPON_ROCKETLAUNCHER
-	25,	// WEAPON_SLAYER
-	26,	// WEAPON_COMBATKNIFE
-	27,	// WEAPON_CROSSBOW
-	28,	// WEAPON_TRANQUILIZER
-	30,	// WEAPON_GRENADE
-	31,	// WEAPON_NBOMB
-	32,	// WEAPON_TIMEDMINE
-	33,	// WEAPON_PROXIMITYMINE
-	34,	// WEAPON_REMOTEMINE
-	29,	// WEAPON_LASER
-	45,	// WEAPON_XRAYSCANNER
-	46,	// WEAPON_CLOAKINGDEVICE
-	35,	// WEAPON_COMBATBOOST
-	44,	// WEAPON_MPSHIELD
-	47	// WEAPON_DISABLED
+	Weapons::NONE,
+	Weapons::FALCON2,
+	Weapons::FALCON2_SILENCER,
+	Weapons::FALCON2_SCOPE,
+	Weapons::MAGSEC4,
+	Weapons::MAULER,
+	Weapons::PHOENIX,
+	Weapons::DY357MAGNUM,
+	Weapons::DY357LX,
+	Weapons::CMP150,
+	Weapons::CYCLONE,
+	Weapons::CALLISTO,
+	Weapons::RCP120,
+	Weapons::LAPTOPGUN,
+	Weapons::DRAGON,
+	Weapons::K7AVENGER,
+	Weapons::AR34,
+	Weapons::SUPERDRAGON,
+	Weapons::SHOTGUN,
+	Weapons::REAPER,
+	Weapons::SNIPERRIFLE,
+	Weapons::FARSIGHT,
+	Weapons::DEVASTATOR,
+	Weapons::ROCKETLAUNCHER,
+	Weapons::SLAYER,
+	Weapons::COMBATKNIFE,
+	Weapons::CROSSBOW,
+	Weapons::TRANQUILIZER,
+	Weapons::GRENADE,
+	Weapons::NBOMB,
+	Weapons::TIMEDMINE,
+	Weapons::PROXIMITYMINE,
+	Weapons::REMOTEMINE,
+	Weapons::LASER,
+	Weapons::XRAYSCANNER,
+	Weapons::CLOAKINGDEVICE,
+	Weapons::COMBATBOOST,
+	Weapons::MPSHIELD,
+	Weapons::DISABLED
 };
 
-// should be in the same order as the weapon names in MP
-const uint8_t mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC] // struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
+// This should match the MP weapons array in the game's source code:
+// mplayer.c, struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
+const Weapons mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC] // 
 {
-	0,	// WEAPON_NONE
-	2,	// WEAPON_FALCON2
-	3,	// WEAPON_FALCON2_SILENCER
-	4,	// WEAPON_FALCON2_SCOPE
-	5,	// WEAPON_MAGSEC4
-	6,	// WEAPON_MAULER
-	7,	// WEAPON_PHOENIX
-	8,	// WEAPON_DY357MAGNUM
-	9,	// WEAPON_DY357LX
-	10,	// WEAPON_CMP150
-	11,	// WEAPON_CYCLONE
-	12,	// WEAPON_CALLISTO
-	13,	// WEAPON_RCP120
-	14,	// WEAPON_LAPTOPGUN
-	15,	// WEAPON_DRAGON
-	16,	// WEAPON_K7AVENGER
-	17,	// WEAPON_AR34
-	18,	// WEAPON_SUPERDRAGON
-	19,	// WEAPON_SHOTGUN
-	20,	// WEAPON_REAPER
-	21,	// WEAPON_SNIPERRIFLE
-	22,	// WEAPON_FARSIGHT
-	23,	// WEAPON_DEVASTATOR
-	24,	// WEAPON_ROCKETLAUNCHER
-	25,	// WEAPON_SLAYER
-	26,	// WEAPON_COMBATKNIFE
-	27,	// WEAPON_CROSSBOW
-	28,	// WEAPON_TRANQUILIZER
-	30,	// WEAPON_GRENADE
-	31,	// WEAPON_NBOMB
-	32,	// WEAPON_TIMEDMINE
-	33,	// WEAPON_PROXIMITYMINE
-	34,	// WEAPON_REMOTEMINE
-	29,	// WEAPON_LASER
-	45,	// WEAPON_XRAYSCANNER
-	46,	// WEAPON_NIGHTVISION
-	47,	// WEAPON_IRSCANNER
-	48,	// WEAPON_CLOAKINGDEVICE
-	35,	// WEAPON_COMBATBOOST
-	36,	// WEAPON_PP9I
-	37,	// WEAPON_CC13
-	38,	// WEAPON_KL01313
-	39,	// WEAPON_KF7SPECIAL
-	40,	// WEAPON_ZZT
-	41,	// WEAPON_DMC
-	42,	// WEAPON_AR53
-	43,	// WEAPON_RCP45
-	44,	// WEAPON_MPSHIELD
-	49	// WEAPON_DISABLED
+	Weapons::NONE,
+	Weapons::FALCON2,
+	Weapons::FALCON2_SILENCER,
+	Weapons::FALCON2_SCOPE,
+	Weapons::MAGSEC4,
+	Weapons::MAULER,
+	Weapons::PHOENIX,
+	Weapons::DY357MAGNUM,
+	Weapons::DY357LX,
+	Weapons::CMP150,
+	Weapons::CYCLONE,
+	Weapons::CALLISTO,
+	Weapons::RCP120,
+	Weapons::LAPTOPGUN,
+	Weapons::DRAGON,
+	Weapons::K7AVENGER,
+	Weapons::AR34,
+	Weapons::SUPERDRAGON,
+	Weapons::SHOTGUN,
+	Weapons::REAPER,
+	Weapons::SNIPERRIFLE,
+	Weapons::FARSIGHT,
+	Weapons::DEVASTATOR,
+	Weapons::ROCKETLAUNCHER,
+	Weapons::SLAYER,
+	Weapons::COMBATKNIFE,
+	Weapons::CROSSBOW,
+	Weapons::TRANQUILIZER,
+	Weapons::GRENADE,
+	Weapons::NBOMB,
+	Weapons::TIMEDMINE,
+	Weapons::PROXIMITYMINE,
+	Weapons::REMOTEMINE,
+	Weapons::LASER,
+	Weapons::XRAYSCANNER,
+	Weapons::NIGHTVISION,
+	Weapons::IRSCANNER,
+	Weapons::CLOAKINGDEVICE,
+	Weapons::COMBATBOOST,
+	Weapons::PP9I,
+	Weapons::CC13,
+	Weapons::KL01313,
+	Weapons::KF7SPECIAL,
+	Weapons::ZZT,
+	Weapons::DMC,
+	Weapons::AR53,
+	Weapons::RCP45,
+	Weapons::MPSHIELD,
+	Weapons::DISABLED
 };
 
 #pragma endregion

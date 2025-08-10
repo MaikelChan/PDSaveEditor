@@ -101,16 +101,31 @@ void SaveData::SetFormat(const SaveFormats format)
 		{
 			for (uint8_t ws = 0; ws < NUM_MP_WEAPONSLOTS; ws++)
 			{
-				// Classic weapons not available on N64
+				// Night Vision and IR Scanner are not available on N64
 
-				if (mpSetup->weaponSlots[ws] >= 37 && mpSetup->weaponSlots[ws] <= 44)
+				if (mpSetup->weaponSlots[ws] >= 35 && mpSetup->weaponSlots[ws] <= 36)
 				{
 					mpSetup->weaponSlots[ws] = 0;
 				}
 
-				// Offset weapons that were after the classic weapons
+				// Offset items that are between the Night Vision and IR Scanner,
+				// and the classic weapons.
 
-				if (mpSetup->weaponSlots[ws] > 44)
+				if (mpSetup->weaponSlots[ws] >= 37 && mpSetup->weaponSlots[ws] <= 38)
+				{
+					mpSetup->weaponSlots[ws] -= 2;
+				}
+
+				// Classic weapons are not available on N64
+
+				if (mpSetup->weaponSlots[ws] >= 39 && mpSetup->weaponSlots[ws] <= 46)
+				{
+					mpSetup->weaponSlots[ws] = 0;
+				}
+
+				// Offset weapons that are after the classic weapons
+
+				if (mpSetup->weaponSlots[ws] > 46)
 				{
 					mpSetup->weaponSlots[ws] -= 10;
 				}
@@ -120,6 +135,14 @@ void SaveData::SetFormat(const SaveFormats format)
 		{
 			for (uint8_t ws = 0; ws < NUM_MP_WEAPONSLOTS; ws++)
 			{
+				// Offset Cloaking Device and Combat Boost to make room for
+				// Night Vision and IR Scanner.
+
+				if (mpSetup->weaponSlots[ws] >= 35 && mpSetup->weaponSlots[ws] <= 36)
+				{
+					mpSetup->weaponSlots[ws] += 2;
+				}
+
 				// Offset latest weapons to make room for the classic weapons
 
 				if (mpSetup->weaponSlots[ws] > 36)
