@@ -6,13 +6,12 @@ class AboutWindow : public BaseUI
 {
 private:
 	char windowTitle[64];
-	char description[64];
 
 public:
-	AboutWindow(const BaseUI* parentUI);
+	AboutWindow(Window* window, BaseUI* parentUi);
 	~AboutWindow();
 
 protected:
-	virtual void VisibilityChanged(const bool isVisible) override;
-	virtual void DoRender() override;
+	void VisibilityChanged(const bool _isVisible) override;
+	void DoRender() override;
 };
