@@ -1,42 +1,84 @@
-﻿# CMakeList.txt : Top-level CMake project file, do global configuration
-# and include sub-projects here.
+﻿
+include(FetchContent)
 
 # Used features that require certain minimum version:
 # * 3.11: Required for setting GLVND OpenGL preference.
 # * 3.15: Removes the '/W3' MSVC warning flag added by CMake by default, so another warning level can be set with 'target_compile_options' without causing warnings.
-cmake_minimum_required (VERSION 3.15)
+cmake_minimum_required (VERSION 3.19)
 
-# Enable Hot Reload for MSVC compilers if supported.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-endif()
+# SDL3 --------------------------------------------------------------------------------------------
 
-project ("PDSaveEditor" VERSION "1.0.4")
-configure_file("${CMAKE_CURRENT_LIST_DIR}/src/Config.h.in" "${CMAKE_CURRENT_LIST_DIR}/src/Config.h")
-configure_file("${CMAKE_CURRENT_LIST_DIR}/src/resources.rc.in" "${CMAKE_CURRENT_LIST_DIR}/src/resources.rc")
+set(LINK_SDL3_STATICALLY TRUE)
 
-set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_LIST_DIR}/src/resources.rc")
+set(FETCHCONTENT_QUIET OFF)
+set(FETCHCONTENT_BASE_DIR ${CMAKE_SOURCE_DIR}/out/)
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
+FetchContent_Declare(
+    SDL3
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-3.4.8
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+)
 
-# Set OpenGL preference. On Linux there may be two gl libraries.
-# Specify with "LEGACY" or "GLVND".
-set(OpenGL_GL_PREFERENCE "GLVND")
-find_package(OpenGL REQUIRED)
-
-if (MSVC)
-  # With MSVC on Windows, just put the static glfw3.lib in the lib/ folder
-  if(NOT EXISTS "${CMAKE_SOURCE_DIR}/lib/glfw3.lib")
-    message(SEND_ERROR "glfw3.lib is missing from '${CMAKE_SOURCE_DIR}/lib' folder.")
-  endif()
-  link_directories(${CMAKE_SOURCE_DIR}/lib)
+if (LINK_SDL3_STATICALLY)
+    set(SDL_SHARED OFF)
+    set(SDL_STATIC ON)
 else()
-  # On Linux or on Windows with Mingw, having installed the glfw3 dev package or compiled and installed from source,
-  # should have also installed "glfw3Config.cmake", which will be used by find_package.
-  find_package(glfw3 3.3 REQUIRED)
-  message(STATUS "Using 'glfw3Config.cmake' file located at '${glfw3_DIR}'.")
+    set(SDL_SHARED ON)
+    set(SDL_STATIC OFF)
 endif()
 
-# Include sub-projects.
+# Subsystems
+
+set(SDL_AUDIO_DEFAULT OFF)
+set(SDL_VIDEO_DEFAULT ON)
+set(SDL_GPU_DEFAULT ON)
+set(SDL_RENDER_DEFAULT OFF)
+set(SDL_CAMERA_DEFAULT OFF)
+set(SDL_JOYSTICK_DEFAULT OFF)
+set(SDL_HAPTIC_DEFAULT OFF)
+set(SDL_HIDAPI_DEFAULT OFF)
+set(SDL_POWER_DEFAULT OFF)
+set(SDL_SENSOR_DEFAULT OFF)
+set(SDL_DIALOG_DEFAULT ON)
+set(SDL_TRAY_DEFAULT OFF)
+
+# GPU Drivers
+
+set(SDL_OFFSCREEN OFF)
+set(SDL_OPENGL OFF)
+set(SDL_OPENGLES OFF)
+set(SDL_DUMMYVIDEO OFF)
+set(SDL_DIRECTX OFF)
+set(SDL_VULKAN ON)
+
+# Trying to disable D3D12 in SDL GPU, but it doesn't
+# seem work unless modifying SDL's CMakeLists.txt.
+
+#set(SDL_GPU_D3D12 0)
+#unset(SDL_GPU_D3D12)
+
+# Disable Wayland on Linux. Seems that there are still problems,
+# and this way we reduce the size of the executable a bit.
+
+set(SDL_WAYLAND OFF)
+set(SDL_WAYLAND_LIBDECOR OFF)
+set(SDL_WAYLAND_LIBDECOR_SHARED OFF)
+set(SDL_WAYLAND_SHARED OFF)
+
+# Other projects
+
+set(SDL_TEST_LIBRARY OFF)
+set(SDL_TESTS OFF)
+set(SDL_DISABLE_INSTALL OFF)
+set(SDL_DISABLE_INSTALL_DOCS OFF)
+set(SDL_INSTALL_TESTS OFF)
+set(SDL_EXAMPLES OFF)
+
+FetchContent_MakeAvailable(SDL3)
+
+# Main project ------------------------------------------------------------------------------------
+
+project ("PDSaveEditor" VERSION "1.1.0")
 add_subdirectory ("src")

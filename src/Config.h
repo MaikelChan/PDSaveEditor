@@ -1,10 +1,9 @@
 #pragma once
 
-#define PROJECT_NAME "PDSaveEditor"
-#define PROJECT_VER  "1.0.4"
-#define PROJECT_VER_MAJOR "1"
-#define PROJECT_VER_MINOR "0"
-#define PTOJECT_VER_PATCH "4"
+constexpr const char* PROJECT_NAME "PDSaveEditor"
+constexpr const char* PROJECT_VER  "1.1.0"
+constexpr const char* PROJECT_VER_MAJOR "1"
+constexpr const char* PROJECT_VER_MINOR "1"
+constexpr const char* PTOJECT_VER_PATCH "0"
 
-#define IMFILEBROWSER_COMMIT_HASH "2029bbd"
-#define SIMPLEINI_COMMIT_HASH "bfcc0d2"
+constexpr const char* SIMPLEINI_COMMIT_HASH "18fd1db"
