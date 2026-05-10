@@ -27,97 +27,257 @@ void GameMenuUI::DoRender()
 
 	if (saveData && ImGui::BeginMenu("Tools"))
 	{
-		for (uint8_t s = 0; s < NUM_SAVE_SLOTS; s++)
+		/*int format = (int)saveData.GetFormat() - 1;
+		if (ImGui::Combo("Save Format", &format, saveFormatNames, NUM_SAVE_FORMATS))
 		{
-			if (ImGui::BeginMenu(tabNames[s]))
+			saveData.SetFormat((SaveFormats)(format + 1));
+		}*/
+
+		uint8_t gameFileCount = saveData->GetGameFileCount();
+		uint8_t mpSetupCount = saveData->GetMultiplayerSetupCount();
+		uint8_t mpProfileCount = saveData->GetMultiplayerProfileCount();
+
+		ImGui::SeparatorText("Copy");
+
+		if (gameFileCount == 0 || gameFileCount >= NUM_FILE_SLOTS) ImGui::BeginDisabled();
+		if (ImGui::BeginMenu("Single Player Agent File##CopyGameFile"))
+		{
+			uint8_t file = 0;
+
+			for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 			{
-				if (ImGui::MenuItem("100% Complete"))
+				GameFile* gameFile = saveData->GetGameFile(f);
+				if (!gameFile->IsUsed()) continue;
+
+				char menuName[32];
+				snprintf(menuName, 32, "File %u (%s)", file + 1, gameFile->name);
+
+				if (ImGui::MenuItem(menuName))
 				{
-					CompleteSlot(s);
+					CopyGameFile(gameFile);
 				}
 
-				ImGui::Separator();
-
-				if (ImGui::BeginMenu("Copy"))
-				{
-					for (uint8_t ds = 0; ds < NUM_SAVE_SLOTS; ds++)
-					{
-						if (s == ds) continue;
-
-						char menuName[27];
-						snprintf(menuName, 27, "To %s", tabNames[ds]);
-
-						if (ImGui::MenuItem(menuName))
-						{
-							CopySlot(s, ds);
-						}
-					}
-
-					ImGui::EndMenu();
-				}
-
-				if (ImGui::MenuItem("Delete"))
-				{
-					DeleteSlot(s);
-				}
-
-				ImGui::EndMenu();
+				file++;
 			}
+
+			ImGui::EndMenu();
 		}
+		if (gameFileCount == 0 || gameFileCount >= NUM_FILE_SLOTS) ImGui::EndDisabled();
 
-		ImGui::Separator();
-
-		if (ImGui::MenuItem("Show backup data", NULL, saveEditorUi->showBackup))
+		if (mpSetupCount == 0 || mpSetupCount >= NUM_FILE_SLOTS) ImGui::BeginDisabled();
+		if (ImGui::BeginMenu("Combat Simulator Settings File##CopyMpSetup"))
 		{
-			saveEditorUi->showBackup = !saveEditorUi->showBackup;
+			uint8_t file = 0;
+
+			for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+			{
+				MultiplayerSetup* mpSetup = saveData->GetMultiplayerSetup(f);
+				if (!mpSetup->IsUsed()) continue;
+
+				char menuName[32];
+				snprintf(menuName, 32, "File %u (%s)", file + 1, mpSetup->name);
+
+				if (ImGui::MenuItem(menuName))
+				{
+					CopyMultiplayerSetup(mpSetup);
+				}
+
+				file++;
+			}
+
+			ImGui::EndMenu();
 		}
+		if (mpSetupCount == 0 || mpSetupCount >= NUM_FILE_SLOTS) ImGui::EndDisabled();
+
+		if (mpProfileCount == 0 || mpProfileCount >= NUM_FILE_SLOTS) ImGui::BeginDisabled();
+		if (ImGui::BeginMenu("Combat Simulator Player File##CopyMpProfile"))
+		{
+			uint8_t file = 0;
+
+			for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+			{
+				MultiplayerProfile* mpProfile = saveData->GetMultiplayerProfile(f);
+				if (!mpProfile->IsUsed()) continue;
+
+				char menuName[32];
+				snprintf(menuName, 32, "File %u (%s)", file + 1, mpProfile->name);
+
+				if (ImGui::MenuItem(menuName))
+				{
+					CopyMultiplayerProfile(mpProfile);
+				}
+
+				file++;
+			}
+
+			ImGui::EndMenu();
+		}
+		if (mpProfileCount == 0 || mpProfileCount >= NUM_FILE_SLOTS) ImGui::EndDisabled();
+
+		ImGui::SeparatorText("Delete");
+
+		if (gameFileCount == 0) ImGui::BeginDisabled();
+		if (ImGui::BeginMenu("Single Player Agent File##DeleteGameFile"))
+		{
+			uint8_t file = 0;
+
+			for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+			{
+				GameFile* gameFile = saveData->GetGameFile(f);
+				if (!gameFile->IsUsed()) continue;
+
+				char menuName[32];
+				snprintf(menuName, 32, "File %u (%s)", file + 1, gameFile->name);
+
+				if (ImGui::MenuItem(menuName))
+				{
+					DeleteGameFile(gameFile);
+				}
+
+				file++;
+			}
+
+			ImGui::EndMenu();
+		}
+		if (gameFileCount == 0) ImGui::EndDisabled();
+
+		if (mpSetupCount == 0) ImGui::BeginDisabled();
+		if (ImGui::BeginMenu("Combat Simulator Settings File##DeleteMpSetup"))
+		{
+			uint8_t file = 0;
+
+			for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+			{
+				MultiplayerSetup* mpSetup = saveData->GetMultiplayerSetup(f);
+				if (!mpSetup->IsUsed()) continue;
+
+				char menuName[32];
+				snprintf(menuName, 32, "File %u (%s)", file + 1, mpSetup->name);
+
+				if (ImGui::MenuItem(menuName))
+				{
+					DeleteMultiplayerSetup(mpSetup);
+				}
+
+				file++;
+			}
+
+			ImGui::EndMenu();
+		}
+		if (mpSetupCount == 0) ImGui::EndDisabled();
+
+		if (mpProfileCount == 0) ImGui::BeginDisabled();
+		if (ImGui::BeginMenu("Combat Simulator Player File##DeleteMpProfile"))
+		{
+			uint8_t file = 0;
+
+			for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
+			{
+				MultiplayerProfile* mpProfile = saveData->GetMultiplayerProfile(f);
+				if (!mpProfile->IsUsed()) continue;
+
+				char menuName[32];
+				snprintf(menuName, 32, "File %u (%s)", file + 1, mpProfile->name);
+
+				if (ImGui::MenuItem(menuName))
+				{
+					DeleteMultiplayerProfile(mpProfile);
+				}
+
+				file++;
+			}
+
+			ImGui::EndMenu();
+		}
+		if (mpProfileCount == 0) ImGui::EndDisabled();
 
 		ImGui::EndMenu();
 	}
 }
 
-void GameMenuUI::CompleteSlot(const uint8_t slotIndex) const
+void GameMenuUI::CopyGameFile(const GameFile* srcGameFile) const
 {
 	SaveData* saveData = mainUi->GetSaveFile()->GetSaveData();
 
-	memset(&saveData->saveSlots[slotIndex][0], 0, SAVE_SLOT_SIZE);
+	uint8_t file = 0;
+	GameFile* dstGameFile = saveData->GetFirstUnusedGameFile(&file);
 
-	saveData->saveSlots[slotIndex][0].Flags = 0x1f10ffcf;
-
-	for (int c = 0; c < COURSE_COUNT; c++)
+	if (dstGameFile == nullptr)
 	{
-		for (int st = 0; st < courseStarCount[c]; st++)
-		{
-			saveData->saveSlots[slotIndex][0].CourseData[c] |= (1 << st);
-		}
-
-		if (courseHasCannon[c])
-		{
-			saveData->saveSlots[slotIndex][0].CourseData[c + 1] |= SAVE_COURSE_FLAG_STAR_CANNON_OPEN;
-		}
+		//popupDialog->SetMessage(MessageTypes::Error, "Error", "Couldn't find any unused GameFile.");
+		//popupDialog->SetIsVisible(true);
+		return;
 	}
 
-	for (int c = 0; c < COURSE_STAGES_COUNT; c++)
+	uint16_t deviceSerial = dstGameFile->pakFileHeader.deviceSerial;
+	uint8_t id = dstGameFile->pakFileHeader.id;
+
+	*dstGameFile = *srcGameFile;
+
+	dstGameFile->pakFileHeader.deviceSerial = deviceSerial;
+	dstGameFile->pakFileHeader.id = id;
+	snprintf(dstGameFile->name, MAX_NAME_LENGTH + 1, "New File %u", file & 0x7);
+}
+
+void GameMenuUI::CopyMultiplayerProfile(const MultiplayerProfile* srcMpProfile) const
+{
+	SaveData* saveData = mainUi->GetSaveFile()->GetSaveData();
+
+	uint8_t file = 0;
+	MultiplayerProfile* dstMpProfile = saveData->GetFirstUnusedMultiplayerProfile(&file);
+
+	if (dstMpProfile == nullptr)
 	{
-		saveData->saveSlots[slotIndex][0].CourseCoinScores[c] = 100;
+		//popupDialog->SetMessage(MessageTypes::Error, "Error", "Couldn't find any unused MultiplayerProfile.");
+		//popupDialog->SetIsVisible(true);
+		return;
 	}
 
-	saveData->saveSlots[slotIndex][0].Magic = SAVE_SLOT_MAGIC_LE;
-	saveData->saveSlots[slotIndex][0].UpdateChecksum();
+	uint16_t deviceSerial = dstMpProfile->pakFileHeader.deviceSerial;
+	uint8_t id = dstMpProfile->pakFileHeader.id;
+
+	*dstMpProfile = *srcMpProfile;
+
+	dstMpProfile->pakFileHeader.deviceSerial = deviceSerial;
+	dstMpProfile->pakFileHeader.id = id;
+	snprintf(dstMpProfile->name, MAX_NAME_LENGTH + 1, "New File %u", file & 0x7);
 }
 
-void GameMenuUI::CopySlot(const uint8_t originSlotIndex, const uint8_t destinationSlotIndex) const
+void GameMenuUI::CopyMultiplayerSetup(const MultiplayerSetup* srcMpSetup) const
 {
 	SaveData* saveData = mainUi->GetSaveFile()->GetSaveData();
 
-	std::copy(&saveData->saveSlots[originSlotIndex][0], &saveData->saveSlots[originSlotIndex][0] + 1, &saveData->saveSlots[destinationSlotIndex][0]);
+	uint8_t file = 0;
+	MultiplayerSetup* dstMpSetup = saveData->GetFirstUnusedMultiplayerSetup(&file);
+
+	if (dstMpSetup == nullptr)
+	{
+		//popupDialog->SetMessage(MessageTypes::Error, "Error", "Couldn't find any unused MultiplayerSetup.");
+		//popupDialog->SetIsVisible(true);
+		return;
+	}
+
+	uint16_t deviceSerial = dstMpSetup->pakFileHeader.deviceSerial;
+	uint8_t id = dstMpSetup->pakFileHeader.id;
+
+	*dstMpSetup = *srcMpSetup;
+
+	dstMpSetup->pakFileHeader.deviceSerial = deviceSerial;
+	dstMpSetup->pakFileHeader.id = id;
+	snprintf(dstMpSetup->name, MAX_NAME_LENGTH + 1, "New File %u", file & 0x7);
 }
 
-void GameMenuUI::DeleteSlot(const uint8_t slotIndex) const
+void GameMenuUI::DeleteGameFile(GameFile* gameFile) const
 {
-	SaveData* saveData = mainUi->GetSaveFile()->GetSaveData();
+	gameFile->pakFileHeader.occupied = 0;
+}
 
-	memset(&saveData->saveSlots[slotIndex][0], 0, SAVE_SLOT_SIZE);
-	saveData->saveSlots[slotIndex][0].Magic = SAVE_SLOT_MAGIC_LE;
-	saveData->saveSlots[slotIndex][0].UpdateChecksum();
+void GameMenuUI::DeleteMultiplayerProfile(MultiplayerProfile* mpProfile) const
+{
+	mpProfile->pakFileHeader.occupied = 0;
+}
+
+void GameMenuUI::DeleteMultiplayerSetup(MultiplayerSetup* mpSetup) const
+{
+	mpSetup->pakFileHeader.occupied = 0;
 }

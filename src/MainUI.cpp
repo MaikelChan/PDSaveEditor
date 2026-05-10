@@ -1,23 +1,24 @@
-﻿#include "main.h"
-#include "MainUI.h"
-#include "SaveEditorUI.h"
-#include "PopupDialog.h"
-#include "AboutWindow.h"
+﻿#include "MainUI.h"
+
 #include <fstream>
+
 #include <SimpleIni.h>
+#include <imgui/imgui.h>
 
-MainUI::MainUI() : BaseUI(nullptr)
+#include "Game/SaveFile.h"
+#include "Game/SaveData.h"
+#include "Window.h"
+
+MainUI::MainUI(Window* window) : BaseUI(window, nullptr),
+saveEditorUi(window, this),
+gameMenuUi(window, this, &saveEditorUi),
+popupDialogUi(window, this),
+aboutWindowUi(window, this)
 {
-	saveEditor = new SaveEditorUI(this);
-	popupDialog = new PopupDialog(this);
-	aboutWindow = new AboutWindow(this);
+	gameMenuUi.SetIsVisible(true);
 
-	fileDialogIsSave = false;
-
-	currentPath.clear();
-	currentFilePath.clear();
-
-	windowOpacity = 0.9f;
+	recentFiles.clear();
+	currentSaveFile = nullptr;
 
 	LoadConfig();
 }
@@ -25,20 +26,18 @@ MainUI::MainUI() : BaseUI(nullptr)
 MainUI::~MainUI()
 {
 	SaveConfig();
-
-	delete saveEditor;
-	saveEditor = nullptr;
-
-	delete popupDialog;
-	popupDialog = nullptr;
-
-	delete aboutWindow;
-	aboutWindow = nullptr;
+	ClearSaveData();
 }
 
-void MainUI::VisibilityChanged(const bool isVisible)
+void MainUI::OpenFileCallback(std::filesystem::path filePath)
 {
-	BaseUI::VisibilityChanged(isVisible);
+	MainUI::LoadSaveData(filePath);
+	MainUI::SaveConfig();
+}
+
+void MainUI::VisibilityChanged(const bool _isVisible)
+{
+	BaseUI::VisibilityChanged(_isVisible);
 }
 
 void MainUI::DoRender()
@@ -51,228 +50,78 @@ void MainUI::DoRender()
 		{
 			if (ImGui::MenuItem("Open..."))
 			{
-				fileDialogIsSave = false;
-				fileDialog = ImGui::FileBrowser(0);
-				if (std::filesystem::exists(currentPath)) fileDialog.SetDirectory(currentPath);
-				fileDialog.SetTitle("Open a Perfect Dark save file");
-				fileDialog.SetTypeFilters({ ".eep", ".bin", ".*" });
-				fileDialog.Open();
+				std::filesystem::path lastPath = DEFAULT_PATH;
+				if (recentFiles.size() > 0) lastPath = recentFiles[0].parent_path();
+
+				FileDialogParams* params = new FileDialogParams();
+				params->ui = this;
+				params->defaultLocation = lastPath;
+				params->callback = OpenFileDialogCallback;
+				window->ShowOpenFileDialog(params);
 			}
 
-			if (ImGui::MenuItem("Save", NULL, false, saveData.IsSaveFileLoaded()))
+			if (ImGui::BeginMenu("Open recent"))
 			{
-				Save(currentFilePath);
+				for (uint8_t f = 0; f < recentFiles.size(); f++)
+				{
+					if (ImGui::MenuItem(recentFiles[f].u8string().c_str()))
+					{
+						if (!recentFiles[f].empty())
+						{
+							OpenFileCallback(recentFiles[f]);
+						}
+					}
+				}
+
+				ImGui::EndMenu();
 			}
 
-			if (ImGui::MenuItem("Save As...", NULL, false, saveData.IsSaveFileLoaded()))
+			if (ImGui::MenuItem("Save", NULL, false, IsSaveFileLoaded()))
 			{
-				fileDialogIsSave = true;
-				fileDialog = ImGui::FileBrowser(ImGuiFileBrowserFlags_EnterNewFilename);
-				if (std::filesystem::exists(currentPath)) fileDialog.SetDirectory(currentPath);
-				fileDialog.SetTitle("Save the Perfect Dark save file");
-				fileDialog.SetTypeFilters({ saveData.GetFormat() == SaveFormats::PC ? ".bin" : ".eep", ".*" });
-				fileDialog.Open();
+				SaveSaveData();
 			}
 
 			ImGui::Separator();
 
 			if (ImGui::MenuItem("Quit"))
 			{
-				CloseMainWindow();
+				window->Terminate();
 			}
 
 			ImGui::EndMenu();
 		}
 
-		if (saveData.IsSaveFileLoaded() && ImGui::BeginMenu("Tools"))
+		if (IsSaveFileLoaded())
 		{
-			int format = (int)saveData.GetFormat() - 1;
-			if (ImGui::Combo("Save Format", &format, saveFormatNames, NUM_SAVE_FORMATS))
-			{
-				saveData.SetFormat((SaveFormats)(format + 1));
-			}
-
-			uint8_t gameFileCount = saveData.GetSaveFile()->GetGameFileCount();
-			uint8_t mpSetupCount = saveData.GetSaveFile()->GetMultiplayerSetupCount();
-			uint8_t mpProfileCount = saveData.GetSaveFile()->GetMultiplayerProfileCount();
-
-			ImGui::SeparatorText("Copy");
-
-			if (gameFileCount == 0 || gameFileCount >= NUM_FILE_SLOTS) ImGui::BeginDisabled();
-			if (ImGui::BeginMenu("Single Player Agent File##CopyGameFile"))
-			{
-				uint8_t file = 0;
-
-				for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
-				{
-					GameFile* gameFile = saveData.GetSaveFile()->GetGameFile(f);
-					if (!gameFile->IsUsed()) continue;
-
-					char menuName[32];
-					snprintf(menuName, 32, "File %u (%s)", file + 1, gameFile->name);
-
-					if (ImGui::MenuItem(menuName))
-					{
-						CopyGameFile(gameFile);
-					}
-
-					file++;
-				}
-
-				ImGui::EndMenu();
-			}
-			if (gameFileCount == 0 || gameFileCount >= NUM_FILE_SLOTS) ImGui::EndDisabled();
-
-			if (mpSetupCount == 0 || mpSetupCount >= NUM_FILE_SLOTS) ImGui::BeginDisabled();
-			if (ImGui::BeginMenu("Combat Simulator Settings File##CopyMpSetup"))
-			{
-				uint8_t file = 0;
-
-				for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
-				{
-					MultiplayerSetup* mpSetup = saveData.GetSaveFile()->GetMultiplayerSetup(f);
-					if (!mpSetup->IsUsed()) continue;
-
-					char menuName[32];
-					snprintf(menuName, 32, "File %u (%s)", file + 1, mpSetup->name);
-
-					if (ImGui::MenuItem(menuName))
-					{
-						CopyMultiplayerSetup(mpSetup);
-					}
-
-					file++;
-				}
-
-				ImGui::EndMenu();
-			}
-			if (mpSetupCount == 0 || mpSetupCount >= NUM_FILE_SLOTS) ImGui::EndDisabled();
-
-			if (mpProfileCount == 0 || mpProfileCount >= NUM_FILE_SLOTS) ImGui::BeginDisabled();
-			if (ImGui::BeginMenu("Combat Simulator Player File##CopyMpProfile"))
-			{
-				uint8_t file = 0;
-
-				for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
-				{
-					MultiplayerProfile* mpProfile = saveData.GetSaveFile()->GetMultiplayerProfile(f);
-					if (!mpProfile->IsUsed()) continue;
-
-					char menuName[32];
-					snprintf(menuName, 32, "File %u (%s)", file + 1, mpProfile->name);
-
-					if (ImGui::MenuItem(menuName))
-					{
-						CopyMultiplayerProfile(mpProfile);
-					}
-
-					file++;
-				}
-
-				ImGui::EndMenu();
-			}
-			if (mpProfileCount == 0 || mpProfileCount >= NUM_FILE_SLOTS) ImGui::EndDisabled();
-
-			ImGui::SeparatorText("Delete");
-
-			if (gameFileCount == 0) ImGui::BeginDisabled();
-			if (ImGui::BeginMenu("Single Player Agent File##DeleteGameFile"))
-			{
-				uint8_t file = 0;
-
-				for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
-				{
-					GameFile* gameFile = saveData.GetSaveFile()->GetGameFile(f);
-					if (!gameFile->IsUsed()) continue;
-
-					char menuName[32];
-					snprintf(menuName, 32, "File %u (%s)", file + 1, gameFile->name);
-
-					if (ImGui::MenuItem(menuName))
-					{
-						DeleteGameFile(gameFile);
-					}
-
-					file++;
-				}
-
-				ImGui::EndMenu();
-			}
-			if (gameFileCount == 0) ImGui::EndDisabled();
-
-			if (mpSetupCount == 0) ImGui::BeginDisabled();
-			if (ImGui::BeginMenu("Combat Simulator Settings File##DeleteMpSetup"))
-			{
-				uint8_t file = 0;
-
-				for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
-				{
-					MultiplayerSetup* mpSetup = saveData.GetSaveFile()->GetMultiplayerSetup(f);
-					if (!mpSetup->IsUsed()) continue;
-
-					char menuName[32];
-					snprintf(menuName, 32, "File %u (%s)", file + 1, mpSetup->name);
-
-					if (ImGui::MenuItem(menuName))
-					{
-						DeleteMultiplayerSetup(mpSetup);
-					}
-
-					file++;
-				}
-
-				ImGui::EndMenu();
-			}
-			if (mpSetupCount == 0) ImGui::EndDisabled();
-
-			if (mpProfileCount == 0) ImGui::BeginDisabled();
-			if (ImGui::BeginMenu("Combat Simulator Player File##DeleteMpProfile"))
-			{
-				uint8_t file = 0;
-
-				for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
-				{
-					MultiplayerProfile* mpProfile = saveData.GetSaveFile()->GetMultiplayerProfile(f);
-					if (!mpProfile->IsUsed()) continue;
-
-					char menuName[32];
-					snprintf(menuName, 32, "File %u (%s)", file + 1, mpProfile->name);
-
-					if (ImGui::MenuItem(menuName))
-					{
-						DeleteMultiplayerProfile(mpProfile);
-					}
-
-					file++;
-				}
-
-				ImGui::EndMenu();
-			}
-			if (mpProfileCount == 0) ImGui::EndDisabled();
-
-			ImGui::EndMenu();
+			gameMenuUi.Render();
 		}
 
+#if SUPPORT_TRANSPARENCY
 		if (ImGui::BeginMenu("Settings"))
 		{
-			ImGui::SliderFloat("Window Opacity", &windowOpacity, 0.0f, 1.0f);
+			float windowOpacity = window->GetOpacity();
+			if (ImGui::SliderFloat("Window Opacity", &windowOpacity, 0.0f, 1.0f))
+			{
+				window->SetOpacity(windowOpacity);
+			}
 
 			ImGui::EndMenu();
 		}
+#endif
 
 		if (ImGui::BeginMenu("Help"))
 		{
-			if (ImGui::MenuItem("About...", NULL, aboutWindow->GetIsVisible()))
+			if (ImGui::MenuItem("About...", NULL, aboutWindowUi.GetIsVisible()))
 			{
-				aboutWindow->ToggleIsVisible();
+				aboutWindowUi.ToggleIsVisible();
 			}
 
 			ImGui::EndMenu();
 		}
 
-		if (saveData.IsSaveFileLoaded())
+		if (IsSaveFileLoaded())
 		{
-			std::string fileText = std::string("Current file: ") + currentFilePath.filename().u8string();
+			std::string fileText = std::string("Current file: ") + currentSaveFile->GetFileName();
 
 			ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::CalcTextSize(fileText.c_str()).x - 32);
 			ImGui::Text("%s", fileText.c_str());
@@ -283,23 +132,106 @@ void MainUI::DoRender()
 
 	//ImGui::ShowDemoWindow();
 
-	saveEditor->Render();
-	popupDialog->Render();
-	aboutWindow->Render();
+	saveEditorUi.Render();
+	popupDialogUi.Render();
+	aboutWindowUi.Render();
+}
 
-	fileDialog.Display();
+void MainUI::ClearSaveData()
+{
+	if (!IsSaveFileLoaded()) return;
 
-	if (fileDialog.HasSelected())
+	saveEditorUi.SetIsVisible(false);
+	window->SetTaskbarProgress(0.0f);
+
+	delete currentSaveFile;
+	currentSaveFile = nullptr;
+}
+
+void MainUI::LoadSaveData(const std::filesystem::path filePath)
+{
+	ClearSaveData();
+
+	std::ifstream stream = std::ifstream(filePath, std::ios::binary);
+
+	if (!stream || !stream.is_open())
 	{
-		currentFilePath = fileDialog.GetSelected();
-		currentPath = fileDialog.GetDirectory();
+		popupDialogUi.SetMessage(MessageTypes::Error, "Error", "There was an error trying to open the file.");
+		popupDialogUi.SetIsVisible(true);
 
-		if (fileDialogIsSave) Save(currentFilePath);
-		else Load(currentFilePath);
-
-		SaveConfig();
-		fileDialog.ClearSelected();
+		return;
 	}
+
+	stream.seekg(0, std::ios_base::end);
+	size_t size = stream.tellg();
+
+	if (size < SAVE_DATA_SIZE)
+	{
+		stream.close();
+
+		popupDialogUi.SetMessage(MessageTypes::Error, "Error", "The selected file is not a valid save file.");
+		popupDialogUi.SetIsVisible(true);
+
+		return;
+	}
+
+	SaveFile* newSaveFile = new SaveFile();
+
+	stream.seekg(0, std::ios_base::beg);
+	std::string result = newSaveFile->Read(stream, size);
+	stream.close();
+
+	if (newSaveFile->GetFileType() == SaveFileTypes::NotValid)
+	{
+		delete newSaveFile;
+		newSaveFile = nullptr;
+
+		popupDialogUi.SetMessage(MessageTypes::Error, "Error", result);
+		popupDialogUi.SetIsVisible(true);
+
+		return;
+	}
+
+	newSaveFile->SetFilePath(filePath);
+
+	currentSaveFile = newSaveFile;
+
+	for (uint8_t f = 0; f < recentFiles.size(); f++)
+	{
+		if (recentFiles[f].compare(filePath) == 0)
+		{
+			recentFiles.erase(recentFiles.begin() + f);
+		}
+	}
+
+	recentFiles.insert(recentFiles.begin(), filePath);
+	if (recentFiles.size() > MAX_RECENT_FILES) recentFiles.resize(MAX_RECENT_FILES);
+
+	saveEditorUi.SetIsVisible(true);
+
+	if (!result.empty())
+	{
+		popupDialogUi.SetMessage(MessageTypes::Warning, "Warnings", result);
+		popupDialogUi.SetIsVisible(true);
+	}
+}
+
+void MainUI::SaveSaveData()
+{
+	if (!IsSaveFileLoaded()) return;
+
+	std::ofstream stream = std::ofstream(currentSaveFile->GetFilePath(), std::ios::binary);
+
+	if (!stream || !stream.is_open())
+	{
+		popupDialogUi.SetMessage(MessageTypes::Error, "Error", std::string("Can't save file \"") + currentSaveFile->GetFilePath().u8string() + "\".");
+		popupDialogUi.SetIsVisible(true);
+
+		return;
+	}
+
+	currentSaveFile->Write(stream);
+	stream.close();
 }
 
 void MainUI::LoadConfig()
@@ -310,12 +242,26 @@ void MainUI::LoadConfig()
 	SI_Error errorCode = ini.LoadFile(CONFIG_FILE_NAME);
 	if (errorCode < 0)
 	{
-		printf("Error converting INI config data to string format. Error code: %i.\n", errorCode);
+		if (errorCode == SI_FILE) printf("The config file \"%s\" is missing or corrupt. Creating a new one.\n", CONFIG_FILE_NAME);
+		else printf("Error loading config file \"%s\". Code: %i.\n", CONFIG_FILE_NAME, errorCode);
 		return;
 	};
 
-	currentPath = std::filesystem::u8path(ini.GetValue(CONFIG_INI_SECTION, "lastPath", currentPath.u8string().c_str()));
-	windowOpacity = (float)ini.GetDoubleValue(CONFIG_INI_SECTION, "windowOpacity", windowOpacity);
+#if SUPPORT_TRANSPARENCY
+	window->SetOpacity((float)ini.GetDoubleValue(CONFIG_INI_SECTION, CONFIG_WINDOW_OPACITY, DEFAULT_OPACITY));
+#endif
+
+	recentFiles.clear();
+	for (uint8_t f = 0; f < MAX_RECENT_FILES; f++)
+	{
+		char key[16];
+		snprintf(key, 16, CONFIG_RECENT_FILE, f);
+
+		std::filesystem::path filePath = std::filesystem::u8path(ini.GetValue(CONFIG_INI_SECTION, key, DEFAULT_PATH));
+		if (filePath.empty()) continue;
+
+		recentFiles.push_back(filePath);
+	}
 }
 
 void MainUI::SaveConfig() const
@@ -325,8 +271,16 @@ void MainUI::SaveConfig() const
 
 	SI_Error errorCode;
 
-	errorCode = ini.SetValue(CONFIG_INI_SECTION, "lastPath", currentPath.u8string().c_str());
-	errorCode = ini.SetDoubleValue(CONFIG_INI_SECTION, "windowOpacity", windowOpacity);
+#if SUPPORT_TRANSPARENCY
+	errorCode = ini.SetDoubleValue(CONFIG_INI_SECTION, CONFIG_WINDOW_OPACITY, window->GetOpacity());
+#endif
+
+	for (uint8_t f = 0; f < recentFiles.size(); f++)
+	{
+		char key[16];
+		snprintf(key, 16, CONFIG_RECENT_FILE, f);
+		errorCode = ini.SetValue(CONFIG_INI_SECTION, key, recentFiles[f].u8string().c_str());
+	}
 
 	std::string data;
 	errorCode = ini.Save(data);
@@ -344,181 +298,28 @@ void MainUI::SaveConfig() const
 	};
 }
 
-void MainUI::Load(std::filesystem::path filePath)
+void MainUI::OpenFileDialogCallback(const FileDialogParams* fileDialogParams, const std::filesystem::path filePath, const char* error)
 {
-	try
+	MainUI* mainUi = (MainUI*)fileDialogParams->ui;
+	delete fileDialogParams;
+
+	if (error != nullptr)
 	{
-		saveData.Load(filePath.string());
+		char errorText[256];
+		snprintf(errorText, 256, "Error in OpenFileDialog: %s", error);
 
-		LoadingProcess();
+		mainUi->popupDialogUi.SetMessage(MessageTypes::Error, "Error", errorText);
+		mainUi->popupDialogUi.SetIsVisible(true);
 
-		saveEditor->SetIsVisible(true);
-	}
-	catch (const std::runtime_error& error)
-	{
-		popupDialog->SetMessage(MessageTypes::Error, "Error", error.what());
-		popupDialog->SetIsVisible(true);
-	}
-}
-
-void MainUI::LoadingProcess() const
-{
-	if (!saveData.IsSaveFileLoaded()) return;
-
-	std::string message;
-
-	for (uint8_t f = 0; f < ACTUAL_NUM_BOSS_FILE_SLOTS; f++)
-	{
-		BossFile* bossFile = saveData.GetSaveFile()->GetBossFile(f);
-		if (!bossFile->IsUsed()) continue;
-
-		if (!bossFile->IsChecksumValid())
-		{
-			message += "Global data is corrupted. Data might be completely wrong.\n";
-		}
-	}
-
-	uint8_t file = 0;
-	if (!message.empty()) message += "\n";
-
-	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
-	{
-		GameFile* gameFile = saveData.GetSaveFile()->GetGameFile(f);
-		if (!gameFile->IsUsed()) continue;
-
-		if (!gameFile->IsChecksumValid())
-		{
-			message += std::string("Game file ") + std::to_string(file++) + " is corrupted. Data might be completely wrong.\n";
-		}
-	}
-
-	file = 0;
-	if (!message.empty()) message += "\n";
-
-	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
-	{
-		MultiplayerProfile* mpProfile = saveData.GetSaveFile()->GetMultiplayerProfile(f);
-		if (!mpProfile->IsUsed()) continue;
-
-		if (!mpProfile->IsChecksumValid())
-		{
-			message += std::string("Multiplayer profile ") + std::to_string(file++) + " is corrupted. Data might be completely wrong.\n";
-		}
-	}
-
-	file = 0;
-	if (!message.empty()) message += "\n";
-
-	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
-	{
-		MultiplayerSetup* mpSetup = saveData.GetSaveFile()->GetMultiplayerSetup(f);
-		if (!mpSetup->IsUsed()) continue;
-
-		if (!mpSetup->IsChecksumValid())
-		{
-			message += std::string("Multiplayer settings ") + std::to_string(file++) + " is corrupted. Data might be completely wrong.\n";
-		}
-	}
-
-	if (!message.empty())
-	{
-		popupDialog->SetMessage(MessageTypes::Warning, "Load warnings", message);
-		popupDialog->SetIsVisible(true);
-	}
-}
-
-void MainUI::Save(std::filesystem::path filePath)
-{
-	if (!saveData.IsSaveFileLoaded()) return;
-
-	try
-	{
-		saveData.Save(filePath.string());
-	}
-	catch (const std::runtime_error& error)
-	{
-		popupDialog->SetMessage(MessageTypes::Error, "Error", error.what());
-		popupDialog->SetIsVisible(true);
-	}
-}
-
-void MainUI::CopyGameFile(const GameFile* srcGameFile) const
-{
-	uint8_t file = 0;
-	GameFile* dstGameFile = saveData.GetSaveFile()->GetFirstUnusedGameFile(&file);
-
-	if (dstGameFile == nullptr)
-	{
-		popupDialog->SetMessage(MessageTypes::Error, "Error", "Couldn't find any unused GameFile.");
-		popupDialog->SetIsVisible(true);
 		return;
 	}
-
-	uint16_t deviceSerial = dstGameFile->pakFileHeader.deviceSerial;
-	uint8_t id = dstGameFile->pakFileHeader.id;
-
-	*dstGameFile = *srcGameFile;
-
-	dstGameFile->pakFileHeader.deviceSerial = deviceSerial;
-	dstGameFile->pakFileHeader.id = id;
-	snprintf(dstGameFile->name, MAX_NAME_LENGTH + 1, "New File %u", file & 0x7);
-}
-
-void MainUI::CopyMultiplayerProfile(const MultiplayerProfile* srcMpProfile) const
-{
-	uint8_t file = 0;
-	MultiplayerProfile* dstMpProfile = saveData.GetSaveFile()->GetFirstUnusedMultiplayerProfile(&file);
-
-	if (dstMpProfile == nullptr)
+	else
 	{
-		popupDialog->SetMessage(MessageTypes::Error, "Error", "Couldn't find any unused MultiplayerProfile.");
-		popupDialog->SetIsVisible(true);
-		return;
+		if (filePath.empty())
+		{
+			return;
+		}
+
+		mainUi->OpenFileCallback(filePath);
 	}
-
-	uint16_t deviceSerial = dstMpProfile->pakFileHeader.deviceSerial;
-	uint8_t id = dstMpProfile->pakFileHeader.id;
-
-	*dstMpProfile = *srcMpProfile;
-
-	dstMpProfile->pakFileHeader.deviceSerial = deviceSerial;
-	dstMpProfile->pakFileHeader.id = id;
-	snprintf(dstMpProfile->name, MAX_NAME_LENGTH + 1, "New File %u", file & 0x7);
-}
-
-void MainUI::CopyMultiplayerSetup(const MultiplayerSetup* srcMpSetup) const
-{
-	uint8_t file = 0;
-	MultiplayerSetup* dstMpSetup = saveData.GetSaveFile()->GetFirstUnusedMultiplayerSetup(&file);
-
-	if (dstMpSetup == nullptr)
-	{
-		popupDialog->SetMessage(MessageTypes::Error, "Error", "Couldn't find any unused MultiplayerSetup.");
-		popupDialog->SetIsVisible(true);
-		return;
-	}
-
-	uint16_t deviceSerial = dstMpSetup->pakFileHeader.deviceSerial;
-	uint8_t id = dstMpSetup->pakFileHeader.id;
-
-	*dstMpSetup = *srcMpSetup;
-
-	dstMpSetup->pakFileHeader.deviceSerial = deviceSerial;
-	dstMpSetup->pakFileHeader.id = id;
-	snprintf(dstMpSetup->name, MAX_NAME_LENGTH + 1, "New File %u", file & 0x7);
-}
-
-void MainUI::DeleteGameFile(GameFile* gameFile) const
-{
-	gameFile->pakFileHeader.occupied = 0;
-}
-
-void MainUI::DeleteMultiplayerProfile(MultiplayerProfile* mpProfile) const
-{
-	mpProfile->pakFileHeader.occupied = 0;
-}
-
-void MainUI::DeleteMultiplayerSetup(MultiplayerSetup* mpSetup) const
-{
-	mpSetup->pakFileHeader.occupied = 0;
 }

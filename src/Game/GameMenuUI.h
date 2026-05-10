@@ -7,6 +7,10 @@
 class MainUI;
 class SaveEditorUI;
 
+struct GameFile;
+struct MultiplayerProfile;
+struct MultiplayerSetup;
+
 class GameMenuUI : public BaseUI
 {
 private:
@@ -22,7 +26,11 @@ protected:
 	void DoRender() override;
 
 private:
-	void CompleteSlot(const uint8_t slotIndex) const;
-	void CopySlot(const uint8_t originSlotIndex, const uint8_t destinationSlotIndex) const;
-	void DeleteSlot(const uint8_t slotIndex) const;
+	void CopyGameFile(const GameFile* srcGameFile) const;
+	void CopyMultiplayerProfile(const MultiplayerProfile* srcMpProfile) const;
+	void CopyMultiplayerSetup(const MultiplayerSetup* srcMpSetup) const;
+
+	void DeleteGameFile(GameFile* gameFile) const;
+	void DeleteMultiplayerProfile(MultiplayerProfile* mpProfile) const;
+	void DeleteMultiplayerSetup(MultiplayerSetup* mpSetup) const;
 };
