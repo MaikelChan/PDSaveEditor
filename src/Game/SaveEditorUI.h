@@ -2,8 +2,10 @@
 
 #include <cstdint>
 #include <random>
-#include "BaseUI.h"
+
+#include "../BaseUI.h"
 #include "SaveData.h"
+
 class MainUI;
 
 const char* const tabNames[]
@@ -17,11 +19,11 @@ const char* const tabNames[]
 class SaveEditorUI : public BaseUI
 {
 private:
-	const MainUI* mainUI;
+	MainUI* mainUi;
 	std::mt19937_64 random;
 
 public:
-	SaveEditorUI(const MainUI* mainUI);
+	SaveEditorUI(Window* window, BaseUI* parentUi);
 	~SaveEditorUI();
 
 protected:
@@ -29,10 +31,10 @@ protected:
 	virtual void DoRender() override;
 
 private:
-	void RenderGlobalDataSection(SaveFile* saveFile);
-	void RenderSinglePlayerSection(SaveFile* saveFile);
-	void RenderMultiplayerProfilesSection(SaveFile* saveFile);
-	void RenderMultiplayerSetupsSection(SaveFile* saveFile);
+	void RenderGlobalDataSection(SaveData* saveData);
+	void RenderSinglePlayerSection(SaveData* saveData);
+	void RenderMultiplayerProfilesSection(SaveData* saveData);
+	void RenderMultiplayerSetupsSection(SaveData* saveData);
 
 	bool CheckboxProgressFlags(GameFile* gameFile, const char* label, const SinglePlayerFlags flag, const bool reverse = false) const;
 	bool CheckboxMpProfileOptionsFlags(MultiplayerProfile* mpProfile, const char* label, const MultiplayerOptionsFlags flag, const bool reverse = false) const;

@@ -1,10 +1,14 @@
 ﻿#include "SaveEditorUI.h"
-#include "MainUI.h"
-#include "Utils.h"
 
-SaveEditorUI::SaveEditorUI(const MainUI* mainUI) : BaseUI(mainUI)
+#include <imgui/imgui.h>
+
+#include "../MainUI.h"
+#include "../Utils.h"
+#include "SaveFile.h"
+
+SaveEditorUI::SaveEditorUI(Window* window, BaseUI* parentUi) : BaseUI(window, parentUi)
 {
-	SaveEditorUI::mainUI = mainUI;
+	mainUi = (MainUI*)parentUi;
 
 	std::random_device rd;
 	random.seed(rd());
@@ -32,10 +36,9 @@ void SaveEditorUI::DoRender()
 	{
 		ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 
-		const SaveData& saveData = mainUI->GetSaveData();
-		SaveFile* saveFile = saveData.GetSaveFile();
+		SaveData* saveData = mainUi->GetSaveFile()->GetSaveData();
 
-		if (saveFile && ImGui::BeginTabBar("Save Slots", tab_bar_flags))
+		if (saveData && ImGui::BeginTabBar("Save Slots", tab_bar_flags))
 		{
 			for (int s = 0; s < 4; s++)
 			{
@@ -44,19 +47,19 @@ void SaveEditorUI::DoRender()
 					switch (s)
 					{
 						case 0:
-							RenderSinglePlayerSection(saveFile);
+							RenderSinglePlayerSection(saveData);
 							break;
 
 						case 1:
-							RenderMultiplayerSetupsSection(saveFile);
+							RenderMultiplayerSetupsSection(saveData);
 							break;
 
 						case 2:
-							RenderMultiplayerProfilesSection(saveFile);
+							RenderMultiplayerProfilesSection(saveData);
 							break;
 
 						case 3:
-							RenderGlobalDataSection(saveFile);
+							RenderGlobalDataSection(saveData);
 							break;
 					}
 
@@ -71,15 +74,15 @@ void SaveEditorUI::DoRender()
 	ImGui::End();
 }
 
-void SaveEditorUI::RenderGlobalDataSection(SaveFile* saveFile)
+void SaveEditorUI::RenderGlobalDataSection(SaveData* saveData)
 {
 	BossFile* bossFile = nullptr;
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_BOSS_FILE_SLOTS; f++)
 	{
-		if (saveFile->GetBossFile(f)->IsUsed())
+		if (saveData->GetBossFile(f)->IsUsed())
 		{
-			bossFile = saveFile->GetBossFile(f);
+			bossFile = saveData->GetBossFile(f);
 			break;
 		}
 	}
@@ -193,14 +196,14 @@ void SaveEditorUI::RenderGlobalDataSection(SaveFile* saveFile)
 	}
 }
 
-void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
+void SaveEditorUI::RenderSinglePlayerSection(SaveData* saveData)
 {
 	GameFile* gameFiles[NUM_FILE_SLOTS] = {};
 	uint8_t file = 0;
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{
-		GameFile* gameFile = saveFile->GetGameFile(f);
+		GameFile* gameFile = saveData->GetGameFile(f);
 		if (gameFile->IsUsed())
 		{
 			gameFiles[file] = gameFile;
@@ -657,14 +660,14 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveFile* saveFile)
 	}
 }
 
-void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
+void SaveEditorUI::RenderMultiplayerProfilesSection(SaveData* saveData)
 {
 	MultiplayerProfile* mpProfiles[NUM_FILE_SLOTS] = {};
 	uint8_t file = 0;
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{
-		MultiplayerProfile* mpProfile = saveFile->GetMultiplayerProfile(f);
+		MultiplayerProfile* mpProfile = saveData->GetMultiplayerProfile(f);
 		if (mpProfile->IsUsed())
 		{
 			mpProfiles[file] = mpProfile;
@@ -894,14 +897,14 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveFile* saveFile)
 	}
 }
 
-void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
+void SaveEditorUI::RenderMultiplayerSetupsSection(SaveData* saveData)
 {
 	MultiplayerSetup* mpSetups[NUM_FILE_SLOTS] = {};
 	uint8_t file = 0;
 
 	for (uint8_t f = 0; f < ACTUAL_NUM_FILE_SLOTS; f++)
 	{
-		MultiplayerSetup* mpSetup = saveFile->GetMultiplayerSetup(f);
+		MultiplayerSetup* mpSetup = saveData->GetMultiplayerSetup(f);
 		if (mpSetup->IsUsed())
 		{
 			mpSetups[file] = mpSetup;
@@ -1167,7 +1170,6 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 					ImGui::EndTable();
 				}
 
-
 				if (ImGui::BeginTable("MpWeaponsLimitsTeamsTable", 3, 0))
 				{
 					ImGui::TableSetupColumn("Column1", ImGuiTableColumnFlags_WidthStretch);
@@ -1179,7 +1181,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveFile* saveFile)
 
 					PrintHeader("Weapons");
 
-					const bool isN64 = mainUI->GetSaveData().GetFormat() == SaveFormats::Nintendo64;
+					const bool isN64 = true;// saveData->GetFormat() == SaveFileTypes::BigEndian;
 					const uint8_t numWeapons = isN64 ? NUM_MP_WEAPONS_N64 : NUM_MP_WEAPONS_PC;
 					const Weapons* mpWeaponNameIndices = isN64 ? mpWeaponNameIndicesN64 : mpWeaponNameIndicesPC;
 

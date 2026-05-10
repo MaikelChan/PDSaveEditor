@@ -31,5 +31,5 @@ public:
 	inline SaveFileTypes GetFileType() const { return fileType; }
 
 private:
-	static SaveFileTypes CalculateType(SaveData* saveData);
+	static SaveFileTypes CalculateType(uint8_t* fileBuffer);
 };

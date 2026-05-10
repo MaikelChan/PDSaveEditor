@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <cstring>
+#include <string>
 
 #pragma region SaveBuffer
 
@@ -210,7 +211,7 @@ void PakFileHeader::Save(uint8_t* fileBuffer, const bool isBigEndian)
 {
 	if (occupied)
 	{
-		SaveFile::CalculateChecksum(&fileBuffer[PACK_HEADER_SIZE], &fileBuffer[PACK_HEADER_SIZE + bodylen], bodysum);
+		SaveData::CalculateChecksum(&fileBuffer[PACK_HEADER_SIZE], &fileBuffer[PACK_HEADER_SIZE + bodylen], bodysum);
 	}
 	else
 	{
@@ -277,7 +278,7 @@ void PakFileHeader::Save(uint8_t* fileBuffer, const bool isBigEndian)
 		fileBuffer[15] |= (version & 0x1) << 7;
 	}
 
-	SaveFile::CalculateChecksum(&fileBuffer[8], &fileBuffer[PACK_HEADER_SIZE], headersum);
+	SaveData::CalculateChecksum(&fileBuffer[8], &fileBuffer[PACK_HEADER_SIZE], headersum);
 
 	if (isBigEndian)
 	{
