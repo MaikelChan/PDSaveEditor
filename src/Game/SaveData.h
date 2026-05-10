@@ -4,22 +4,22 @@
 
 #pragma region Data_Structures
 
-#define SAVE_BUFFER_SIZE 220
-#define SAVE_DATA_SIZE 2048
-#define MAX_PACK_FILE_SIZE 256
-#define PACK_HEADER_SIZE 16
-#define PACK_BOSS_SIZE 96
-#define PACK_MPPLAYER_SIZE 80
-#define PACK_MPSETUP_SIZE 64
-#define PACK_GAME_SIZE 160
-#define PACK_TERMINATOR_SIZE 240
-#define PACK_TERMINATOR_ACTUAL_SIZE 48
-#define NUM_BOSS_FILE_SLOTS 1
-#define ACTUAL_NUM_BOSS_FILE_SLOTS 2
-#define NUM_FILE_SLOTS 4
-#define ACTUAL_NUM_FILE_SLOTS 5
+constexpr uint8_t SAVE_BUFFER_SIZE = 220;
+constexpr uint16_t SAVE_DATA_SIZE = 2048;
+constexpr uint16_t MAX_PACK_FILE_SIZE = 256;
+constexpr uint8_t PACK_HEADER_SIZE = 16;
+constexpr uint8_t PACK_BOSS_SIZE = 96;
+constexpr uint8_t PACK_MPPLAYER_SIZE = 80;
+constexpr uint8_t PACK_MPSETUP_SIZE = 64;
+constexpr uint8_t PACK_GAME_SIZE = 160;
+constexpr uint8_t PACK_TERMINATOR_SIZE = 240;
+constexpr uint8_t PACK_TERMINATOR_ACTUAL_SIZE = 48;
+constexpr uint8_t NUM_BOSS_FILE_SLOTS = 1;
+constexpr uint8_t ACTUAL_NUM_BOSS_FILE_SLOTS = 2;
+constexpr uint8_t NUM_FILE_SLOTS = 4;
+constexpr uint8_t ACTUAL_NUM_FILE_SLOTS = 5;
 
-#define GAMEFILE_FLAGS_SIZE 10
+constexpr uint8_t GAMEFILE_FLAGS_SIZE = 10;
 
 enum class PakFileTypes
 {
@@ -38,17 +38,17 @@ enum class PakFileTypes
 
 #pragma region General
 
-#define MAX_NAME_LENGTH 10
-#define MAX_PLAYERS 4
+constexpr uint8_t MAX_NAME_LENGTH = 10;
+constexpr uint8_t MAX_PLAYERS = 4;
 
-#define NUM_AIM_CONTROL_MODES 2
-#define NUM_CONTROL_MODES 8
-#define NUM_LANGUAGES 5
-#define NUM_RATIOS 2
-#define NUM_SCREEN_SIZES 3
-#define NUM_SCREEN_SPLIT_MODES 2
-#define NUM_SONGS 43
-#define NUM_SOUND_MODES 4
+constexpr uint8_t NUM_AIM_CONTROL_MODES = 2;
+constexpr uint8_t NUM_CONTROL_MODES = 8;
+constexpr uint8_t NUM_LANGUAGES = 5;
+constexpr uint8_t NUM_RATIOS = 2;
+constexpr uint8_t NUM_SCREEN_SIZES = 3;
+constexpr uint8_t NUM_SCREEN_SPLIT_MODES = 2;
+constexpr uint8_t NUM_SONGS = 43;
+constexpr uint8_t NUM_SOUND_MODES = 4;
 
 const char* const aimControlModeNames[NUM_AIM_CONTROL_MODES]
 {
@@ -156,9 +156,9 @@ const char* const soundModeNames[NUM_SOUND_MODES]
 
 #pragma region Single_Player
 
-#define NUM_DIFFICULTIES 3
-#define NUM_FIRING_RANGE_MEDALS 3
-#define NUM_SOLOSTAGES 21
+constexpr uint8_t NUM_DIFFICULTIES = 3;
+constexpr uint8_t NUM_FIRING_RANGE_MEDALS = 3;
+constexpr uint8_t NUM_SOLOSTAGES = 21;
 
 const char* const difficultyNames[NUM_DIFFICULTIES]
 {
@@ -318,26 +318,24 @@ enum class SinglePlayerFlags
 
 #pragma region Multiplayer
 
-#define MAX_SIMULANTS 8
+constexpr uint8_t MAX_SIMULANTS = 8;
 
-#define NUM_MP_BODIES 61
-#define NUM_MP_CHALLENGES 30
-#define NUM_MP_HEADS 75
-#define NUM_MP_SCENARIOS 6
-#define NUM_MP_SIMULANT_DIFFICULTIES 6
-#define NUM_MP_SIMULANT_TYPES 13
-#define NUM_MP_SLOWMOTION_MODES 3
-#define NUM_MP_STAGES 16
-#define NUM_MP_STAGES_AND_RANDOM (NUM_MP_STAGES + 1)
-#define NUM_MP_TEAMS 8
-#define NUM_MP_TIERS_TALLIES 10
-#define NUM_MP_TITLES 21
-#define NUM_MP_WEAPONSLOTS 6
+constexpr uint8_t NUM_MP_BODIES = 61;
+constexpr uint8_t NUM_MP_CHALLENGES = 30;
+constexpr uint8_t NUM_MP_HEADS = 75;
+constexpr uint8_t NUM_MP_SCENARIOS = 6;
+constexpr uint8_t NUM_MP_SIMULANT_DIFFICULTIES = 6;
+constexpr uint8_t NUM_MP_SIMULANT_TYPES = 13;
+constexpr uint8_t NUM_MP_SLOWMOTION_MODES = 3;
+constexpr uint8_t NUM_MP_STAGES = 16;
+constexpr uint8_t NUM_MP_STAGES_AND_RANDOM = (NUM_MP_STAGES + 1);
+constexpr uint8_t NUM_MP_TEAMS = 8;
+constexpr uint8_t NUM_MP_TIERS_TALLIES = 10;
+constexpr uint8_t NUM_MP_TITLES = 21;
+constexpr uint8_t NUM_MP_WEAPONSLOTS = 6;
 
 const char* const mpHeadNames[NUM_MP_HEADS]
 {
-
-
 	"Joanna Combat",
 	"Joanna Party Frock",
 	"Joanna Wet Suit",
@@ -722,10 +720,10 @@ enum class SimulantTypes
 
 #pragma region Weapons
 
-#define NUM_WEAPONS 35
-#define NUM_FIRING_RANGE_WEAPONS 32
-#define NUM_MP_WEAPONS_N64 39
-#define NUM_MP_WEAPONS_PC 49
+constexpr uint8_t NUM_WEAPONS = 35;
+constexpr uint8_t NUM_FIRING_RANGE_WEAPONS = 32;
+constexpr uint8_t NUM_MP_WEAPONS_N64 = 39;
+constexpr uint8_t NUM_MP_WEAPONS_PC = 49;
 
 // These are all the weapons that are relevant in this save editor.
 enum class Weapons : uint8_t

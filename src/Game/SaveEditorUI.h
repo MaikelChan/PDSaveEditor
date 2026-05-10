@@ -27,7 +27,7 @@ public:
 	~SaveEditorUI();
 
 protected:
-	virtual void VisibilityChanged(const bool isVisible) override;
+	virtual void VisibilityChanged(const bool _isVisible) override;
 	virtual void DoRender() override;
 
 private:

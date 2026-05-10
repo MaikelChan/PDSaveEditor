@@ -19,9 +19,9 @@ SaveEditorUI::~SaveEditorUI()
 
 }
 
-void SaveEditorUI::VisibilityChanged(const bool isVisible)
+void SaveEditorUI::VisibilityChanged(const bool _isVisible)
 {
-	BaseUI::VisibilityChanged(isVisible);
+	BaseUI::VisibilityChanged(_isVisible);
 }
 
 void SaveEditorUI::DoRender()
