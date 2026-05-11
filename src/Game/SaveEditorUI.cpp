@@ -747,7 +747,7 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveData* saveData)
 					InputScalarU16("Survivor Medals", &mpProfile->survivormedals, 16);
 					ImGui::PopStyleColor();
 					ImGui::Separator();
-					uint8_t title = (uint8_t)mpProfile->GetPlayerTitle(true);
+					uint8_t title = (uint8_t)mpProfile->GetPlayerTitle();
 					ImGui::Text("%s: %u", titleNames[title], NUM_MP_TITLES - title);
 
 					ImGui::EndTable();
@@ -1181,7 +1181,7 @@ void SaveEditorUI::RenderMultiplayerSetupsSection(SaveData* saveData)
 
 					PrintHeader("Weapons");
 
-					const bool isN64 = true;// saveData->GetFormat() == SaveFileTypes::BigEndian;
+					const bool isN64 = mainUi->GetSaveFile()->GetFileType() == SaveFileTypes::BigEndian;
 					const uint8_t numWeapons = isN64 ? NUM_MP_WEAPONS_N64 : NUM_MP_WEAPONS_PC;
 					const Weapons* mpWeaponNameIndices = isN64 ? mpWeaponNameIndicesN64 : mpWeaponNameIndicesPC;
 

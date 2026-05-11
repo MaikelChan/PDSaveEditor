@@ -39,6 +39,9 @@ endif()
 # Transparent windows seems to be problematic on some systems, so disable for now
 #target_compile_definitions(${PROJECT_NAME} PRIVATE SUPPORT_TRANSPARENCY)
 
+# Perfect Dark PC port save format is now very different from N64, conversion doesn't work right now.
+target_compile_definitions(${PROJECT_NAME} PRIVATE SUPPORT_PC_SAVES)
+
 # Post build: copy the SDL3.dll to the executable's path
 
 if (WIN32 AND (NOT LINK_SDL3_STATICALLY))

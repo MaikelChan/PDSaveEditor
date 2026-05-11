@@ -11,6 +11,15 @@ struct GameFile;
 struct MultiplayerProfile;
 struct MultiplayerSetup;
 
+#if SUPPORT_PC_SAVES
+constexpr uint8_t NUM_SAVE_FORMATS = 2;
+const char* const saveFormatNames[]
+{
+	"Nintendo 64",
+	"PC"
+};
+#endif
+
 class GameMenuUI : public BaseUI
 {
 private:

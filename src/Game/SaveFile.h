@@ -30,6 +30,10 @@ public:
 	inline std::string GetFileName() const { return fileName; }
 	inline SaveFileTypes GetFileType() const { return fileType; }
 
+#if SUPPORT_PC_SAVES
+	void SaveFile::SetFileType(const SaveFileTypes _fileType);
+#endif
+
 private:
 	static SaveFileTypes CalculateType(uint8_t* fileBuffer);
 };

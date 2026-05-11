@@ -921,7 +921,7 @@ const Weapons mpWeaponNameIndicesN64[NUM_MP_WEAPONS_N64]
 
 // This should match the MP weapons array in the game's source code:
 // mplayer.c, struct mpweapon g_MpWeapons[NUM_MPWEAPONS]
-const Weapons mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC] // 
+const Weapons mpWeaponNameIndicesPC[NUM_MP_WEAPONS_PC]
 {
 	Weapons::NONE,
 	Weapons::FALCON2,
@@ -1047,8 +1047,8 @@ private:
 	bool isChecksumValid{};
 
 public:
-	virtual void Load(uint8_t* fileBuffer, const bool isBigEndian);
-	virtual void Save(uint8_t* fileBuffer, const bool isBigEndian);
+	virtual void Load(uint8_t* fileBuffer, const bool isBigEndian) = 0;
+	virtual void Save(uint8_t* fileBuffer, const bool isBigEndian) = 0;
 
 	bool IsUsed() const { return pakFileHeader.occupied; }
 	bool IsChecksumValid() const { return isChecksumValid; }
@@ -1147,7 +1147,7 @@ public:
 	bool GetWeaponSecondaryFunction(const uint8_t weaponIndex) const;
 	void SetWeaponSecondaryFunction(const uint8_t weaponIndex, const bool secondary);
 
-	MultiplayerTitles GetPlayerTitle(const bool newMethod) const;
+	MultiplayerTitles GetPlayerTitle() const;
 };
 
 struct MultiplayerSetup : public PakFile

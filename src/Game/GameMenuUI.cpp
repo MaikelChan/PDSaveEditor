@@ -23,15 +23,18 @@ void GameMenuUI::VisibilityChanged(const bool _isVisible)
 
 void GameMenuUI::DoRender()
 {
-	SaveData* saveData = mainUi->GetSaveFile()->GetSaveData();
+	SaveFile* saveFile = mainUi->GetSaveFile();
+	SaveData* saveData = saveFile->GetSaveData();
 
 	if (saveData && ImGui::BeginMenu("Tools"))
 	{
-		/*int format = (int)saveData.GetFormat() - 1;
+#if SUPPORT_PC_SAVES
+		int format = (int)saveFile->GetFileType() - 1;
 		if (ImGui::Combo("Save Format", &format, saveFormatNames, NUM_SAVE_FORMATS))
 		{
-			saveData.SetFormat((SaveFormats)(format + 1));
-		}*/
+			saveFile->SetFileType((SaveFileTypes)(format + 1));
+		}
+#endif
 
 		uint8_t gameFileCount = saveData->GetGameFileCount();
 		uint8_t mpSetupCount = saveData->GetMultiplayerSetupCount();

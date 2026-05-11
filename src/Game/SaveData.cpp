@@ -741,88 +741,84 @@ void MultiplayerProfile::SetWeaponSecondaryFunction(const uint8_t weaponIndex, c
 	else gunfuncs[(weaponIndex - 1) >> 3] &= ~(1 << ((weaponIndex - 1) & 7));
 }
 
-MultiplayerTitles MultiplayerProfile::GetPlayerTitle(const bool newMethod) const
+MultiplayerTitles MultiplayerProfile::GetPlayerTitle() const
 {
-	const uint32_t tiersNew[] = { 2, 4, 8, 16, 28, 60, 100, 150, 210, 300 };
-	const uint32_t tiersOld[] = { 2, 4, 8, 16, 28, 48, 78, 138, 198, 300 };
-
+	const uint32_t tiers[] = { 2, 4, 8, 16, 28, 60, 100, 150, 210, 300 };
 	int32_t tallies[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-	int32_t i;
 
-#define MULT(val) (val * (newMethod ? 3 : 1))
-#define TIERS (newMethod ? tiersNew : tiersOld)
+#define MULT(val) (val * 3)
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		if (kills >= TIERS[i] * MULT(20)) tallies[0]++;
+		if (kills >= tiers[t] * MULT(20)) tallies[0]++;
 		else break;
 	}
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		if (gameswon >= TIERS[i] * MULT(1))tallies[1]++;
+		if (gameswon >= tiers[t] * MULT(1))tallies[1]++;
 		else break;
 	}
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		if (accuracymedals >= TIERS[i] * MULT(1)) tallies[2]++;
+		if (accuracymedals >= tiers[t] * MULT(1)) tallies[2]++;
 		else break;
 	}
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		if (headshotmedals >= TIERS[i] * MULT(1)) tallies[3]++;
+		if (headshotmedals >= tiers[t] * MULT(1)) tallies[3]++;
 		else break;
 	}
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		if (killmastermedals >= TIERS[i] * MULT(1)) tallies[4]++;
+		if (killmastermedals >= tiers[t] * MULT(1)) tallies[4]++;
 		else break;
 	}
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		if (time >= TIERS[i] * MULT(1200)) tallies[5]++;
+		if (time >= tiers[t] * MULT(1200)) tallies[5]++;
 		else break;
 	}
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		if (distance >= TIERS[i] * MULT(100)) tallies[6]++;
+		if (distance >= tiers[t] * MULT(100)) tallies[6]++;
 		else break;
 	}
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		if (damagedealt >= TIERS[i] * MULT(1)) tallies[7]++;
+		if (damagedealt >= tiers[t] * MULT(1)) tallies[7]++;
 		else break;
 	}
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		if (ammoused >= TIERS[i] * MULT(500)) tallies[8]++;
+		if (ammoused >= tiers[t] * MULT(500)) tallies[8]++;
 		else break;
 	}
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		if (survivormedals >= TIERS[i] * MULT(1)) tallies[9]++;
+		if (survivormedals >= tiers[t] * MULT(1)) tallies[9]++;
 		else break;
 	}
 
 	int32_t sum = 0;
 
-	for (i = 0; i < NUM_MP_TIERS_TALLIES; i++)
+	for (uint8_t t = 0; t < NUM_MP_TIERS_TALLIES; t++)
 	{
-		sum = sum + tallies[i];
+		sum = sum + tallies[t];
 	}
 
 	if (sum > 100) sum = 100;
 	MultiplayerTitles title = (MultiplayerTitles)(sum / 5);
 
-	if (title > MultiplayerTitles::Perfect) return MultiplayerTitles::Perfect;
+	if (title > MultiplayerTitles::Perfect) title = MultiplayerTitles::Perfect;
 	return title;
 }
 
