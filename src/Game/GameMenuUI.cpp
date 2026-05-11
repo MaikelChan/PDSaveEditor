@@ -207,8 +207,7 @@ void GameMenuUI::CopyGameFile(const GameFile* srcGameFile) const
 
 	if (dstGameFile == nullptr)
 	{
-		//popupDialog->SetMessage(MessageTypes::Error, "Error", "Couldn't find any unused GameFile.");
-		//popupDialog->SetIsVisible(true);
+		mainUi->ShowMessage(MessageTypes::Error, "Error", "Couldn't find any unused GameFile.");
 		return;
 	}
 
@@ -231,8 +230,7 @@ void GameMenuUI::CopyMultiplayerProfile(const MultiplayerProfile* srcMpProfile) 
 
 	if (dstMpProfile == nullptr)
 	{
-		//popupDialog->SetMessage(MessageTypes::Error, "Error", "Couldn't find any unused MultiplayerProfile.");
-		//popupDialog->SetIsVisible(true);
+		mainUi->ShowMessage(MessageTypes::Error, "Error", "Couldn't find any unused MultiplayerProfile.");
 		return;
 	}
 
@@ -255,8 +253,7 @@ void GameMenuUI::CopyMultiplayerSetup(const MultiplayerSetup* srcMpSetup) const
 
 	if (dstMpSetup == nullptr)
 	{
-		//popupDialog->SetMessage(MessageTypes::Error, "Error", "Couldn't find any unused MultiplayerSetup.");
-		//popupDialog->SetIsVisible(true);
+		mainUi->ShowMessage(MessageTypes::Error, "Error", "Couldn't find any unused MultiplayerSetup.");
 		return;
 	}
 
