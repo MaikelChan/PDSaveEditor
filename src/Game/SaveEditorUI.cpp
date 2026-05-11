@@ -610,7 +610,7 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveData* saveData)
 
 					if (ImGui::BeginTable("Challenges Table", 5, flags))
 					{
-						ImGui::TableSetupColumn("Challenge Number");
+						ImGui::TableSetupColumn("Challenge No.");
 						ImGui::TableSetupColumn("Player 1");
 						ImGui::TableSetupColumn("Player 2");
 						ImGui::TableSetupColumn("Player 3");
@@ -847,7 +847,7 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveData* saveData)
 
 					if (ImGui::BeginTable("Challenges Table", 5, flags))
 					{
-						ImGui::TableSetupColumn("Challenge Number");
+						ImGui::TableSetupColumn("Challenge No.");
 						ImGui::TableSetupColumn("Player 1");
 						ImGui::TableSetupColumn("Player 2");
 						ImGui::TableSetupColumn("Player 3");
