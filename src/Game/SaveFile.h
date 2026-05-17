@@ -31,7 +31,7 @@ public:
 	inline SaveFileTypes GetFileType() const { return fileType; }
 
 #if SUPPORT_PC_SAVES
-	void SaveFile::SetFileType(const SaveFileTypes _fileType);
+	void SetFileType(const SaveFileTypes _fileType);
 #endif
 
 private:
