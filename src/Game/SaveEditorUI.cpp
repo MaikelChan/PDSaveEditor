@@ -4,6 +4,7 @@
 
 #include "../MainUI.h"
 #include "../Utils.h"
+#include "../Window.h"
 #include "SaveFile.h"
 
 SaveEditorUI::SaveEditorUI(Window* window, BaseUI* parentUi) : BaseUI(window, parentUi)
@@ -227,6 +228,8 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveData* saveData)
 			{
 				if (gameFile == nullptr)
 				{
+					window->SetTaskbarProgress(0.0f);
+
 					PrintEmptySlot();
 					ImGui::EndTabItem();
 					continue;
@@ -517,6 +520,8 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveData* saveData)
 
 					ImGui::TableHeadersRow();
 
+					uint8_t completedStages = 0;
+
 					for (uint8_t s = 0; s < NUM_SOLOSTAGES; s++)
 					{
 						ImGui::PushID(s);
@@ -537,21 +542,25 @@ void SaveEditorUI::RenderSinglePlayerSection(SaveData* saveData)
 
 							ImGui::SameLine();
 
-							bool completed = (gameFile->coopcompletions[d] & (1 << s)) != 0;
-							if (ImGui::Checkbox("##Coop", &completed))
+							bool coopCompleted = (gameFile->coopcompletions[d] & (1 << s)) != 0;
+							if (ImGui::Checkbox("##Coop", &coopCompleted))
 							{
-								if (completed) gameFile->coopcompletions[d] |= (1 << s);
+								if (coopCompleted) gameFile->coopcompletions[d] |= (1 << s);
 								else gameFile->coopcompletions[d] &= ~(1 << s);
 							}
 
 							if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNone))
 								ImGui::SetTooltip("Coop Completed");
 
+							if (gameFile->besttimes[s][d] > 0 || coopCompleted) completedStages++;
+
 							ImGui::PopID();
 						}
 
 						ImGui::PopID();
 					}
+
+					window->SetTaskbarProgress((float)completedStages / (float)(NUM_SOLOSTAGES * NUM_DIFFICULTIES));
 
 					ImGui::EndTable();
 				}
@@ -691,6 +700,8 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveData* saveData)
 			{
 				if (mpProfile == nullptr)
 				{
+					window->SetTaskbarProgress(0.0f);
+
 					PrintEmptySlot();
 					ImGui::EndTabItem();
 					continue;
@@ -751,6 +762,8 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveData* saveData)
 					ImGui::Text("%s: %u", titleNames[title], NUM_MP_TITLES - title);
 
 					ImGui::EndTable();
+
+					window->SetTaskbarProgress((float)title / (float)(NUM_MP_TITLES - 1));
 				}
 
 				if (ImGui::BeginTable("MpOptionsTable", 2, 0))
@@ -899,6 +912,8 @@ void SaveEditorUI::RenderMultiplayerProfilesSection(SaveData* saveData)
 
 void SaveEditorUI::RenderMultiplayerSetupsSection(SaveData* saveData)
 {
+	window->SetTaskbarProgress(0.0f);
+
 	MultiplayerSetup* mpSetups[NUM_FILE_SLOTS] = {};
 	uint8_t file = 0;
 
